@@ -51,6 +51,31 @@ class Box:
 		self.second_diagonal_coords = second_diagonal_coords
 
 	@property
+	def vertices(self):
+		return (
+			Point(coords=(self.x1, self.y1)),
+			Point(coords=(self.x2, self.y2)),
+			Point(coords=(self.x3, self.y3)),
+			Point(coords=(self.x4, self.y4)),
+		)
+
+	@property
+	def vertex_1(self):
+		return Point(coords=(self.x1, self.y1))
+
+	@property
+	def vertex_2(self):
+		return Point(coords=(self.x2, self.y2))
+
+	@property
+	def vertex_3(self):
+		return Point(coords=(self.x3, self.y3))
+
+	@property
+	def vertex_4(self):
+		return Point(coords=(self.x4, self.y4))
+
+	@property
 	def x1(self) -> int:
 		return self.first_diagonal_coords.x
 

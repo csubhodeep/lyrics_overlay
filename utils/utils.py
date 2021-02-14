@@ -1,5 +1,5 @@
 
-from typing import Iterable
+from typing import Iterable, Tuple
 from statistics import mean
 
 import numpy as np
@@ -69,6 +69,59 @@ def is_inside_box(point: Point,
 
 	return box.y1 <= point.y <= box.y3 and box.x1 <= point.x <= box.x3
 
+
+def is_x_overlap(box_1: Box,
+				 box_2: Box) -> bool:
+
+	return not ((box_1.x1 < box_2.x1 and box_1.x3 < box_2.x1) or (box_1.x1 > box_2.x3 and box_1.x3 > box_2.x3))
+
+	# return set(range(box_1.x1, box_2.x3)).intersection(set(range(box_2.x1, box_2.x3))) != set()
+
+def is_y_overlap(box_1: Box,
+				 box_2: Box) -> bool:
+
+	return not ((box_1.y1 < box_2.y1 and box_1.y3 < box_2.y1) or (box_1.y1 > box_2.y3 and box_1.y3 > box_2.y3))
+
+def get_distance_between_boxes(box_1: Box,
+							   box_2: Box) -> int:
+	"""This function calculates the distance between the two closest points of two boxes
+	"""
+
+	if is_x_overlap(box_1, box_2):
+		if box_1.y1 > box_2.y1:
+			return box_1.y1 - box_2.y3
+		else:
+			return box_2.y1 - box_1.y3
+	elif is_y_overlap(box_1, box_2):
+		if box_1.x1 > box_2.x1:
+			return box_1.x1 - box_2.x3
+		else:
+			return box_2.x1 - box_1.x3
+	else:
+		dist = []
+		for vertex in box_1.vertices:
+			for vertex_2 in box_2.vertices:
+				dist.append(LineSegment(vertex, vertex_2).length)
+		return min(dist)
+
+def get_distance_from_image_edges(image: np.ndarray,
+								  box: Box) -> Tuple[int, int, int, int]:
+	distance_edge_1 = box.x1
+	distance_edge_2 = image.shape[1] - box.x3
+	distance_edge_3 = box.y1
+	distance_edge_4 = image.shape[0] - box.y3
+
+	return (distance_edge_1, distance_edge_2, distance_edge_3, distance_edge_4)
+
+
+def is_lyrics_box_overlaps_person_box(box_1: Box,
+									  box_2: Box) -> bool:
+	# for point in box_1.vertices:
+	# 	if is_inside_box(point, box_2):
+	# 		return True
+
+	return is_x_overlap(box_1, box_2) and is_y_overlap(box_1, box_2)
+
 def get_combined_box(boxes: Iterable[Box]) -> Box:
 
 	min_x = min([box.x1 for box in boxes])
@@ -113,7 +166,5 @@ def get_preferred_centre(boxes: Iterable[Box],
 		# search for an optimal location in the area of the image where there are no boxes
 
 		print("do something else")
-
-
 
 	return preferred_centre
