@@ -46,7 +46,7 @@ class Box:
 		:param first_diagonal_coords: Point(x1, y1)
 		:param second_diagonal_coords: Point(x3, y3)
 		"""
-		assert first_diagonal_coords.x < second_diagonal_coords.x and first_diagonal_coords.y and second_diagonal_coords.y, "Wrong coordinates !"
+		assert first_diagonal_coords.x < second_diagonal_coords.x and first_diagonal_coords.y < second_diagonal_coords.y, "Wrong coordinates !"
 		self.first_diagonal_coords = first_diagonal_coords
 		self.second_diagonal_coords = second_diagonal_coords
 
