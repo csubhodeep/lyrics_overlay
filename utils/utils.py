@@ -17,6 +17,7 @@ def len_of_text_list(text: Iterable[str]) -> int:
 	length += text_pad  # adding text pad for right side
 	return length
 
+
 def text_fits_box(lyrics: Lyrics,
 				  font_size: int,
 				  form: int,  # 1,2,3
@@ -40,12 +41,6 @@ def text_fits_box(lyrics: Lyrics,
 	return 0.8*box.width < expected_width <= box.width and 0.8*box.height < expected_height <= box.height
 
 
-def get_nearness_to_preferred_centre(centre_1: Point,
-                                     centre_2: Point)->int:
-	line_seg = LineSegment(centre_1, centre_2)
-
-	return line_seg.length
-
 def get_overlap_with_mask(image: np.ndarray,
 						  lyrics_box: Box,
 						  padding: int):
@@ -58,34 +53,6 @@ def get_overlap_with_mask(image: np.ndarray,
 
 	return score
 
-def get_distance_between_boxes(box_1: Box,
-							   box_2: Box) -> int:
-	"""This function calculates the distance between the two closest points of two boxes
-	"""
-
-	if box_1.is_x_overlapping(box_2):
-		if box_1.vertex_1.y > box_2.vertex_1.y:
-			return box_1.vertex_1.y - box_2.vertex_3.y
-		else:
-			return box_2.vertex_1.y - box_1.vertex_3.y
-	elif box_1.is_y_overlapping(box_2):
-		if box_1.vertex_1.x > box_2.vertex_1.x:
-			return box_1.vertex_1.x - box_2.vertex_3.x
-		else:
-			return box_2.vertex_1.x - box_1.vertex_3.x
-	else:
-		dist = []
-		for vertex in box_1.vertices:
-			for vertex_2 in box_2.vertices:
-				dist.append(LineSegment(vertex, vertex_2).length)
-		return min(dist)
-
-def overlay_box_on_image(box: Box,
-						 image: np.ndarray):
-	overlaid_image = image.copy()
-	overlaid_image[box.vertex_1.y:box.vertex_3.y, box.vertex_1.x:box.vertex_3.x] = -1
-	plt.imshow(overlaid_image)
-	plt.show()
 
 def get_distance_from_image_edges(image: np.ndarray,
 								  box: Box) -> Tuple[int, int, int, int]:
@@ -109,6 +76,14 @@ def get_combined_box(boxes: Iterable[Box]) -> Box:
 				  second_diagonal_coords=Point((max_x, max_y)))
 
 	return new_box
+
+
+def get_nearness_to_preferred_centre(centre_1: Point,
+                                     centre_2: Point)->int:
+	line_seg = LineSegment(centre_1, centre_2)
+
+	return line_seg.length
+
 
 def get_preferred_centre(boxes: Iterable[Box],
 						 image: np.ndarray) -> Point:

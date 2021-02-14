@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import numpy as np
 from scipy.optimize import differential_evolution
 
@@ -5,11 +6,8 @@ from typing import Iterable
 
 from lib.defs import Box, Point, Lyrics
 from utils.utils import text_fits_box
-from utils.utils import get_distance_between_boxes
 from utils.utils import get_distance_from_image_edges
-from utils.utils import overlay_box_on_image
 
-LOSS = []
 
 def get_loss(x,
 			 binary_mask: np.ndarray,
@@ -20,46 +18,43 @@ def get_loss(x,
 	try:
 		lyrics_box = Box(first_diagonal_coords=Point(coords=(x[0], x[1])),
 						 second_diagonal_coords=Point(coords=(x[2], x[3])))
-		if not text_fits_box(text, font_size=3, box=lyrics_box, form=int(round(x[4]))):
-			return 2500
-
-		if any([lyrics_box.is_overlapping(person_box) for person_box in person_boxes]):
-			return 5000
-		w1 = 0.50
-		w2 = 0.50
-		# include the following:
-		# distance from all person-boxes - w1
-
-		# iterate over all the edges of all person-boxes and find the distances of them from the lyrics-box
-		if len(person_boxes):
-			distance_persons = tuple([get_distance_between_boxes(person_box, lyrics_box) for person_box in person_boxes])
-		else:
-			distance_persons = tuple([])
-
-		# balance_1 = np.nan_to_num(np.var(distance_persons))
-
-
-		## distance from all 4 edges - w2
-		distance_edges = get_distance_from_image_edges(binary_mask, lyrics_box)
-
-		# balance_2 = np.var(distance_edges)
-
-		# loss = w1*balance_1 + w2*balance_2
-
-		all_distances = distance_edges+distance_persons
-
-		if min(all_distances) < 5:
-			loss = 1000
-		else:
-			loss = np.var(all_distances)
-
-		# loss = np.var(all_distances)
 	except AssertionError as ex:
-		loss = 10000
+		return 10000
 
-	LOSS.append(loss)
+	if any([lyrics_box.is_overlapping(person_box) for person_box in person_boxes]):
+		return 5000
 
-	return loss
+	if not text_fits_box(text, font_size=3, box=lyrics_box, form=int(round(x[4]))):
+		return 2500
+
+	w1 = 0.50
+	w2 = 0.50
+	# include the following:
+	# distance from all person-boxes - w1
+
+	# iterate over all the edges of all person-boxes and find the distances of them from the lyrics-box
+	if len(person_boxes):
+		distance_persons = tuple([lyrics_box.get_distance_from(person_box) for person_box in person_boxes])
+	else:
+		distance_persons = tuple([])
+
+	# balance_1 = np.nan_to_num(np.var(distance_persons))
+
+	## distance from all 4 edges - w2
+	distance_edges = get_distance_from_image_edges(binary_mask, lyrics_box)
+
+	# balance_2 = np.var(distance_edges)
+
+	# loss = w1*balance_1 + w2*balance_2
+	all_distances = distance_edges+distance_persons
+
+	if min(all_distances) < 5:
+		return 1000
+	else:
+		return np.var(all_distances)
+
+	# loss = np.var(all_distances)
+
 
 if __name__ == "__main__":
 	lyrics = Lyrics("I love you I love you I love you I love you")
@@ -132,14 +127,13 @@ if __name__ == "__main__":
 								 args=(binary_mask, persons, lyrics),
 								 popsize=100
 								 )
-	import matplotlib.pyplot as plt
-	plt.plot(LOSS)
-	plt.show()
+
 	if res.success:
 		optimal_box = Box(first_diagonal_coords=Point((res.x[0], res.x[1])),
 					  second_diagonal_coords=Point((res.x[2], res.x[3])))
 
-		overlay_box_on_image(optimal_box, binary_mask)
+		plt.imshow(optimal_box.overlay_on_image(binary_mask))
+		plt.show()
 		print(res)
 
 

@@ -2,6 +2,7 @@ from typing import Tuple
 from typing import Union
 from typing import Iterable
 from fractions import Fraction
+import numpy as np
 
 
 class Point:
@@ -103,21 +104,47 @@ class Box:
 	def aspect_ratio(self) -> Tuple[int, int]:
 		return Fraction(self.width / self.height).as_integer_ratio()
 
+	def get_distance_from(self, box_2) -> int:
+		"""This function calculates the distance between the two closest points of two boxes
+		"""
+		if self.is_x_overlapping(box_2):
+			if self.vertex_1.y > box_2.vertex_1.y:
+				return self.vertex_1.y - box_2.vertex_3.y
+			else:
+				return box_2.vertex_1.y - self.vertex_3.y
+		elif self.is_y_overlapping(box_2):
+			if self.vertex_1.x > box_2.vertex_1.x:
+				return self.vertex_1.x - box_2.vertex_3.x
+			else:
+				return box_2.vertex_1.x - self.vertex_3.x
+		else:
+			dist = []
+			for vertex in self.vertices:
+				for vertex_2 in box_2.vertices:
+					dist.append(LineSegment(vertex, vertex_2).length)
+			return min(dist)
+
 	def is_x_overlapping(self,
-					 box_2) -> bool:
+					     box_2) -> bool:
 		return not ((self.vertex_1.x < box_2.vertex_1.x and self.vertex_3.x < box_2.vertex_1.x) or
 					(self.vertex_1.x > box_2.vertex_3.x and self.vertex_3.x > box_2.vertex_3.x))
 
 	def is_y_overlapping(self,
-					 box_2) -> bool:
+					     box_2) -> bool:
 		return not ((self.vertex_1.y < box_2.vertex_1.y and self.vertex_3.y < box_2.vertex_1.y) or
 					(self.vertex_1.y > box_2.vertex_3.y and self.vertex_3.y > box_2.vertex_3.y))
 
-	def is_overlapping(self, box):
-		return self.is_x_overlapping(box) and self.is_y_overlapping(box)
+	def is_overlapping(self, box_2):
+		return self.is_x_overlapping(box_2) and self.is_y_overlapping(box_2)
 
 	def is_enclosing(self, point: Point):
 		return self.vertex_1.y <= point.y <= self.vertex_3.y and self.vertex_1.x <= point.x <= self.vertex_3.x
+
+	def overlay_on_image(self,
+						 image: np.ndarray) -> np.ndarray:
+		overlaid_image = image.copy()
+		overlaid_image[self.vertex_1.y:self.vertex_3.y, self.vertex_1.x:self.vertex_3.x] = -1
+		return overlaid_image
 
 
 class Lyrics:
