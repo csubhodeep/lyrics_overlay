@@ -4,6 +4,7 @@ from typing import Iterable
 
 class Point:
 	def __init__(self, coords: Union[Tuple[int, int], Tuple[float, float]]):
+		assert coords[0] >= 0 and coords[1] >= 0, "Negative coordinates are not allowed !"
 		self._x = int(round(coords[0]))
 		self._y = int(round(coords[1]))
 
