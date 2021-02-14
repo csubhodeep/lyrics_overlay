@@ -2,18 +2,11 @@
 from typing import Iterable, Tuple
 from statistics import mean
 
+import matplotlib.pyplot as plt
 import numpy as np
 
 from lib.defs import Box, Point, LineSegment, Lyrics
 
-# def text_fits_box(text: Lyrics,
-# 				  font_size: int,
-# 				  box: LyricsBox
-# 				  ) -> bool:
-# 	# assuming a particular formation e.g. for now one word comes under another
-#
-#
-# 	return box.area > 20 and box.width > 10 and box.height > 10 and box.height == box.width
 
 def len_of_text_list(text: Iterable[str]) -> int:
 	text_pad = 1
@@ -43,6 +36,7 @@ def text_fits_box(lyrics: Lyrics,
 	expected_width = max(lengths_of_lines) * font_size
 	expected_height = (n_words / form) * font_size
 
+	# 	return box.area > 20 and box.width > 10 and box.height > 10 and box.height == box.width
 	return expected_width <= box.width and expected_height <= box.height
 
 
@@ -103,6 +97,13 @@ def get_distance_between_boxes(box_1: Box,
 			for vertex_2 in box_2.vertices:
 				dist.append(LineSegment(vertex, vertex_2).length)
 		return min(dist)
+
+def overlay_box_on_image(box: Box,
+						 image: np.ndarray):
+	overlaid_image = image.copy()
+	overlaid_image[box.y1:box.y3, box.x1:box.x3] = -1
+	plt.imshow(overlaid_image)
+	plt.show()
 
 def get_distance_from_image_edges(image: np.ndarray,
 								  box: Box) -> Tuple[int, int, int, int]:
