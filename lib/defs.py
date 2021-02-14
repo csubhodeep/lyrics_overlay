@@ -4,7 +4,7 @@ from typing import Iterable
 
 
 class Point:
-	def __init__(self, coords: Union[Tuple[int, int], Tuple[float, float]]):
+	def __init__(self, coords: Tuple[Union[int, float], Union[int, float]]):
 		assert coords[0] >= 0 and coords[1] >= 0, "Negative coordinates are not allowed !"
 		self._x = int(round(coords[0]))
 		self._y = int(round(coords[1]))
@@ -130,13 +130,12 @@ class Box:
 					 box_2) -> bool:
 		return not ((self.x1 < box_2.x1 and self.x3 < box_2.x1) or (self.x1 > box_2.x3 and self.x3 > box_2.x3))
 
-
 	def is_y_overlapping(self,
 					 box_2) -> bool:
 		return not ((self.y1 < box_2.y1 and self.y3 < box_2.y1) or (self.y1 > box_2.y3 and self.y3 > box_2.y3))
 
 	def is_overlapping(self, box):
-		return is_x_overlap(self, box) and is_y_overlap(self, box)
+		return self.is_x_overlapping(box) and self.is_y_overlapping(box)
 
 	def is_enclosing(self, point: Point):
 		return self.y1 <= point.y <= self.y3 and self.x1 <= point.x <= self.x3

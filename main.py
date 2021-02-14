@@ -77,9 +77,9 @@ if __name__ == "__main__":
 	# #binary_mask[y1:y3, x1:x3]
 
 	### case 0
-	binary_mask = np.zeros([100, 100])
-
-	persons = ()
+	# binary_mask = np.zeros([100, 100])
+	#
+	# persons = ()
 
 
 	### case 1
@@ -91,17 +91,17 @@ if __name__ == "__main__":
 	# 	)
 
 	### case 2
-	# binary_mask = np.zeros([100, 100])
-	#
-	# binary_mask[10:30, 10:30] = 1
-	# binary_mask[40:60, 40:60] = 1
-	# binary_mask[70:90, 70:90] = 1
-	#
-	# persons = (
-	# 	Box(first_diagonal_coords=Point(coords=(10, 10)), second_diagonal_coords=Point(coords=(30, 30))),
-	# 	Box(first_diagonal_coords=Point(coords=(40, 40)), second_diagonal_coords=Point(coords=(60, 60))),
-	# 	Box(first_diagonal_coords=Point(coords=(70, 70)), second_diagonal_coords=Point(coords=(90, 90)))
-	# )
+	binary_mask = np.zeros([100, 100])
+
+	binary_mask[10:30, 10:30] = 1
+	binary_mask[40:60, 40:60] = 1
+	binary_mask[70:90, 70:90] = 1
+
+	persons = (
+		Box(first_diagonal_coords=Point(coords=(10, 10)), second_diagonal_coords=Point(coords=(30, 30))),
+		Box(first_diagonal_coords=Point(coords=(40, 40)), second_diagonal_coords=Point(coords=(60, 60))),
+		Box(first_diagonal_coords=Point(coords=(70, 70)), second_diagonal_coords=Point(coords=(90, 90)))
+	)
 
 	### case 3
 	# binary_mask = np.zeros([100, 100])
