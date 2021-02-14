@@ -58,35 +58,17 @@ def get_overlap_with_mask(image: np.ndarray,
 
 	return score
 
-def is_inside_box(point: Point,
-				  box: Box) -> bool:
-
-	return box.y1 <= point.y <= box.y3 and box.x1 <= point.x <= box.x3
-
-
-def is_x_overlap(box_1: Box,
-				 box_2: Box) -> bool:
-
-	return not ((box_1.x1 < box_2.x1 and box_1.x3 < box_2.x1) or (box_1.x1 > box_2.x3 and box_1.x3 > box_2.x3))
-
-	# return set(range(box_1.x1, box_2.x3)).intersection(set(range(box_2.x1, box_2.x3))) != set()
-
-def is_y_overlap(box_1: Box,
-				 box_2: Box) -> bool:
-
-	return not ((box_1.y1 < box_2.y1 and box_1.y3 < box_2.y1) or (box_1.y1 > box_2.y3 and box_1.y3 > box_2.y3))
-
 def get_distance_between_boxes(box_1: Box,
 							   box_2: Box) -> int:
 	"""This function calculates the distance between the two closest points of two boxes
 	"""
 
-	if is_x_overlap(box_1, box_2):
+	if box_1.is_x_overlapping(box_2):
 		if box_1.y1 > box_2.y1:
 			return box_1.y1 - box_2.y3
 		else:
 			return box_2.y1 - box_1.y3
-	elif is_y_overlap(box_1, box_2):
+	elif box_1.is_y_overlapping(box_2):
 		if box_1.x1 > box_2.x1:
 			return box_1.x1 - box_2.x3
 		else:
@@ -114,14 +96,6 @@ def get_distance_from_image_edges(image: np.ndarray,
 
 	return (distance_edge_1, distance_edge_2, distance_edge_3, distance_edge_4)
 
-
-def is_lyrics_box_overlaps_person_box(box_1: Box,
-									  box_2: Box) -> bool:
-	# for point in box_1.vertices:
-	# 	if is_inside_box(point, box_2):
-	# 		return True
-
-	return is_x_overlap(box_1, box_2) and is_y_overlap(box_1, box_2)
 
 def get_combined_box(boxes: Iterable[Box]) -> Box:
 
@@ -157,7 +131,7 @@ def get_preferred_centre(boxes: Iterable[Box],
 		naive_centre = Point(coords=(naive_centre_x, naive_centre_y))
 
 		# if the naive centre is inside any box
-		if any([is_inside_box(naive_centre, box) for box in boxes]):
+		if any([box.is_enclosing(naive_centre) for box in boxes]):
 			# TODO: develop a better logic here !
 			# then return the centre of the imaage as the preferred centre
 			preferred_centre = Point(coords=(image.shape[0] // 2, image.shape[1] // 2))

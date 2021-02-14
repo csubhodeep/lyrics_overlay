@@ -5,7 +5,6 @@ from typing import Iterable
 
 from lib.defs import Box, Point, Lyrics
 from utils.utils import text_fits_box
-from utils.utils import	is_lyrics_box_overlaps_person_box
 from utils.utils import get_distance_between_boxes
 from utils.utils import get_distance_from_image_edges
 from utils.utils import overlay_box_on_image
@@ -26,7 +25,7 @@ def get_loss(x,  # diagonal coords only,
 		if not text_fits_box(text, font_size=3, box=lyrics_box, form=int(round(x[4]))):
 			return 2500
 		# TODO: elif not is_text_tight_in_box():
-		if any([is_lyrics_box_overlaps_person_box(lyrics_box, person_box) for person_box in person_boxes]):
+		if any([lyrics_box.is_overlapping(person_box) for person_box in person_boxes]):
 			return 5000
 		w1 = 0.50
 		w2 = 0.50
