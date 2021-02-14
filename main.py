@@ -10,7 +10,6 @@ from utils.utils import	is_lyrics_box_overlaps_person_box
 from utils.utils import get_distance_between_boxes
 from utils.utils import get_distance_from_image_edges
 
-
 # define loss/cost function
 def get_loss(x,  # diagonal coords only,
 			 binary_mask: np.ndarray,
@@ -23,7 +22,7 @@ def get_loss(x,  # diagonal coords only,
 		lyrics_box = Box(first_diagonal_coords=Point(coords=(x[0], x[1])),
 						 second_diagonal_coords=Point(coords=(x[2], x[3])))
 		# TODO: why not exclude certain solutions before triggering the opti algo for faster convergence
-		if not text_fits_box(text, font_size, box=lyrics_box, form=int(round(x[4]))):
+		if not text_fits_box(text, font_size=1, box=lyrics_box, form=2):
 			loss = 800
 		elif any([is_lyrics_box_overlaps_person_box(lyrics_box, person_box) for person_box in person_boxes]):
 			loss = 1000
@@ -73,5 +72,9 @@ if __name__ == "__main__":
 								 bounds=limits,
 								 args=(binary_mask_4, persons, lyrics)
 								 )
+
+	optimal_box = Box(first_diagonal_coords=Point((res.x[0], res.x[1])),
+					  second_diagonal_coords=Point((res.x[2], res.x[3])))
+
 
 

@@ -136,7 +136,7 @@ class Lyrics:
 
 	@property
 	def text(self) -> Iterable[str]:
-		return self.text
+		return self._text
 
 	@property
 	def longest_word(self):
