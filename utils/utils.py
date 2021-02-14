@@ -37,7 +37,7 @@ def text_fits_box(lyrics: Lyrics,
 	expected_height = (n_words / form) * font_size
 
 	# 	return box.area > 20 and box.width > 10 and box.height > 10 and box.height == box.width
-	return expected_width <= box.width and expected_height <= box.height
+	return 0.8*box.width < expected_width <= box.width and 0.8*box.height < expected_height <= box.height
 
 
 def get_nearness_to_preferred_centre(centre_1: Point,
