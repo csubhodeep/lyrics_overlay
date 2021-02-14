@@ -33,7 +33,13 @@ def get_overlap_with_mask(image: np.ndarray,
 
 	return score
 
-def get_preferred_centre(boxes: Iterable[LyricsBox]) -> Point:
+def is_inside_box(point: Point,
+				  box: LyricsBox) -> bool:
+
+	return box.y1 <= point.y <= box.y3 and box.x1 <= point.x <= box.x3
+
+def get_preferred_centre(boxes: Iterable[LyricsBox],
+						 image: np.ndarray) -> Point:
 
 	list_of_centres = [box.centre for box in boxes]
 
@@ -41,5 +47,8 @@ def get_preferred_centre(boxes: Iterable[LyricsBox]) -> Point:
 	naive_centre_y = mean([centre.y for centre in list_of_centres])
 
 	naive_centre = Point(coords=(naive_centre_x, naive_centre_y))
+
+	if any([is_inside_box(naive_centre, box) for box in boxes]):
+		return Point(coords=(image.shape[0]//2, image.shape[1]//2))
 
 	return naive_centre
