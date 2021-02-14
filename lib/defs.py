@@ -27,7 +27,7 @@ class LineSegment:
 	def length(self):
 		return ((self.first_coord.x-self.second_coord.x)**2 + (self.first_coord.y-self.second_coord.y)**2)**0.5
 
-class LyricsBox:
+class Box:
 	"""
 	A box is represented as below
 		(x1, y1)              (x2, y2)
@@ -105,17 +105,16 @@ class Lyrics:
 		assert len(text)
 
 		if isinstance(text, str):
-			self.text = tuple(text.split(" "))
+			self._text = tuple(text.split(" "))
 		else:
-			self.text = tuple(text)
+			self._text = tuple(text)
 
 	@property
-	def lyrics(self) -> Iterable[str]:
+	def text(self) -> Iterable[str]:
 		return self.text
 
 	@property
 	def longest_word(self):
-
 		word = self.text[0]
 		for w in self.text:
 			if len(w) > len(word):
