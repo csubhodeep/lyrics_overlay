@@ -1,6 +1,7 @@
 from typing import Tuple
 from typing import Union
 from typing import Iterable
+from fractions import Fraction
 
 
 class Point:
@@ -93,6 +94,14 @@ class Box:
 		x_centre = (self.vertex_1.x+self.vertex_3.x)//2
 		y_centre = (self.vertex_1.y+self.vertex_3.y)//2
 		return Point(coords=(x_centre, y_centre))
+
+	@property
+	def diagonal_length(self) -> int:
+		return LineSegment(first_coord=self.vertex_1, second_coord=self.vertex_3).length
+
+	@property
+	def aspect_ratio(self) -> Tuple[int, int]:
+		return Fraction(self.width / self.height).as_integer_ratio()
 
 	def is_x_overlapping(self,
 					 box_2) -> bool:
