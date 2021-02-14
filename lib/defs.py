@@ -54,67 +54,35 @@ class Box:
 	@property
 	def vertices(self):
 		return (
-			Point(coords=(self.x1, self.y1)),
-			Point(coords=(self.x2, self.y2)),
-			Point(coords=(self.x3, self.y3)),
-			Point(coords=(self.x4, self.y4)),
+			self.vertex_1,
+			self.vertex_2,
+			self.vertex_3,
+			self.vertex_4
 		)
 
 	@property
 	def vertex_1(self):
-		return Point(coords=(self.x1, self.y1))
+		return Point(coords=(self.first_diagonal_coords.x, self.first_diagonal_coords.y))
 
 	@property
 	def vertex_2(self):
-		return Point(coords=(self.x2, self.y2))
+		return Point(coords=(self.second_diagonal_coords.x, self.first_diagonal_coords.y))
 
 	@property
 	def vertex_3(self):
-		return Point(coords=(self.x3, self.y3))
+		return Point(coords=(self.second_diagonal_coords.x, self.second_diagonal_coords.y))
 
 	@property
 	def vertex_4(self):
-		return Point(coords=(self.x4, self.y4))
-
-	@property
-	def x1(self) -> int:
-		return self.first_diagonal_coords.x
-
-	@property
-	def y1(self) -> int:
-		return self.first_diagonal_coords.y
-
-	@property
-	def x2(self) -> int:
-		return self.second_diagonal_coords.x
-
-	@property
-	def y2(self) -> int:
-		return self.first_diagonal_coords.y
-
-	@property
-	def x3(self) -> int:
-		return self.second_diagonal_coords.x
-
-	@property
-	def y3(self) -> int:
-		return self.second_diagonal_coords.y
-
-	@property
-	def x4(self) -> int:
-		return self.first_diagonal_coords.x
-
-	@property
-	def y4(self) -> int:
-		return self.second_diagonal_coords.y
+		return Point(coords=(self.first_diagonal_coords.x, self.second_diagonal_coords.y))
 
 	@property
 	def height(self) -> int:
-		return self.y4 - self.y1
+		return self.vertex_4.y - self.vertex_1.y
 
 	@property
 	def width(self) -> int:
-		return self.x2 - self.x1
+		return self.vertex_2.x - self.vertex_1.x
 
 	@property
 	def area(self) -> int:
@@ -122,23 +90,25 @@ class Box:
 
 	@property
 	def centre(self) -> Point:
-		x_centre = (self.x1+self.x3)//2
-		y_centre = (self.y1+self.y3)//2
+		x_centre = (self.vertex_1.x+self.vertex_3.x)//2
+		y_centre = (self.vertex_1.y+self.vertex_3.y)//2
 		return Point(coords=(x_centre, y_centre))
 
 	def is_x_overlapping(self,
 					 box_2) -> bool:
-		return not ((self.x1 < box_2.x1 and self.x3 < box_2.x1) or (self.x1 > box_2.x3 and self.x3 > box_2.x3))
+		return not ((self.vertex_1.x < box_2.vertex_1.x and self.vertex_3.x < box_2.vertex_1.x) or
+					(self.vertex_1.x > box_2.vertex_3.x and self.vertex_3.x > box_2.vertex_3.x))
 
 	def is_y_overlapping(self,
 					 box_2) -> bool:
-		return not ((self.y1 < box_2.y1 and self.y3 < box_2.y1) or (self.y1 > box_2.y3 and self.y3 > box_2.y3))
+		return not ((self.vertex_1.y < box_2.vertex_1.y and self.vertex_3.y < box_2.vertex_1.y) or
+					(self.vertex_1.y > box_2.vertex_3.y and self.vertex_3.y > box_2.vertex_3.y))
 
 	def is_overlapping(self, box):
 		return self.is_x_overlapping(box) and self.is_y_overlapping(box)
 
 	def is_enclosing(self, point: Point):
-		return self.y1 <= point.y <= self.y3 and self.x1 <= point.x <= self.x3
+		return self.vertex_1.y <= point.y <= self.vertex_3.y and self.vertex_1.x <= point.x <= self.vertex_3.x
 
 
 class Lyrics:

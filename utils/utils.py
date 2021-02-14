@@ -51,8 +51,8 @@ def get_overlap_with_mask(image: np.ndarray,
 						  padding: int):
 	box_array = np.ones(shape=[lyrics_box.height + padding, lyrics_box.width + padding])
 
-	cropped_image_array = image[lyrics_box.y1 - padding // 2:lyrics_box.y3 + padding // 2,
-						        lyrics_box.x1 - padding // 2:lyrics_box.x3 + padding // 2]
+	cropped_image_array = image[lyrics_box.vertex_1.y - padding // 2:lyrics_box.vertex_3.y + padding // 2,
+						        lyrics_box.vertex_1.x - padding // 2:lyrics_box.vertex_3.x + padding // 2]
 
 	score = (box_array * cropped_image_array).sum()
 
@@ -64,15 +64,15 @@ def get_distance_between_boxes(box_1: Box,
 	"""
 
 	if box_1.is_x_overlapping(box_2):
-		if box_1.y1 > box_2.y1:
-			return box_1.y1 - box_2.y3
+		if box_1.vertex_1.y > box_2.vertex_1.y:
+			return box_1.vertex_1.y - box_2.vertex_3.y
 		else:
-			return box_2.y1 - box_1.y3
+			return box_2.vertex_1.y - box_1.vertex_3.y
 	elif box_1.is_y_overlapping(box_2):
-		if box_1.x1 > box_2.x1:
-			return box_1.x1 - box_2.x3
+		if box_1.vertex_1.x > box_2.vertex_1.x:
+			return box_1.vertex_1.x - box_2.vertex_3.x
 		else:
-			return box_2.x1 - box_1.x3
+			return box_2.vertex_1.x - box_1.vertex_3.x
 	else:
 		dist = []
 		for vertex in box_1.vertices:
@@ -83,27 +83,27 @@ def get_distance_between_boxes(box_1: Box,
 def overlay_box_on_image(box: Box,
 						 image: np.ndarray):
 	overlaid_image = image.copy()
-	overlaid_image[box.y1:box.y3, box.x1:box.x3] = -1
+	overlaid_image[box.vertex_1.y:box.vertex_3.y, box.vertex_1.x:box.vertex_3.x] = -1
 	plt.imshow(overlaid_image)
 	plt.show()
 
 def get_distance_from_image_edges(image: np.ndarray,
 								  box: Box) -> Tuple[int, int, int, int]:
-	distance_edge_1 = box.x1
-	distance_edge_2 = image.shape[1] - box.x3
-	distance_edge_3 = box.y1
-	distance_edge_4 = image.shape[0] - box.y3
+	distance_edge_1 = box.vertex_1.x
+	distance_edge_2 = image.shape[1] - box.vertex_3.x
+	distance_edge_3 = box.vertex_1.y
+	distance_edge_4 = image.shape[0] - box.vertex_3.y
 
 	return (distance_edge_1, distance_edge_2, distance_edge_3, distance_edge_4)
 
 
 def get_combined_box(boxes: Iterable[Box]) -> Box:
 
-	min_x = min([box.x1 for box in boxes])
-	min_y = min([box.y1 for box in boxes])
+	min_x = min([box.vertex_1.x for box in boxes])
+	min_y = min([box.vertex_1.y for box in boxes])
 
-	max_x = max([box.x3 for box in boxes])
-	max_y = max([box.y3 for box in boxes])
+	max_x = max([box.vertex_3.x for box in boxes])
+	max_y = max([box.vertex_3.y for box in boxes])
 
 	new_box = Box(first_diagonal_coords=Point((min_x, min_y)),
 				  second_diagonal_coords=Point((max_x, max_y)))
