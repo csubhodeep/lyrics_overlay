@@ -3,7 +3,7 @@ import numpy as np
 from scipy.optimize import differential_evolution
 
 from lib.defs import LyricsBox, Point, Lyrics
-from utils.utils import text_fits_box, get_nearness_to_preferred_centre, get_overlap_with_mask
+from utils.utils import text_fits_box, get_nearness_to_preferred_centre, get_overlap_with_mask, get_preferred_centre
 
 
 # define loss/cost function
@@ -18,8 +18,8 @@ def get_loss(x,  # diagonal coords only,
 	w2 = 0.2
 
 	try:
-		lyrics_box = LyricsBox(first_diagonal_coords=Point(coords=(int(x[0]), int(x[1]))),
-							   second_diagonal_coords=Point(coords=(int(x[2]), int(x[3]))))
+		lyrics_box = LyricsBox(first_diagonal_coords=Point(coords=(x[0], x[1])),
+							   second_diagonal_coords=Point(coords=(x[2], x[3])))
 		# TODO: why not exclude certain solutions before triggering the opti algo for faster convergence
 		if not text_fits_box(text, font_size, lyrics_box):
 			loss = 800

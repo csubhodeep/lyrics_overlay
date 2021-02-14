@@ -1,5 +1,10 @@
-from lib.defs import LyricsBox, Point, LineSegment, Lyrics
+
+from typing import Iterable
+from statistics import mean
+
 import numpy as np
+
+from lib.defs import LyricsBox, Point, LineSegment, Lyrics
 
 def text_fits_box(text: Lyrics,
 				  font_size: int,
@@ -28,8 +33,13 @@ def get_overlap_with_mask(image: np.ndarray,
 
 	return score
 
-def get_preferred_centre(image: np.ndarray) -> Point:
+def get_preferred_centre(boxes: Iterable[LyricsBox]) -> Point:
 
+	list_of_centres = [box.centre for box in boxes]
 
+	naive_centre_x = mean([centre.x for centre in list_of_centres])
+	naive_centre_y = mean([centre.y for centre in list_of_centres])
 
-    return Point(coords=(50,50))
+	naive_centre = Point(coords=(naive_centre_x, naive_centre_y))
+
+	return naive_centre
