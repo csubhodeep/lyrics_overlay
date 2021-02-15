@@ -14,11 +14,11 @@ class Point:
 		self._y = int(round(coords[1]))
 
 	@property
-	def x(self):
+	def x(self) -> int:
 		return self._x
 
 	@property
-	def y(self):
+	def y(self) -> int:
 		return self._y
 
 class LineSegment:
@@ -29,11 +29,11 @@ class LineSegment:
 		self._second_coord = second_coord
 
 	@property
-	def point_1(self):
+	def point_1(self) -> Point:
 		return self._first_coord
 
 	@property
-	def point_2(self):
+	def point_2(self) -> Point:
 		return self._second_coord
 
 	@property
@@ -68,7 +68,7 @@ class Box:
 		self._second_diagonal_coords = second_diagonal_coords
 
 	@property
-	def vertices(self):
+	def vertices(self) -> Tuple[Point, Point, Point, Point]:
 		return (
 			self.vertex_1,
 			self.vertex_2,
@@ -77,19 +77,19 @@ class Box:
 		)
 
 	@property
-	def vertex_1(self):
+	def vertex_1(self) -> Point:
 		return Point(coords=(self._first_diagonal_coords.x, self._first_diagonal_coords.y))
 
 	@property
-	def vertex_2(self):
+	def vertex_2(self) -> Point:
 		return Point(coords=(self._second_diagonal_coords.x, self._first_diagonal_coords.y))
 
 	@property
-	def vertex_3(self):
+	def vertex_3(self) -> Point:
 		return Point(coords=(self._second_diagonal_coords.x, self._second_diagonal_coords.y))
 
 	@property
-	def vertex_4(self):
+	def vertex_4(self) -> Point:
 		return Point(coords=(self._first_diagonal_coords.x, self._second_diagonal_coords.y))
 
 	@property
@@ -146,10 +146,10 @@ class Box:
 		return not ((self.vertex_1.y < box_2.vertex_1.y and self.vertex_3.y < box_2.vertex_1.y) or
 					(self.vertex_1.y > box_2.vertex_3.y and self.vertex_3.y > box_2.vertex_3.y))
 
-	def is_overlapping(self, box_2):
+	def is_overlapping(self, box_2) -> bool:
 		return self.is_x_overlapping(box_2) and self.is_y_overlapping(box_2)
 
-	def is_enclosing(self, point: Point):
+	def is_enclosing(self, point: Point) -> bool:
 		return self.vertex_1.y <= point.y <= self.vertex_3.y and self.vertex_1.x <= point.x <= self.vertex_3.x
 
 	def overlay_on_image(self,
@@ -173,7 +173,7 @@ class Lyrics:
 		return self._text
 
 	@property
-	def longest_word(self):
+	def longest_word(self) -> str:
 		word = self.text[0]
 		for w in self.text:
 			if len(w) > len(word):
@@ -184,5 +184,5 @@ class Lyrics:
 		return word
 
 	@property
-	def length_of_longest_word(self):
+	def length_of_longest_word(self) -> int:
 		return len(self.longest_word)
