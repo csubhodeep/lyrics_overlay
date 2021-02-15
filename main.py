@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.optimize import differential_evolution
 
+from statistics import variance
 from typing import Iterable
 
 from lib.defs import Box, Point, Lyrics
@@ -43,7 +44,7 @@ def get_loss(x,
 	## distance from all 4 edges - w2
 	distance_edges = get_distance_from_image_edges(binary_mask, lyrics_box)
 
-	# balance_2 = np.var(distance_edges)
+	# balance_2 = variance(distance_edges)
 
 	# loss = w1*balance_1 + w2*balance_2
 	all_distances = distance_edges+distance_persons
@@ -51,7 +52,7 @@ def get_loss(x,
 	if min(all_distances) < 5:
 		return 1000
 	else:
-		return np.var(all_distances)
+		return variance(all_distances)
 
 	# loss = np.var(all_distances)
 

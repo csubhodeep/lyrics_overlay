@@ -1,7 +1,9 @@
+from itertools import product
 from typing import Tuple
 from typing import Union
 from typing import Iterable
 from fractions import Fraction
+
 import numpy as np
 
 
@@ -23,12 +25,24 @@ class LineSegment:
 	def __init__(self,
 				 first_coord: Point,
 				 second_coord: Point):
-		self.first_coord = first_coord
-		self.second_coord = second_coord
+		self._first_coord = first_coord
+		self._second_coord = second_coord
 
 	@property
-	def length(self):
-		return ((self.first_coord.x-self.second_coord.x)**2 + (self.first_coord.y-self.second_coord.y)**2)**0.5
+	def point_1(self):
+		return self._first_coord
+
+	@property
+	def point_2(self):
+		return self._second_coord
+
+	@property
+	def length(self) -> int:
+		return ((self.point_1.x-self.point_2.x)**2 + (self.point_1.y-self.point_2.y)**2)**0.5
+
+	@property
+	def slope(self) -> float:
+		return (self.point_2.y - self.point_1.y)/(self.point_2.x - self.point_1.x)
 
 class Box:
 	"""
@@ -50,8 +64,8 @@ class Box:
 		:param second_diagonal_coords: Point(x3, y3)
 		"""
 		assert first_diagonal_coords.x < second_diagonal_coords.x and first_diagonal_coords.y < second_diagonal_coords.y, "Wrong coordinates !"
-		self.first_diagonal_coords = first_diagonal_coords
-		self.second_diagonal_coords = second_diagonal_coords
+		self._first_diagonal_coords = first_diagonal_coords
+		self._second_diagonal_coords = second_diagonal_coords
 
 	@property
 	def vertices(self):
@@ -64,19 +78,19 @@ class Box:
 
 	@property
 	def vertex_1(self):
-		return Point(coords=(self.first_diagonal_coords.x, self.first_diagonal_coords.y))
+		return Point(coords=(self._first_diagonal_coords.x, self._first_diagonal_coords.y))
 
 	@property
 	def vertex_2(self):
-		return Point(coords=(self.second_diagonal_coords.x, self.first_diagonal_coords.y))
+		return Point(coords=(self._second_diagonal_coords.x, self._first_diagonal_coords.y))
 
 	@property
 	def vertex_3(self):
-		return Point(coords=(self.second_diagonal_coords.x, self.second_diagonal_coords.y))
+		return Point(coords=(self._second_diagonal_coords.x, self._second_diagonal_coords.y))
 
 	@property
 	def vertex_4(self):
-		return Point(coords=(self.first_diagonal_coords.x, self.second_diagonal_coords.y))
+		return Point(coords=(self._first_diagonal_coords.x, self._second_diagonal_coords.y))
 
 	@property
 	def height(self) -> int:
@@ -107,7 +121,9 @@ class Box:
 	def get_distance_from(self, box_2) -> int:
 		"""This function calculates the distance between the two closest points of two boxes
 		"""
-		if self.is_x_overlapping(box_2):
+		if self.is_overlapping(box_2):
+			return 0
+		elif self.is_x_overlapping(box_2):
 			if self.vertex_1.y > box_2.vertex_1.y:
 				return self.vertex_1.y - box_2.vertex_3.y
 			else:
@@ -118,11 +134,7 @@ class Box:
 			else:
 				return box_2.vertex_1.x - self.vertex_3.x
 		else:
-			dist = []
-			for vertex in self.vertices:
-				for vertex_2 in box_2.vertices:
-					dist.append(LineSegment(vertex, vertex_2).length)
-			return min(dist)
+			return min([LineSegment(x[0],x[1]).length for x in product(self.vertices,  box_2.vertices)])
 
 	def is_x_overlapping(self,
 					     box_2) -> bool:
