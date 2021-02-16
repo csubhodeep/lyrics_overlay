@@ -169,15 +169,45 @@ class Box:
 
 class Lyrics:
 
-	__slots__ = ('_text')
+	__slots__ = ('_text', '_start_time', '_end_time', '_font_size', '_font_type')
 
-	def __init__(self, text: Union[str, Iterable[str]]):
+	def __init__(self,
+				 text: Union[str, Iterable[str]],
+				 start_time: Union[str] = "00:00",
+				 end_time: Union[str] = "00:01",
+				 font_size: Union[int, float] = 3,
+				 font_type: str = ""):
 		assert len(text)
+
+		assert start_time != end_time
+
+		assert font_size > 0
 
 		if isinstance(text, str):
 			self._text = tuple(text.split(" "))
 		else:
 			self._text = tuple(text)
+
+		self._start_time = start_time
+		self._end_time = end_time
+		self._font_size = font_size
+		self._font_type = font_type
+
+	@property
+	def start_time(self) -> str:
+		return self._start_time
+
+	@property
+	def end_time(self) -> str:
+		return self._end_time
+
+	@property
+	def font_size(self) -> Union[int, float]:
+		return self._font_size
+
+	@property
+	def font_type(self) -> str:
+		return self._font_type
 
 	@property
 	def text(self) -> Iterable[str]:
