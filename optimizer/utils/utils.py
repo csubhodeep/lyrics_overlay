@@ -2,10 +2,9 @@
 from typing import Iterable, Tuple
 from statistics import mean
 
-import matplotlib.pyplot as plt
 import numpy as np
 
-from lib.defs import Box, Point, LineSegment, Lyrics
+from optimizer.lib.defs import Box, Point, LineSegment, Lyrics
 
 
 def len_of_text_list(text: Iterable[str]) -> int:
