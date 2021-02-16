@@ -25,7 +25,7 @@ def get_loss(x,
 	if any([lyrics_box.is_overlapping(person_box) for person_box in person_boxes]):
 		return 5000
 
-	if not text_fits_box(text, font_size=3, box=lyrics_box, form=int(round(x[4]))):
+	if not text_fits_box(text, font_size=int(round(x)), box=lyrics_box, form=int(round(x[4]))):
 		return 2500
 
 	w1 = 0.50

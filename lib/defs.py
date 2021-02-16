@@ -8,6 +8,9 @@ import numpy as np
 
 
 class Point:
+
+	__slots__ = ('_x', '_y')
+
 	def __init__(self, coords: Tuple[Union[int, float], Union[int, float]]):
 		assert coords[0] >= 0 and coords[1] >= 0, "Negative coordinates are not allowed !"
 		self._x = int(round(coords[0]))
@@ -22,6 +25,9 @@ class Point:
 		return self._y
 
 class LineSegment:
+
+	__slots__ = ('_first_coord', '_second_coord')
+
 	def __init__(self,
 				 first_coord: Point,
 				 second_coord: Point):
@@ -55,6 +61,8 @@ class Box:
 		(x4, y4)              (x3, y3)
 
 	"""
+
+	__slots__ = ('_first_diagonal_coords', '_second_diagonal_coords')
 
 	def __init__(self,
 				 first_diagonal_coords: Point,
@@ -160,6 +168,9 @@ class Box:
 
 
 class Lyrics:
+
+	__slots__ = ('_text')
+
 	def __init__(self, text: Union[str, Iterable[str]]):
 		assert len(text)
 
