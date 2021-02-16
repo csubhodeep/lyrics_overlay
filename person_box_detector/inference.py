@@ -2,14 +2,12 @@ import numpy as np
 import cv2
 from models import Darknet
 from utils import utils
-import os, sys, time, datetime, random
+import random
 import torch
-# from torch.utils.data import DataLoader
-from torchvision import datasets, transforms
+from torchvision import transforms
 from torch.autograd import Variable
 
 import matplotlib.pyplot as plt
-# import matplotlib.patches as patches
 from PIL import Image
 
 import json
@@ -51,8 +49,7 @@ def detect_image(img):
 
 
 cap = cv2.VideoCapture('../data/girls_like_you_small.mp4')
-# from sort import *
-# mot_tracker = Sort()
+
 cmap = plt.get_cmap('tab20b')
 colors = [cmap(i)[:3] for i in np.linspace(0, 1, 20)]
 

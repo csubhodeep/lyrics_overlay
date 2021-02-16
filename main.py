@@ -3,7 +3,7 @@ import numpy as np
 from scipy.optimize import differential_evolution
 
 from statistics import variance
-from typing import Iterable
+from typing import Iterable, Tuple
 
 from lib.defs import Box, Point, Lyrics
 from utils.utils import text_fits_box
@@ -11,8 +11,8 @@ from utils.utils import get_distance_from_image_edges
 
 
 def get_loss(x,
-			 binary_mask: np.ndarray,
-			 person_boxes: Iterable[Box],
+			 canvas_shape: Tuple[int, int],
+			 forbidden_zones: Iterable[Box],
 			 text: Lyrics,
 			 ) -> float:
 
@@ -22,10 +22,10 @@ def get_loss(x,
 	except AssertionError as ex:
 		return 10000
 
-	if any([lyrics_box.is_overlapping(person_box) for person_box in person_boxes]):
+	if any([lyrics_box.is_overlapping(zone) for zone in forbidden_zones]):
 		return 5000
 
-	if not text_fits_box(text, font_size=int(round(x)), box=lyrics_box, form=int(round(x[4]))):
+	if not text_fits_box(text, font_size=3, box=lyrics_box, form=int(round(x[4]))):
 		return 2500
 
 	w1 = 0.50
@@ -34,15 +34,15 @@ def get_loss(x,
 	# distance from all person-boxes - w1
 
 	# iterate over all the edges of all person-boxes and find the distances of them from the lyrics-box
-	if len(person_boxes):
-		distance_persons = tuple([lyrics_box.get_distance_from(person_box) for person_box in person_boxes])
+	if len(forbidden_zones):
+		distance_persons = tuple([lyrics_box.get_distance_from(zone) for zone in forbidden_zones])
 	else:
 		distance_persons = tuple([])
 
 	# balance_1 = np.nan_to_num(np.var(distance_persons))
 
 	## distance from all 4 edges - w2
-	distance_edges = get_distance_from_image_edges(binary_mask, lyrics_box)
+	distance_edges = get_distance_from_image_edges(canvas_shape, lyrics_box)
 
 	# balance_2 = variance(distance_edges)
 
@@ -125,7 +125,7 @@ if __name__ == "__main__":
 
 	res = differential_evolution(get_loss,
 								 bounds=limits,
-								 args=(binary_mask, persons, lyrics),
+								 args=(binary_mask.shape, persons, lyrics),
 								 popsize=100
 								 )
 

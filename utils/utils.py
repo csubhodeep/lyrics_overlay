@@ -54,12 +54,12 @@ def get_overlap_with_mask(image: np.ndarray,
 	return score
 
 
-def get_distance_from_image_edges(image: np.ndarray,
+def get_distance_from_image_edges(canvas_shape: Tuple[int, int],
 								  box: Box) -> Tuple[int, int, int, int]:
 	distance_edge_1 = box.vertex_1.x
-	distance_edge_2 = image.shape[1] - box.vertex_3.x
+	distance_edge_2 = canvas_shape[1] - box.vertex_3.x
 	distance_edge_3 = box.vertex_1.y
-	distance_edge_4 = image.shape[0] - box.vertex_3.y
+	distance_edge_4 = canvas_shape[0] - box.vertex_3.y
 
 	return (distance_edge_1, distance_edge_2, distance_edge_3, distance_edge_4)
 
