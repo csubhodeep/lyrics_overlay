@@ -19,6 +19,7 @@ def detect_persons(conf: Config):
 
     return None
 
+
 def detect_image(img):
     # scale and pad image
     ratio = min(img_size/img.size[0], img_size/img.size[1])

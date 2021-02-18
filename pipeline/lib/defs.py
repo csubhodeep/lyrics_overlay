@@ -47,7 +47,6 @@ class Pipeline:
 		step.config.set_input_data_path(self._jobs[-1].config.output_data_path)
 		self._jobs.append(step)
 
-
 	def __call__(self):
 		for job in self._jobs:
 			job()

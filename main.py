@@ -10,8 +10,6 @@ from pipeline.lib.defs import Job, Pipeline
 from configs.make_config import Config
 
 
-
-
 if __name__ == "__main__":
 	fetch_data_step = Job(func=fetch_data, conf=Config(input_data_path='./data/input',
 													   output_data_path='./data/input'))
@@ -23,6 +21,7 @@ if __name__ == "__main__":
 	upload_step = Job(func=upload_video, conf=Config(output_data_path='./data/final_output'))
 
 	pipeline = Pipeline(start_step=fetch_data_step)
+	pipeline.add_job(sample_step)
 	pipeline.add_job(detect_persons_step)
 	pipeline.add_job(split_step)
 	pipeline.add_job(optimization_step)
