@@ -116,5 +116,5 @@ while(cap.isOpened()):
 cap.release()
 cv2.destroyAllWindows()
 
-with open('../data/result.json','w') as f:
+with open('../data/detected_persons/result.json', 'w') as f:
     json.dump(detected_persons, f)

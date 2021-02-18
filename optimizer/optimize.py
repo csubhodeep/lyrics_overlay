@@ -56,6 +56,10 @@ def get_loss(x,
 
 	# loss = np.var(all_distances)
 
+def optimize():
+
+	return None
+
 
 if __name__ == "__main__":
 	lyrics = Lyrics("I love you I love you I love you I love you")
