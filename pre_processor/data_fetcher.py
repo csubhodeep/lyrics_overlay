@@ -1,5 +1,5 @@
+from configs.make_config import Config
 
-
-def fetch_data(path_to_input_data: str):
+def fetch_data(conf: Config):
 
 	return None

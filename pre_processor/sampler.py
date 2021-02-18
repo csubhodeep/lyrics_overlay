@@ -1,5 +1,5 @@
+from configs.make_config import Config
 
-
-def sample(path_to_video: str):
+def sample():
 
 	return None

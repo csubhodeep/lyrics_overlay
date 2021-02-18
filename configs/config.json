@@ -1,0 +1,20 @@
+{
+  "MAIN_INPUT_DATA_PATH" : "data/input",
+  "FINAL_OUTPUT_DATA_PATH" : "data/final_output",
+
+  "PRE_PROCESSOR_INPUT_DATA_PATH" : "data/input",
+  "PRE_PROCESSOR_OUTPUT_DATA_PATH" : "data/pre_processed_output",
+
+  "PERSON_DETECTOR_INPUT_DATA_PATH" : "data/pre_processed_output",
+  "PERSON_DETECTOR_OUTPUT_DATA_PATH" : "data/detected_persons_output",
+
+  "SPLITTER_INPUT_DATA_PATH" : "data/detected_persons_output",
+  "SPLITTER_OUTPUT_DATA_PATH" : "data/splitter_output",
+
+  "OPTIMIZER_INPUT_DATA_PATH" : "data/splitter_output",
+  "OPTIMIZER_OUTPUT_DATA_PATH" : "data/optimizer_output",
+
+  "OVERLAYER_INPUT_DATA_PATH" : "data/optimizer_output",
+  "OVERLAYER_OUTPUT_DATA_PATH" : "data/final_output"
+}
+

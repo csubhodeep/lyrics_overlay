@@ -1,6 +1,5 @@
+from configs.make_config import Config
 
-
-def upload_video(source_path: str,
-				 destination_path: str):
+def upload_video(conf: Config):
 
 	return None

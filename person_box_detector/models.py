@@ -8,8 +8,8 @@ import numpy as np
 
 from PIL import Image
 
-from utils.parse_config import *
-from utils.utils import build_targets
+from person_box_detector.utils.parse_config import *
+from person_box_detector.utils.utils import build_targets
 from collections import defaultdict
 
 

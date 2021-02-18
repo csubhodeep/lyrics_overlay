@@ -5,9 +5,12 @@ from scipy.optimize import differential_evolution
 from statistics import variance
 from typing import Iterable, Tuple
 
-from lib.defs import Box, Point, Lyrics
-from utils.utils import text_fits_box
-from utils.utils import get_distance_from_image_edges
+from configs.make_config import Config
+
+from optimizer.lib.defs import Box, Point, Lyrics
+from optimizer.utils.utils import text_fits_box
+from optimizer.utils.utils import get_distance_from_image_edges
+
 
 
 def get_loss(x,
@@ -56,7 +59,7 @@ def get_loss(x,
 
 	# loss = np.var(all_distances)
 
-def optimize():
+def optimize(conf: Config):
 
 	return None
 

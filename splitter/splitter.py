@@ -1,5 +1,6 @@
 
+from configs.make_config import Config
 
-def split(path_to_data: str):
+def split(conf: Config):
 
 	return None
