@@ -8,17 +8,20 @@ from overlayer.overlay import overlay
 from overlayer.upload import upload_video
 from pipeline.lib.defs import Job, Pipeline
 from configs.make_config import Config
-
+from configs.make_config import get_config
 
 if __name__ == "__main__":
-	fetch_data_step = Job(func=fetch_data, conf=Config(input_data_path='./data/input',
-													   output_data_path='./data/input'))
-	sample_step = Job(func=sample, conf=Config(output_data_path='./data/pre_processed_output'))
-	detect_persons_step = Job(func=detect_persons, conf=Config(output_data_path='./data/detected_persons_output'))
-	split_step = Job(func=split, conf=Config(output_data_path='./data/splitter_output'))
-	optimization_step = Job(func=optimize, conf=Config(output_data_path='./data/optimizer_output'))
-	overlay_step = Job(func=overlay, conf=Config(output_data_path='./data/final_output'))
-	upload_step = Job(func=upload_video, conf=Config(output_data_path='./data/final_output'))
+
+	collection_of_configs = get_config(path_to_config="./configs/config.json")
+
+
+	fetch_data_step = Job(func=fetch_data, conf=collection_of_configs['data_fetcher'])
+	sample_step = Job(func=sample, conf=collection_of_configs['sample'])
+	detect_persons_step = Job(func=detect_persons, conf=collection_of_configs['detected_persons'])
+	split_step = Job(func=split, conf=collection_of_configs['split'])
+	optimization_step = Job(func=optimize, conf=collection_of_configs['optimization'])
+	overlay_step = Job(func=overlay, conf=collection_of_configs['overlay'])
+	upload_step = Job(func=upload_video, conf=collection_of_configs['upload'])
 
 	pipeline = Pipeline(start_step=fetch_data_step)
 	pipeline.add_job(sample_step)
@@ -29,3 +32,11 @@ if __name__ == "__main__":
 	pipeline.add_job(upload_step)
 
 	pipeline()
+
+	# pipeline2 = Pipeline()
+	#
+	# collection_of_pipelines = [pipeline, pipeline2]
+	#
+	# from multiprocessing import Pool
+	# with Pool() as p:
+	# 	res = p.map(collection_of_pipelines)

@@ -1,6 +1,9 @@
 
 from pathlib import Path
+from typing import Dict
 from typing import Union
+
+import json
 
 class Config:
 	__slots__ = (
@@ -29,11 +32,17 @@ class Config:
 		self._output_data_path = Path(new_path) if isinstance(new_path, str) else new_path
 
 
-def get_config(path_to_config: Union[Path, str]) -> Config:
+def get_config(path_to_config: Union[Path, str]) -> Dict[str, Config]:
 
-	## TODO: take configs from json file
-	config = Config(output_data_path="")
+	with open(path_to_config, 'r') as f:
+		config_dict = json.load(f)
+
+	config_collection = {}
+	for k,v in config_dict.items():
+		config_collection[k] = Config(**v)
 
 
+	return config_collection
 
-	return config
+if __name__ == "__main__":
+	get_config(path_to_config='config.json')
