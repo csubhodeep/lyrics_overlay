@@ -1,7 +1,7 @@
-numpy
-scipy
-matplotlib
-opencv-python
+numpy==1.20.1
+scipy==1.6.0
+matplotlib==3.3.4
+opencv-python==4.5.1.48
 --find-links https://download.pytorch.org/whl/torch_stable.html
 torch==1.7.1+cpu
 torchvision==0.8.2+cpu
