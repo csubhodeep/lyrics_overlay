@@ -1,5 +1,5 @@
 {
-  "fetch_data" : {
+  "fetch_data": {
     "output_data_path": "./data/input",
     "input_data_path": "./data/input"
   },
