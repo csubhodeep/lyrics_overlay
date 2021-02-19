@@ -15,10 +15,14 @@ class Config:
 
 	def __init__(self,
 				output_data_path: Union[str, Path],
-				input_data_path: Union[str, Path] = ""):
+				input_data_path: Union[str, Path] = "",
+				 **kwargs):
 		self._input_data_path = Path(input_data_path) if isinstance(input_data_path, str) else input_data_path
 		self._output_data_path = Path(output_data_path) if isinstance(output_data_path, str) else output_data_path
 		self._run_id = ""
+
+		for k, v in kwargs.items():
+			self.__setattr__(k, v)
 
 	@property
 	def input_data_path(self) -> Union[str, Path]:
@@ -47,7 +51,6 @@ def get_config(path_to_config: Union[Path, str]) -> Dict[str, Config]:
 	config_collection = {}
 	for k,v in config_dict.items():
 		config_collection[k] = Config(**v)
-
 
 	return config_collection
 

@@ -13,13 +13,15 @@
     "output_data_path": "./data/detected_persons_output"
   },
   "split": {
-    "output_data_path": "./data/splitter_output"
+    "output_data_path": "./data/splitter_output",
+    "lyrics_input_path": "./data/input"
   },
   "optimization": {
     "output_data_path": "./data/optimizer_output"
   },
   "overlay": {
-    "output_data_path": "./data/final_output"
+    "output_data_path": "./data/final_output",
+    "lyrics_input_path": "./data/splitter_output"
   },
   "upload": {
     "output_data_path": "./data/final_output"

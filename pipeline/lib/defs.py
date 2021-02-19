@@ -80,8 +80,13 @@ class Pipeline:
 		self._jobs.append(step)
 
 	def __call__(self):
+		print("Starting the following pipeline: ")
+		print(self)
 		for job in self._jobs:
 			res = job()
 			if not res:
 				raise Exception(f"Step - {job.name} failed")
 		print("Pipeline completed successfully ! ")
+
+	def __repr__(self):
+		return " -> ".join([job.name for job in self._jobs])
