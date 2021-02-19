@@ -50,8 +50,7 @@ class Pipeline(UserList):
 	The main objective of the pipeline is to 'connect' a bunch of Jobs together.
 	"""
 
-	def __init__(self, start_step: Optional[Job] = None, unique_run_id: str = "",
-				 list_of_steps: Optional[Iterable[Job]] = None):
+	def __init__(self, start_step: Optional[Job] = None, unique_run_id: str = "", list_of_steps: Optional[Iterable[Job]] = None):
 		"""This class must be constructed either using one Job OR a collection of Jobs but NOT both
 		"""
 		super().__init__()
@@ -78,7 +77,7 @@ class Pipeline(UserList):
 			flg = True
 			for step in list_of_steps:
 				assert isinstance(step, Job), "step must be of type Job"
-				# do one more check if the first job in the collection
+				# do one more check if it is the first job in the collection
 				if flg:
 					assert step.config.input_data_path, "First step must have a valid input configuration"
 					flg = False
