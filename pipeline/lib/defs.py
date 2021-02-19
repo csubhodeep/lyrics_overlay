@@ -8,6 +8,7 @@ from configs.make_config import Config
 
 
 class Job:
+
 	"""This is a basic abstraction of a process (a function or a method of a class) that can be run as a step in a flow"""
 
 	def __init__(self, func: Callable, conf: Config):
@@ -15,12 +16,19 @@ class Job:
 		self._func = func
 		self._conf = conf
 
+	@property
+	def allowed_attributes(self):
+		return ('_func', '_conf')
+
 	def __setattr__(self, key, value):
 		"""This function ensures immutability of every instance of this class"""
-		if hasattr(self, key):
-			raise Exception(f"{key} is already set")
+		if key in self.allowed_attributes:
+			if hasattr(self, key):
+				raise Exception(f"{key} is already set")
+			else:
+				self.__dict__[key] = value
 		else:
-			self.__dict__[key] = value
+			raise Exception(f"{key} is not a valid attribute")
 
 	@property
 	def name(self) -> str:
@@ -62,7 +70,6 @@ class Pipeline(UserList):
 		if not list_of_steps:
 			assert isinstance(start_step, Job), "step must be of type Job"
 			assert start_step.config.input_data_path, "First step must have a valid input configuration"
-			assert start_step.config.output_data_path, "First step must have a valid output configuration"
 
 			start_step.config.set_run_id(self.run_id)
 
@@ -75,26 +82,29 @@ class Pipeline(UserList):
 				if flg:
 					assert step.config.input_data_path, "First step must have a valid input configuration"
 					flg = False
-				assert step.config.output_data_path, "First step must have a valid output configuration"
 
 				step.config.set_run_id(self.run_id)
 
 				self.data.append(step)
 
+	@property
+	def allowed_attributes(self):
+		return ('_run_id', 'data')
+
 	def __setattr__(self, key, value):
 		"""This function overrides the default method of the UserList class
 		so that immutability of the '_run_id' attribute can be ensured.
 		"""
-		if key == '_run_id':
-			if key in self.__dict__:
-				raise Exception('run-id already set')
-			else:
-				if not value:
-					raise Exception('Empty value cannot be set')
+		if key in self.allowed_attributes:
+			if key != 'data':
+				if hasattr(self, key):
+					raise Exception(f"value of {key} is already set")
 				else:
-					self.__dict__['_run_id'] = value
+					self.__dict__[key] = value
+			else:
+				self.__dict__[key] = value
 		else:
-			self.__dict__[key] = value
+			raise Exception(f"{key} is not a valid attribute")
 
 	@property
 	def run_id(self):
