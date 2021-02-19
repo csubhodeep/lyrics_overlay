@@ -1,3 +1,4 @@
+from collections import UserDict
 from pathlib import Path
 from typing import Dict
 from typing import Optional
@@ -6,16 +7,12 @@ from typing import Union
 import json
 
 
-class Config:
+class Config(UserDict):
 	"""This class creates a portable object with flexible and mutable attributes
 	"""
-	__slots__ = (
-		'__input_data_path',
-		'__output_data_path',
-		'__dict__'
-	)
 
 	def __init__(self, output_data_path: Union[str, Path], input_data_path: Optional[Union[str, Path]] = "", **kwargs):
+		super().__init__()
 		if input_data_path:
 			self._input_data_path = Path(input_data_path) if isinstance(input_data_path, str) else input_data_path
 		self._output_data_path = Path(output_data_path) if isinstance(output_data_path, str) else output_data_path
@@ -24,18 +21,18 @@ class Config:
 			self.__setattr__(k, v)
 
 	def __setattr__(self, key, value):
-		"""This function ensures immmutability of every instance of this class"""
+		"""This function ensures immutability of every instance of this class"""
 		if hasattr(self, key):
 			raise Exception(f"Attribute - {key} is already set !")
 
 		self.__dict__[key] = value
 
 	@property
-	def input_data_path(self) -> Union[str, Path]:
+	def input_data_path(self) -> Path:
 		return self._input_data_path
 
 	@property
-	def output_data_path(self) -> Union[str, Path]:
+	def output_data_path(self) -> Path:
 		return self._output_data_path
 
 	@property
