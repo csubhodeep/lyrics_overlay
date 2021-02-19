@@ -1,34 +1,43 @@
-import numpy as np
-import cv2
-from .models import Darknet
-from person_box_detector.utils import utils
-import random
-import torch
-from torchvision import transforms
-from torch.autograd import Variable
-
-from configs.make_config import Config
-
-import matplotlib.pyplot as plt
-from PIL import Image
-
+from pathlib import Path
 import json
+import random
+
+import cv2
+import matplotlib.pyplot as plt
+import numpy as np
+from PIL import Image
+import torch
+from torch.autograd import Variable
+from torchvision.transforms import Compose, Resize, Pad, ToTensor
+
+from .models import Darknet
+from configs.make_config import Config
+from person_box_detector.utils.utils import non_max_suppression, load_classes
 
 
-def detect_persons(conf: Config):
+# Tensor = torch.cuda.FloatTensor
+Tensor = torch.FloatTensor
 
-    return None
 
+def detect_persons(conf: Config) -> bool:
+    # doing random stuff
+    some_output = {}
+    file_name = f"{conf.run_id}.json"
+    file_path = Path(conf.output_data_path).joinpath(file_name)
+    with open(file_path, 'w') as f:
+        json.dump(some_output, f)
 
-def detect_image(img):
+    return True
+
+def detect_image(img, img_size, model):
     # scale and pad image
     ratio = min(img_size/img.size[0], img_size/img.size[1])
     imw = round(img.size[0] * ratio)
     imh = round(img.size[1] * ratio)
-    img_transforms = transforms.Compose([ transforms.Resize((imh, imw)),
-         transforms.Pad((max(int((imh-imw)/2),0), max(int((imw-imh)/2),0), max(int((imh-imw)/2),0), max(int((imw-imh)/2),0)),
+    img_transforms = Compose([Resize((imh, imw)),
+         Pad((max(int((imh-imw)/2),0), max(int((imw-imh)/2),0), max(int((imh-imw)/2),0), max(int((imw-imh)/2),0)),
                         (128,128,128)),
-         transforms.ToTensor(),
+         ToTensor(),
          ])
     # convert image to Tensor
     image_tensor = img_transforms(img).float()
@@ -37,7 +46,7 @@ def detect_image(img):
     # run inference on the model and get detections
     with torch.no_grad():
         detections = model(input_img)
-        detections = utils.non_max_suppression(detections, 80, conf_thres, nms_thres)
+        detections = non_max_suppression(detections, 80, conf_thres, nms_thres)
     return detections[0]
 
 
@@ -54,9 +63,8 @@ if __name__ == "__main__":
     model.load_weights(weights_path)
     # model.cuda()
     model.eval()
-    classes = utils.load_classes(class_path)
-    # Tensor = torch.cuda.FloatTensor
-    Tensor = torch.FloatTensor
+    classes = load_classes(class_path)
+
     cap = cv2.VideoCapture('../data/girls_like_you_small.mp4')
 
     cmap = plt.get_cmap('tab20b')
@@ -69,7 +77,7 @@ if __name__ == "__main__":
 
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         pilimg = Image.fromarray(frame)
-        detections = detect_image(pilimg)
+        detections = detect_image(pilimg, img_size, model)
 
         img = np.array(pilimg)
         #print(detections)

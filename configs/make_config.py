@@ -8,7 +8,9 @@ import json
 class Config:
 	__slots__ = (
 		'_input_data_path',
-		'_output_data_path'
+		'_output_data_path',
+		'_run_id',
+		'__dict__'
 	)
 
 	def __init__(self,
@@ -16,6 +18,7 @@ class Config:
 				input_data_path: Union[str, Path] = ""):
 		self._input_data_path = Path(input_data_path) if isinstance(input_data_path, str) else input_data_path
 		self._output_data_path = Path(output_data_path) if isinstance(output_data_path, str) else output_data_path
+		self._run_id = ""
 
 	@property
 	def input_data_path(self) -> Union[str, Path]:
@@ -25,11 +28,15 @@ class Config:
 	def output_data_path(self) -> Union[str, Path]:
 		return self._output_data_path
 
+	@property
+	def run_id(self) -> str:
+		return self._run_id
+
+	def set_run_id(self, run_id: str):
+		self._run_id = run_id
+
 	def set_input_data_path(self, new_path: Union[str, Path]) -> None:
 		self._input_data_path = Path(new_path) if isinstance(new_path, str) else new_path
-
-	def set_output_data_path(self, new_path: Union[str, Path]) -> None:
-		self._output_data_path = Path(new_path) if isinstance(new_path, str) else new_path
 
 
 def get_config(path_to_config: Union[Path, str]) -> Dict[str, Config]:

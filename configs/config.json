@@ -1,5 +1,5 @@
 {
-  "data_fetcher" : {
+  "fetch_data" : {
     "output_data_path": "./data/input",
     "input_data_path": "./data/input"
   },
@@ -9,7 +9,7 @@
   "sample": {
     "output_data_path": "./data/pre_processed_output"
   },
-  "detected_persons": {
+  "detect_persons": {
     "output_data_path": "./data/detected_persons_output"
   },
   "split": {
