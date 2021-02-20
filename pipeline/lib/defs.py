@@ -9,6 +9,11 @@ from configs.make_config import Config
 
 class Job:
 
+	ALLOWED_ATTRIBUTES = (
+		'_func',
+		'_conf'
+	)
+
 	"""This is a basic abstraction of a process (a function or a method of a class) that can be run as a step in a flow"""
 
 	def __init__(self, func: Callable, conf: Config):
@@ -16,13 +21,9 @@ class Job:
 		self._func = func
 		self._conf = conf
 
-	@property
-	def allowed_attributes(self):
-		return ('_func', '_conf')
-
 	def __setattr__(self, key, value):
 		"""This function ensures immutability of every instance of this class"""
-		if key in self.allowed_attributes:
+		if key in Job.ALLOWED_ATTRIBUTES:
 			if hasattr(self, key):
 				raise Exception(f"{key} is already set")
 			else:
@@ -49,6 +50,10 @@ class Pipeline(UserList):
 	where X, Y & Z are a "Job" each and "->" is to be read as 'is executed before'
 	The main objective of the pipeline is to 'connect' a bunch of Jobs together.
 	"""
+	ALLOWED_ATTRIBUTES = (
+		'_run_id',
+		'data'
+	)
 
 	def __init__(self, start_step: Optional[Job] = None, unique_run_id: str = "", list_of_steps: Optional[Iterable[Job]] = None):
 		"""This class must be constructed either using one Job OR a collection of Jobs but NOT both
@@ -81,20 +86,16 @@ class Pipeline(UserList):
 				if flg:
 					assert step.config.input_data_path, "First step must have a valid input configuration"
 					flg = False
-
-				step.config.set_run_id(self.run_id)
-
-				self.data.append(step)
-
-	@property
-	def allowed_attributes(self):
-		return ('_run_id', 'data')
+					step.config.set_run_id(self.run_id)
+					self.data.append(step)
+				else:
+					self.add_job(step)
 
 	def __setattr__(self, key, value):
 		"""This function overrides the default method of the UserList class
 		so that immutability of the '_run_id' attribute can be ensured.
 		"""
-		if key in self.allowed_attributes:
+		if key in Pipeline.ALLOWED_ATTRIBUTES:
 			if key != 'data':
 				if hasattr(self, key):
 					raise Exception(f"value of {key} is already set")
