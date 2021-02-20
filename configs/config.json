@@ -1,0 +1,30 @@
+{
+  "fetch_data": {
+    "output_data_path": "./data/input",
+    "input_data_path": "./data/input"
+  },
+  "pre_process": {
+    "output_data_path": "./data/pre_processed_output"
+  },
+  "sample": {
+    "output_data_path": "./data/pre_processed_output"
+  },
+  "detect_persons": {
+    "output_data_path": "./data/detected_persons_output"
+  },
+  "split": {
+    "output_data_path": "./data/splitter_output",
+    "lyrics_input_path": "./data/input"
+  },
+  "optimization": {
+    "output_data_path": "./data/optimizer_output"
+  },
+  "overlay": {
+    "output_data_path": "./data/final_output",
+    "lyrics_input_path": "./data/splitter_output"
+  },
+  "upload": {
+    "output_data_path": "./data/final_output"
+  }
+}
+
