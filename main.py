@@ -61,7 +61,7 @@ if __name__ == "__main__":
 	)
 
 	# instantiate a pipeline object
-	pipeline = Pipeline(list_of_steps=list_of_jobs)
+	pipeline_1 = Pipeline(list_of_steps=list_of_jobs)
 
 	# # below we see an example of how we can instantiate a pipeline with just a first step
 	# pipeline = Pipeline(start_step=fetch_data_step)
@@ -74,7 +74,7 @@ if __name__ == "__main__":
 	# pipeline.add_job(upload_step)
 
 	# execute pipeline
-	pipeline()
+	pipeline_1()
 
 	"""Below we make another pipeline following the exact same steps described before.
 	We do this to check for parallel execution - ideally a new pipeline means a new config"""
@@ -93,10 +93,10 @@ if __name__ == "__main__":
 	# 	detect_persons_step_2,
 	# ]
 	# # declare another pipeline
-	# pipeline2 = Pipeline(list_of_steps=list_of_jobs_2)
+	# pipeline_2 = Pipeline(list_of_steps=list_of_jobs_2)
 	#
 	# # bundle the pipelines together
-	# collection_of_pipelines = [pipeline, pipeline2]
+	# collection_of_pipelines = [pipeline_1, pipeline_2]
 	#
 	# # run the pipelines in parallel
 	# from multiprocessing import Pool
