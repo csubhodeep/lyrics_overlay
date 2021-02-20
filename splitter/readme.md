@@ -1,6 +1,6 @@
 # Splitter
 
-# What?
+## What?
 
 This part of the pipeline is responsible to cut the video into sections depending on the time 
 of lyrics and change in the positions of persons in the video.
@@ -9,7 +9,7 @@ of lyrics and change in the positions of persons in the video.
 
 ### Input format
 
-These are files that can be read from `data/input` and `data/detected_persons/` by the code to a key-value pair kind of a data structures. There are multiple options but 
+These are files that can be read from `data/pre_processed_input` and `data/detected_persons_output/` by the code to a key-value pair kind of a data structures. There are multiple options but 
 for now we are going with `*.json` files. In general this would be a nested data structure.
 
 #### lyrics.json
