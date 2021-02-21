@@ -43,30 +43,33 @@ if __name__ == "__main__":
 	# declare jobs
 	fetch_data_step = Job(func=fetch_data, conf=collection_of_configs['fetch_data'])
 	sample_step = Job(func=sample, conf=collection_of_configs['sample'])
-	detect_persons_step = Job(func=detect_persons, conf=collection_of_configs['detect_persons'])
-	split_step = Job(func=split, conf=collection_of_configs['split'])
-	optimization_step = Job(func=optimize, conf=collection_of_configs['optimization'])
-	overlay_step = Job(func=overlay, conf=collection_of_configs['overlay'])
-	upload_step = Job(func=upload_video, conf=collection_of_configs['upload'])
+	# detect_persons_step = Job(func=detect_persons, conf=collection_of_configs['detect_persons'])
+	# split_step = Job(func=split, conf=collection_of_configs['split'])
+	# optimization_step = Job(func=optimize, conf=collection_of_configs['optimization'])
+	# overlay_step = Job(func=overlay, conf=collection_of_configs['overlay'])
+	# upload_step = Job(func=upload_video, conf=collection_of_configs['upload'])
 
 	# the jobs below are put in a certain order for the pipeline
 	list_of_jobs = (
 		fetch_data_step,
-		sample_step,
-		detect_persons_step,
-		split_step,
-		optimization_step,
-		overlay_step,
-		upload_step
+		sample_step
+		# detect_persons_step,
+		# split_step,
+		# optimization_step,
+		# overlay_step,
+		# upload_step
 	)
 
 	# instantiate a pipeline object
 	pipeline_1 = Pipeline(list_of_steps=list_of_jobs)
 
-	# # below we see an example of how we can instantiate a pipeline with just a first step
-	# pipeline = Pipeline(start_step=fetch_data_step)
+	# execute pipeline
+	pipeline_1()
+
+	"""below we see an example of how we can instantiate a pipeline with just a first step"""
+	# pipeline_1 = Pipeline(start_step=fetch_data_step)
 	# # now we could also add steps to the pipeline individually
-	# pipeline.add_job(sample_step)
+	# pipeline_1.add_job(sample_step)
 	# pipeline.add_job(detect_persons_step)
 	# pipeline.add_job(split_step)
 	# pipeline.add_job(optimization_step)
@@ -74,31 +77,31 @@ if __name__ == "__main__":
 	# pipeline.add_job(upload_step)
 
 	# execute pipeline
-	pipeline_1()
+	# pipeline_1()
 
 	"""Below we make another pipeline following the exact same steps described before.
 	We do this to check for parallel execution - ideally a new pipeline means a new config"""
 	# collection_of_configs_2 = get_config(path_to_config="./configs/config.json")
-	#
-	# # declare jobs
+	# #
+	# # # declare jobs
 	# fetch_data_step_2 = Job(func=fetch_data, conf=collection_of_configs_2['fetch_data'])
 	# sample_step_2 = Job(func=sample, conf=collection_of_configs_2['sample'])
 	# detect_persons_step_2 = Job(func=detect_persons, conf=collection_of_configs_2['detect_persons'])
 	# split_step_2 = Job(func=split, conf=collection_of_configs_2['split'])
-	#
-	# # the jobs below are put in a certain order for the pipeline
+	# #
+	# # # the jobs below are put in a certain order for the pipeline
 	# list_of_jobs_2 = [
 	# 	fetch_data_step_2,
-	# 	sample_step_2,
-	# 	detect_persons_step_2,
+	#  	sample_step_2,
+	#  	detect_persons_step_2,
 	# ]
-	# # declare another pipeline
+	# # # declare another pipeline
 	# pipeline_2 = Pipeline(list_of_steps=list_of_jobs_2)
-	#
-	# # bundle the pipelines together
+	# #
+	# # # bundle the pipelines together
 	# collection_of_pipelines = [pipeline_1, pipeline_2]
-	#
-	# # run the pipelines in parallel
+	# #
+	# # # run the pipelines in parallel
 	# from multiprocessing import Pool
 	# with Pool() as p:
 	# 	res = p.map(wrapper_function, collection_of_pipelines)

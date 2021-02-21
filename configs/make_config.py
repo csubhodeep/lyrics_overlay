@@ -8,11 +8,11 @@ import json
 
 
 class Config(UserDict):
-	"""This class creates a portable object with flexible and mutable attributes
-	"""
+	"""This class creates a portable object with immutable but flexible number of attributes"""
 
 	def __init__(self, output_data_path: Union[str, Path], input_data_path: Optional[Union[str, Path]] = "", **kwargs):
 		super().__init__()
+		# # TODO: assert here if path exists or not
 		if input_data_path:
 			self._input_data_path = Path(input_data_path) if isinstance(input_data_path, str) else input_data_path
 		self._output_data_path = Path(output_data_path) if isinstance(output_data_path, str) else output_data_path

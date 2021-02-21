@@ -9,7 +9,7 @@ from configs.make_config import Config
 
 class Job:
 
-	ALLOWED_ATTRIBUTES = (
+	ALLOWED_SETTABLE_ATTRIBUTES = (
 		'_func',
 		'_conf'
 	)
@@ -18,12 +18,14 @@ class Job:
 
 	def __init__(self, func: Callable, conf: Config):
 		"""This function can be constructed using a callable object or function and a Config object"""
+		assert isinstance(func, Callable), "'func' should be of type Callable"
+		assert isinstance(conf, Config), "'conf' should be of type Config"
 		self._func = func
 		self._conf = conf
 
 	def __setattr__(self, key, value):
 		"""This function ensures immutability of every instance of this class"""
-		if key in Job.ALLOWED_ATTRIBUTES:
+		if key in Job.ALLOWED_SETTABLE_ATTRIBUTES:
 			if hasattr(self, key):
 				raise Exception(f"{key} is already set")
 			else:
@@ -50,7 +52,7 @@ class Pipeline(UserList):
 	where X, Y & Z are a "Job" each and "->" is to be read as 'is executed before'
 	The main objective of the pipeline is to 'connect' a bunch of Jobs together.
 	"""
-	ALLOWED_ATTRIBUTES = (
+	ALLOWED_SETTABLE_ATTRIBUTES = (
 		'_run_id',
 		'data'
 	)
@@ -95,7 +97,7 @@ class Pipeline(UserList):
 		"""This function overrides the default method of the UserList class
 		so that immutability of the '_run_id' attribute can be ensured.
 		"""
-		if key in Pipeline.ALLOWED_ATTRIBUTES:
+		if key in Pipeline.ALLOWED_SETTABLE_ATTRIBUTES:
 			if key != 'data':
 				if hasattr(self, key):
 					raise Exception(f"value of {key} is already set")
