@@ -10,4 +10,4 @@ Assumptions:
 
 ## Architecture
 
-![flow](./docs/flow.png)
+![flow](./docs/flow.svg)
