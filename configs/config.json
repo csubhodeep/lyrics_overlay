@@ -4,6 +4,7 @@
     "input_data_path": "./data/input"
   },
   "pre_process": {
+    "min_output_frame_dim": 416,
     "output_data_path": "./data/pre_processed_output"
   },
   "sample": {
