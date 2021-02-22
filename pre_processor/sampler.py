@@ -41,6 +41,8 @@ def sample(conf: Config) -> bool:
 	input_video_path = Path.cwd().joinpath(conf.input_data_path).joinpath(input_video_file_name)
 	input_lyrics_path = Path.cwd().joinpath(conf.input_data_path).joinpath(input_lyrics_file_name)
 
+	output_lyrics_path = Path.cwd().joinpath(conf.output_data_path).joinpath(f"{conf.run_id}.feather")
+
 	output_folder_path = Path.cwd().joinpath(conf.output_data_path).joinpath(conf.run_id)
 	output_folder_path.mkdir(exist_ok=True)
 
@@ -48,12 +50,10 @@ def sample(conf: Config) -> bool:
 
 	lyrics_df = process_lyrics(raw_lyrics_df)
 
+	lyrics_df.to_feather(output_lyrics_path)
+
 	cap = cv2.VideoCapture(str(input_video_path))
 
-
-	# TODO: for each row in the lyrics file
-	# check if the timestamp of the current frame falls between start_time and end_time of the lyrics
-	# if yes then from the start time sample with the FPS set in the config
 	i = 0
 	while (cap.isOpened()):
 		if i < lyrics_df.shape[0]:
@@ -63,8 +63,8 @@ def sample(conf: Config) -> bool:
 				if frame_ts >= lyrics_df.loc[i, 'start_time']:
 					if frame_ts <= lyrics_df.loc[i, 'end_time']:
 						if frame_ts % conf.sampling_fps == 0:
-							output_file_path = output_folder_path.joinpath(f"{frame_ts}.npy")
-							with open(str(output_file_path), 'wb') as f:
+							output_frame_path = output_folder_path.joinpath(f"{frame_ts}.npy")
+							with open(str(output_frame_path), 'wb') as f:
 								np.save(f, resize(curr_frame, conf.min_output_frame_dim))
 						else:
 							pass
