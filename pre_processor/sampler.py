@@ -11,7 +11,17 @@ from configs.make_config import Config
 def sort_lyrics_df(lyrics: pd.DataFrame) -> pd.DataFrame:
 	# # TODO: implement sorting according to start-time
 
+	lyrics['start_time'] = pd.to_datetime(lyrics['start_time'], format="%M:%S.%f") - pd.Timestamp("1900-01-01 00:00:00")
+
 	return lyrics
+
+
+def resize(img: np.ndarray, new_res: int) -> np.ndarray:
+	width = int(img.shape[1] * new_res / img.shape[0])
+	height = int(img.shape[0] / new_res)
+	dim = (width, height)
+	resized = cv2.resize(img, dim, interpolation=cv2.INTER_AREA)
+	return resized
 
 
 def sample(conf: Config) -> bool:
@@ -39,12 +49,12 @@ def sample(conf: Config) -> bool:
 		frame_exists, curr_frame = cap.read()
 		if frame_exists:
 			frame_ts = cap.get(cv2.CAP_PROP_POS_MSEC)
-			if frame_ts >= lyrics_df['start_time', i]:
-				if frame_ts <= lyrics_df['end_time', i]:
+			if frame_ts >= sorted_lyrics_df.loc[i, 'start_time']:
+				if frame_ts <= sorted_lyrics_df.loc[i, 'end_time']:
 					if frame_ts % conf.sampling_fps == 0:
 						output_file_path = output_folder_path.joinpath(f"{frame_ts}.npy")
 						with open(str(output_file_path), 'wb') as f:
-							np.save(f, curr_frame)
+							np.save(f, resize(curr_frame, conf.min_output_frame_dim))
 					else:
 						pass
 				else:
