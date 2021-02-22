@@ -22,7 +22,7 @@ def clear_files():
 
 	for folder in data_path.iterdir():
 		for file in folder.iterdir():
-			if file.name.endswith(".json"):
+			if file.name.endswith(".json") or file.name.endswith(".mp4"):
 				file.unlink(missing_ok=True)
 
 

@@ -1,44 +1,67 @@
 
-import json
-import os
 from pathlib import Path
 
 import cv2
-
+import numpy as np
+import pandas as pd
 
 from configs.make_config import Config
 
 
+def sort_lyrics_df(lyrics: pd.DataFrame) -> pd.DataFrame:
+	# # TODO: implement sorting according to start-time
+
+	return lyrics
+
+
 def sample(conf: Config) -> bool:
 
-	input_file_name = f"{conf.run_id}.mp4"
-	input_path = Path(os.getcwd()).joinpath(conf.input_data_path).joinpath(input_file_name)
-	output_file_name = f"{conf.run_id}.json"
-	output_file_path = Path(Path(os.getcwd())).joinpath(conf.output_data_path).joinpath(output_file_name)
+	input_video_file_name = f"{conf.run_id}.mp4"
+	input_lyrics_file_name = f"{conf.run_id}.csv"
+	input_video_path = Path.cwd().joinpath(conf.input_data_path).joinpath(input_video_file_name)
+	input_lyrics_path = Path.cwd().joinpath(conf.input_data_path).joinpath(input_lyrics_file_name)
 
-	cap = cv2.VideoCapture(str(input_path))
+	output_folder_path = Path.cwd().joinpath(conf.output_data_path)
+	output_folder_path.mkdir(exist_ok=True)
 
-	some_output = {}
+	lyrics_df = pd.read_csv(input_lyrics_path)
 
+	sorted_lyrics_df = sort_lyrics_df(lyrics_df)
+
+	cap = cv2.VideoCapture(str(input_video_path))
+
+
+	# TODO: for each row in the lyrics file
+	# check if the timestamp of the current frame falls between start_time and end_time of the lyrics
+	# if yes then from the start time sample with the FPS set in the config
+	i = 0
 	while (cap.isOpened()):
 		frame_exists, curr_frame = cap.read()
 		if frame_exists:
-			some_output[str(cap.get(cv2.CAP_PROP_POS_MSEC))] = curr_frame.shape
+			frame_ts = cap.get(cv2.CAP_PROP_POS_MSEC)
+			if frame_ts >= lyrics_df['start_time', i]:
+				if frame_ts <= lyrics_df['end_time', i]:
+					if frame_ts % conf.sampling_fps == 0:
+						output_file_path = output_folder_path.joinpath(f"{frame_ts}.npy")
+						with open(str(output_file_path), 'wb') as f:
+							np.save(f, curr_frame)
+					else:
+						pass
+				else:
+					i = i + 1
+			else:
+				pass
 		else:
 			break
 
 	cap.release()
-
-	# save the output
-	with open(f"{output_file_path}", 'w') as f:
-		json.dump(some_output, f)
 
 	return True
 
 
 def test_code():
 
-	input_path = '../data/input/girls_like_you_small.mp4'
+	input_path = '../girls_like_you_small.mp4'
 	ouput_path = '../data/input/xyz.avi'
 
 	# Create a VideoCapture object
@@ -84,9 +107,3 @@ def test_code():
 
 	# Closes all the frames
 	cv2.destroyAllWindows()
-
-
-if __name__ == "__main__":
-	sample(conf=Config(output_data_path="./data/pre_processed_output",
-					   input_data_path="./data/input",
-					   run_id="girls_like_you_small.mp4"))

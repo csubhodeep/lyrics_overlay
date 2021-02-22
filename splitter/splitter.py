@@ -3,7 +3,9 @@ import json
 
 from configs.make_config import Config
 
+
 def split(conf: Config) -> bool:
+	"""This function must iterate in the increasing order of time"""
 	# doing random stuff
 	some_output = {}
 	file_name = f"{conf.run_id}.json"
