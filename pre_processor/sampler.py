@@ -2,16 +2,26 @@
 from pathlib import Path
 
 import cv2
+from datetime import datetime
 import numpy as np
 import pandas as pd
 
 from configs.make_config import Config
 
 
-def sort_lyrics_df(lyrics: pd.DataFrame) -> pd.DataFrame:
-	# # TODO: implement sorting according to start-time
+def get_milliseconds(time: str) -> int:
 
-	lyrics['start_time'] = pd.to_datetime(lyrics['start_time'], format="%M:%S.%f") - pd.Timestamp("1900-01-01 00:00:00")
+	time_object = datetime.strptime(time, "%M:%S.%f")
+
+	return int(time_object.minute*60*1000 + time_object.second*1000 + time_object.microsecond/1000)
+
+
+def process_lyrics(lyrics: pd.DataFrame) -> pd.DataFrame:
+
+	lyrics['start_time'] = lyrics['start_time'].apply(get_milliseconds)
+	lyrics['end_time'] = lyrics['end_time'].apply(get_milliseconds)
+
+	lyrics.sort_values(by='start_time', inplace=True)
 
 	return lyrics
 
@@ -31,12 +41,12 @@ def sample(conf: Config) -> bool:
 	input_video_path = Path.cwd().joinpath(conf.input_data_path).joinpath(input_video_file_name)
 	input_lyrics_path = Path.cwd().joinpath(conf.input_data_path).joinpath(input_lyrics_file_name)
 
-	output_folder_path = Path.cwd().joinpath(conf.output_data_path)
+	output_folder_path = Path.cwd().joinpath(conf.output_data_path).joinpath(conf.run_id)
 	output_folder_path.mkdir(exist_ok=True)
 
-	lyrics_df = pd.read_csv(input_lyrics_path)
+	raw_lyrics_df = pd.read_csv(input_lyrics_path)
 
-	sorted_lyrics_df = sort_lyrics_df(lyrics_df)
+	lyrics_df = process_lyrics(raw_lyrics_df)
 
 	cap = cv2.VideoCapture(str(input_video_path))
 
@@ -46,74 +56,27 @@ def sample(conf: Config) -> bool:
 	# if yes then from the start time sample with the FPS set in the config
 	i = 0
 	while (cap.isOpened()):
-		frame_exists, curr_frame = cap.read()
-		if frame_exists:
-			frame_ts = cap.get(cv2.CAP_PROP_POS_MSEC)
-			if frame_ts >= sorted_lyrics_df.loc[i, 'start_time']:
-				if frame_ts <= sorted_lyrics_df.loc[i, 'end_time']:
-					if frame_ts % conf.sampling_fps == 0:
-						output_file_path = output_folder_path.joinpath(f"{frame_ts}.npy")
-						with open(str(output_file_path), 'wb') as f:
-							np.save(f, resize(curr_frame, conf.min_output_frame_dim))
+		if i < lyrics_df.shape[0]:
+			frame_exists, curr_frame = cap.read()
+			if frame_exists:
+				frame_ts = cap.get(cv2.CAP_PROP_POS_MSEC)
+				if frame_ts >= lyrics_df.loc[i, 'start_time']:
+					if frame_ts <= lyrics_df.loc[i, 'end_time']:
+						if frame_ts % conf.sampling_fps == 0:
+							output_file_path = output_folder_path.joinpath(f"{frame_ts}.npy")
+							with open(str(output_file_path), 'wb') as f:
+								np.save(f, resize(curr_frame, conf.min_output_frame_dim))
+						else:
+							pass
 					else:
-						pass
+						i = i + 1
 				else:
-					i = i + 1
+					pass
 			else:
-				pass
+				break
 		else:
 			break
 
 	cap.release()
 
 	return True
-
-
-def test_code():
-
-	input_path = '../girls_like_you_small.mp4'
-	ouput_path = '../data/input/xyz.avi'
-
-	# Create a VideoCapture object
-	cap = cv2.VideoCapture(input_path)
-
-	fps = cap.get(cv2.CAP_PROP_FPS)
-
-	# Check if camera opened successfully
-	if (cap.isOpened() == False):
-		print("Unable to read camera feed")
-
-	# Default resolutions of the frame are obtained.The default resolutions are system dependent.
-	# We convert the resolutions from float to integer.
-	frame_width = int(cap.get(3))
-	frame_height = int(cap.get(4))
-
-
-	# Define the codec and create VideoWriter object.The output is stored in 'outpy.avi' file.
-	out = cv2.VideoWriter(ouput_path, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), fps, (frame_width, frame_height))
-
-	while (True):
-		ret, frame = cap.read()
-
-		if ret:
-
-			# Write the frame into the file 'output.avi'
-			out.write(frame)
-
-			# Display the resulting frame
-			cv2.imshow('frame', frame)
-
-			# Press Q on keyboard to stop recording
-			if cv2.waitKey(1) & 0xFF == ord('q'):
-				break
-
-		# Break the loop
-		else:
-			break
-
-	# When everything done, release the video capture and video write objects
-	cap.release()
-	out.release()
-
-	# Closes all the frames
-	cv2.destroyAllWindows()

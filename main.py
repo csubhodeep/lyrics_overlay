@@ -21,9 +21,13 @@ def clear_files():
 	data_path = Path('./data/')
 
 	for folder in data_path.iterdir():
-		for file in folder.iterdir():
-			if file.name.endswith(".json") or file.name.endswith(".mp4") or file.name.endswith(".csv"):
-				file.unlink(missing_ok=True)
+		for stuff in folder.iterdir():
+			if stuff.name.endswith(".json") or stuff.name.endswith(".mp4") or stuff.name.endswith(".csv"):
+				stuff.unlink(missing_ok=True)
+			if stuff.is_dir():
+				for ele in stuff.iterdir():
+					ele.unlink(missing_ok=True)
+				stuff.rmdir()
 
 
 if __name__ == "__main__":

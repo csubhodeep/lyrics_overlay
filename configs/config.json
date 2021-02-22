@@ -3,12 +3,9 @@
     "output_data_path": "./data/input",
     "input_data_path": "./data/input"
   },
-  "pre_process": {
+  "sample": {
     "min_output_frame_dim": 416,
     "sampling_fps": 5,
-    "output_data_path": "./data/pre_processed_output"
-  },
-  "sample": {
     "output_data_path": "./data/pre_processed_output"
   },
   "detect_persons": {

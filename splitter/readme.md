@@ -35,6 +35,6 @@ The data structure would be same as input format.
 #### some_random_uuid.feather
 
 ```
-start_time,end_time,text,x1,x3,y1,y3
-00:01.23456,00:02.45678,"i am singing !",24,43,56,80
+start_time,end_time,text,font_type,x1,x3,y1,y3
+00:01.23456,00:02.45678,"i am singing !","",24,43,56,80
 ```
