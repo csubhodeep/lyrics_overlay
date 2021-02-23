@@ -57,15 +57,11 @@ class Job:
 				else:
 					pass
 
-	def clear_files(self, is_first_job: bool = False, is_last_job: bool = False,
-					exclude_files: Iterable[str] = ('.gitkeep')) -> None:
-		if is_first_job:
-			self._clear_files(path=self.config.input_data_path, exclude_files=exclude_files, run_id=self.config.run_id)
+	def clear_files(self, is_last_job: bool = False, exclude_files: Iterable[str] = ('.gitkeep')) -> None:
+		if not is_last_job:
+			self._clear_files(path=self.config.output_data_path, exclude_files=exclude_files, run_id=self.config.run_id)
 		else:
-			if is_last_job:
-				pass
-			else:
-				self._clear_files(path=self.config.output_data_path, exclude_files=exclude_files, run_id=self.config.run_id)
+			pass
 
 	def __call__(self):
 		return self._func(conf=self.config)
@@ -151,7 +147,7 @@ class Pipeline(UserList):
 
 	def clear(self, exclude_files: Iterable[str] = ('.gitkeep')) -> None:
 		for i, job in enumerate(self):
-			job.clear_files(is_first_job=i == 0, is_last_job=i == len(self)-1, exclude_files=exclude_files)
+			job.clear_files(is_last_job=i == len(self)-1, exclude_files=exclude_files)
 
 		del self.data
 
