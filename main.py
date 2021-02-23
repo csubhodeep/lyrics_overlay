@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from typing import Union
 
 from configs.make_config import get_config
 from optimizer.optimize import optimize
@@ -32,21 +33,18 @@ def clear_files():
 
 if __name__ == "__main__":
 
-	if os.getenv('ENVIRONMENT') == 'test':
-		clear_files()
-
 	"""The basic procedure to compose a pipeline is done by doing the following steps:
-		1. Read the config from the file under - './configs/config.json' - make a collection of Config objects
+		1. Read the config from the file under - './configs/*.json' - make a dict of Config objects
 		2. Create the steps using the Job objects - each Job object requires a function and a Config object
 		3. Put the above Job objects in any kind of iterable or collection (like List or Tuple) following a particular order.
 	"""
 
 	# Step-1: get all details from config file
-	collection_of_configs = get_config(path_to_config="./configs/config.json")
+	dict_of_configs = get_config(path_to_config="./configs/config.json")
 
 	# declare jobs
-	fetch_data_step = Job(func=fetch_data, conf=collection_of_configs['fetch_data'])
-	sample_step = Job(func=sample, conf=collection_of_configs['sample'])
+	fetch_data_step = Job(func=fetch_data, conf=dict_of_configs['fetch_data'])
+	sample_step = Job(func=sample, conf=dict_of_configs['sample'])
 	# detect_persons_step = Job(func=detect_persons, conf=collection_of_configs['detect_persons'])
 	# split_step = Job(func=split, conf=collection_of_configs['split'])
 	# optimization_step = Job(func=optimize, conf=collection_of_configs['optimization'])
@@ -69,6 +67,7 @@ if __name__ == "__main__":
 
 	# execute pipeline
 	pipeline_1()
+	pipeline_1.clear()
 
 	"""below we see an example of how we can instantiate a pipeline with just a first step"""
 	# pipeline_1 = Pipeline(start_step=fetch_data_step)

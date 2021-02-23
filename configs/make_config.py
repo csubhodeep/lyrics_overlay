@@ -47,7 +47,7 @@ class Config(UserDict):
 
 
 def get_config(path_to_config: Union[Path, str]) -> Dict[str, Config]:
-	with open(path_to_config, 'r') as f:
+	with open(str(path_to_config), 'r') as f:
 		config_dict = json.load(f)
 
 	config_collection = {}
