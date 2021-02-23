@@ -14,7 +14,7 @@ def fetch_data(conf: Config) -> bool:
 	assert Path.cwd().joinpath(conf.output_data_path).exists()
 
 	# # FIXME: right now we are copying the same file to the same location to emulate the same behaviour
-	input_file_path_video = Path.cwd().joinpath("oh_oh_jaane_jaana.mp4")
+	input_file_path_video = Path.cwd().joinpath(conf.input_data_path).joinpath("oh_oh_jaane_jaana.mp4")
 	input_file_path_lyrics = Path.cwd().joinpath("oh_oh_jaane_jaana_lyrics.csv")
 	copy(src=input_file_path_video, dst=output_file_path_video)
 	copy(src=input_file_path_lyrics, dst=output_file_path_lyrics)
@@ -23,5 +23,4 @@ def fetch_data(conf: Config) -> bool:
 
 
 if __name__ == "__main__":
-	fetch_data(conf=Config(output_data_path="./data/input",
-						   run_id="asdsa132"))
+	fetch_data(conf=Config(output_data_path="./data/input", input_data_path="./data", run_id="asdsa132"))

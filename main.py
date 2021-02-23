@@ -40,7 +40,7 @@ if __name__ == "__main__":
 	"""
 
 	# Step-1: get all details from config file
-	dict_of_configs = get_config(path_to_config="./configs/config.json")
+	dict_of_configs = get_config(path_to_config="./configs/config.hjson")
 
 	# declare jobs
 	fetch_data_step = Job(func=fetch_data, conf=dict_of_configs['fetch_data'])
