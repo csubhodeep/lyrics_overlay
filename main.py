@@ -13,6 +13,11 @@ from pre_processor.data_fetcher import fetch_data
 from pre_processor.sampler import sample
 from splitter.splitter import split
 
+if os.getenv('ENVIRONMENT') == 'test':
+	DEBUG = True
+else:
+	DEBUG = False
+
 
 def wrapper_function(pipeline: Pipeline) -> None:
 	pipeline()
@@ -23,7 +28,7 @@ def clear_files():
 
 	for folder in data_path.iterdir():
 		for stuff in folder.iterdir():
-			if stuff.name.endswith(".json") or stuff.name.endswith(".mp4") or stuff.name.endswith(".csv"):
+			if stuff.name.endswith(".json") or stuff.name.endswith(".mp4") or stuff.name.endswith(".csv") or stuff.name.endswith('feather'):
 				stuff.unlink(missing_ok=True)
 			if stuff.is_dir():
 				for ele in stuff.iterdir():
@@ -39,6 +44,8 @@ if __name__ == "__main__":
 		3. Put the above Job objects in any kind of iterable or collection (like List or Tuple) following a particular order.
 		4. Make a Pipeline object.
 	"""
+
+	clear_files()
 
 	# Step-1: get all details from config file
 	dict_of_configs = get_config(path_to_config="./configs/config.hjson")
@@ -70,7 +77,8 @@ if __name__ == "__main__":
 	pipeline_1()
 
 	# clear intermediate data created by the pipeline
-	pipeline_1.clear()
+	if not DEBUG:
+		pipeline_1.clear()
 
 	"""below we see an example of how we can instantiate a pipeline with just a first step"""
 	# pipeline_1 = Pipeline(start_step=fetch_data_step)
