@@ -55,6 +55,7 @@ def sample(conf: Config) -> bool:
 	cap = cv2.VideoCapture(str(input_video_path))
 
 	i = 0
+	j = 0
 	while (cap.isOpened()):
 		if i < lyrics_df.shape[0]:
 			frame_exists, curr_frame = cap.read()
@@ -62,14 +63,16 @@ def sample(conf: Config) -> bool:
 				frame_ts = cap.get(cv2.CAP_PROP_POS_MSEC)
 				if frame_ts >= lyrics_df.loc[i, 'start_time']:
 					if frame_ts <= lyrics_df.loc[i, 'end_time']:
-						if frame_ts % conf.sampling_fps == 0:
+						if j % conf.sampling_fps == 0:
 							output_frame_path = output_folder_path.joinpath(f"{frame_ts}.npy")
 							with open(str(output_frame_path), 'wb') as f:
 								np.save(f, resize(curr_frame, conf.min_output_frame_dim))
 						else:
 							pass
+						j = j + 1
 					else:
 						i = i + 1
+						j = 0
 				else:
 					pass
 			else:
