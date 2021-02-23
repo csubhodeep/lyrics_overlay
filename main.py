@@ -37,12 +37,13 @@ if __name__ == "__main__":
 		1. Read the config from the file under - './configs/*.json' - make a dict of Config objects
 		2. Create the steps using the Job objects - each Job object requires a function and a Config object
 		3. Put the above Job objects in any kind of iterable or collection (like List or Tuple) following a particular order.
+		4. Make a Pipeline object.
 	"""
 
 	# Step-1: get all details from config file
 	dict_of_configs = get_config(path_to_config="./configs/config.hjson")
 
-	# declare jobs
+	# Step-2: declare jobs
 	fetch_data_step = Job(func=fetch_data, conf=dict_of_configs['fetch_data'])
 	sample_step = Job(func=sample, conf=dict_of_configs['sample'])
 	# detect_persons_step = Job(func=detect_persons, conf=collection_of_configs['detect_persons'])
@@ -51,7 +52,7 @@ if __name__ == "__main__":
 	# overlay_step = Job(func=overlay, conf=collection_of_configs['overlay'])
 	# upload_step = Job(func=upload_video, conf=collection_of_configs['upload'])
 
-	# the jobs below are put in a certain order for the pipeline
+	# Step-3: the jobs below are put in a certain order for the pipeline
 	list_of_jobs = (
 		fetch_data_step,
 		sample_step
@@ -62,11 +63,13 @@ if __name__ == "__main__":
 		# upload_step
 	)
 
-	# instantiate a pipeline object
+	# Step-4: instantiate a pipeline object
 	pipeline_1 = Pipeline(list_of_steps=list_of_jobs)
 
 	# execute pipeline
 	pipeline_1()
+
+	# clear intermediate data created by the pipeline
 	pipeline_1.clear()
 
 	"""below we see an example of how we can instantiate a pipeline with just a first step"""
