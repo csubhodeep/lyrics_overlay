@@ -20,9 +20,6 @@ from person_box_detector.utils.utils import non_max_suppression, load_classes
 Tensor = torch.FloatTensor
 
 
-
-
-
 def detect_image(img: np.ndarray, img_size: int, model, conf_thresh: float, nms_thresh: float):
     # scale and pad image
     ratio = min(img_size/img.size[0], img_size/img.size[1])
@@ -84,6 +81,7 @@ def detect_persons(conf: Config) -> bool:
     for item in input_frames_path.iterdir():
         with open(str(item), 'rb') as f:
             frame = np.load(f)
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         pilimg = Image.fromarray(frame)
         detections = detect_image(pilimg, conf.img_size, model, conf.conf_thresh, conf.nms_thresh)
         if detections is not None:
@@ -131,15 +129,14 @@ if __name__ == "__main__":
 
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         pilimg = Image.fromarray(frame)
-        detections = detect_image(pilimg, img_size, model)
+        detections = detect_image(pilimg, img_size, model, conf_thres, nms_thres)
 
         img = np.array(pilimg)
-        #print(detections)
         pad_x = max(img.shape[0] - img.shape[1], 0) * (img_size / max(img.shape))
         pad_y = max(img.shape[1] - img.shape[0], 0) * (img_size / max(img.shape))
         unpad_h = img_size - pad_y
         unpad_w = img_size - pad_x
-        if detections is not None :
+        if detections is not None:
             #tracked_objects = mot_tracker.update(detections.cpu())
 
             unique_labels = detections[:, -1].cpu().unique()
@@ -187,5 +184,5 @@ if __name__ == "__main__":
     cap.release()
     cv2.destroyAllWindows()
 
-    with open('../data/detected_persons/result.json', 'w') as f:
-        json.dump(detected_persons, f)
+    with open('../data/detected_persons/result.hjson', 'w') as f:
+        hjson.dump(detected_persons, f)
