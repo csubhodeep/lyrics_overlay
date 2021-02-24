@@ -1,10 +1,11 @@
 from pathlib import Path
-import json
+from typing import Dict, Iterable
 import random
 
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 from PIL import Image
 import torch
 from torch.autograd import Variable
@@ -19,17 +20,10 @@ from person_box_detector.utils.utils import non_max_suppression, load_classes
 Tensor = torch.FloatTensor
 
 
-def detect_persons(conf: Config) -> bool:
-    # doing random stuff
-    some_output = {}
-    file_name = f"{conf.run_id}.json"
-    file_path = Path(conf.output_data_path).joinpath(file_name)
-    with open(file_path, 'w') as f:
-        json.dump(some_output, f)
 
-    return True
 
-def detect_image(img, img_size, model):
+
+def detect_image(img: np.ndarray, img_size: int, model, conf_thresh: float, nms_thresh: float):
     # scale and pad image
     ratio = min(img_size/img.size[0], img_size/img.size[1])
     imw = round(img.size[0] * ratio)
@@ -46,8 +40,68 @@ def detect_image(img, img_size, model):
     # run inference on the model and get detections
     with torch.no_grad():
         detections = model(input_img)
-        detections = non_max_suppression(detections, 80, conf_thres, nms_thres)
+        detections = non_max_suppression(detections, 80, conf_thresh, nms_thresh)
     return detections[0]
+
+
+def post_process_detection(detections, classes) -> Iterable[Dict[str, float]]:
+
+    list_of_persons = []
+    for x1, y1, x3, y3, conf, cls_conf, cls_pred in detections:
+        cls = classes[int(cls_pred)]
+        if cls == 'person':
+            box_h = int(((y3 - y1) / unpad_h) * img.shape[0])
+            box_w = int(((x3 - x1) / unpad_w) * img.shape[1])
+            y1 = int(((y1 - pad_y // 2) / unpad_h) * img.shape[0])
+            x1 = int(((x1 - pad_x // 2) / unpad_w) * img.shape[1])
+            x3 = x1 + box_w
+            y3 = y1 + box_h
+            list_of_persons.append({
+                'x1': x1,
+                'y1': y1,
+                'x3': x3,
+                'y3': y3
+            }
+            )
+
+    return list_of_persons
+
+
+def detect_persons(conf: Config) -> bool:
+
+    input_frames_path = Path.cwd().joinpath(conf.input_data_path).joinpath(conf.run_id)
+    output_file_path = Path.cwd().joinpath(conf.output_data_path).joinpath(conf.run_id)
+
+    # Load model and weights
+    model = Darknet(conf.config_path, img_size=conf.img_size)
+    model.load_weights(conf.weights_path)
+    # model.cuda()
+    model.eval()
+    classes = load_classes(conf.class_path)
+
+    result_df = pd.DataFrame()
+
+    for item in input_frames_path.iterdir():
+        with open(str(item), 'rb') as f:
+            frame = np.load(f)
+        pilimg = Image.fromarray(frame)
+        detections = detect_image(pilimg, conf.img_size, model, conf.conf_thresh, conf.nms_thresh)
+        if detections is not None:
+            persons = post_process_detection(detections, classes)
+            print(persons)
+            for person in persons:
+                row = {
+                    "frame": item.name,
+                    "x1": person["x1"],
+                    "x3": person["x3"],
+                    "y1": person["y1"],
+                    "y3": person["y3"]
+                }
+            result_df = result_df.append(row, ignore_index=True)
+
+    result_df.to_feather(f"{output_file_path}.feather")
+
+    return True
 
 
 if __name__ == "__main__":

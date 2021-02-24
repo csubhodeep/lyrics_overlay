@@ -53,7 +53,7 @@ if __name__ == "__main__":
 	# Step-2: declare jobs
 	fetch_data_step = Job(func=fetch_data, conf=dict_of_configs['fetch_data'])
 	sample_step = Job(func=sample, conf=dict_of_configs['sample'])
-	# detect_persons_step = Job(func=detect_persons, conf=collection_of_configs['detect_persons'])
+	detect_persons_step = Job(func=detect_persons, conf=dict_of_configs['detect_persons'])
 	# split_step = Job(func=split, conf=collection_of_configs['split'])
 	# optimization_step = Job(func=optimize, conf=collection_of_configs['optimization'])
 	# overlay_step = Job(func=overlay, conf=collection_of_configs['overlay'])
@@ -62,8 +62,8 @@ if __name__ == "__main__":
 	# Step-3: the jobs below are put in a certain order for the pipeline
 	list_of_jobs = (
 		fetch_data_step,
-		sample_step
-		# detect_persons_step,
+		sample_step,
+		detect_persons_step,
 		# split_step,
 		# optimization_step,
 		# overlay_step,
