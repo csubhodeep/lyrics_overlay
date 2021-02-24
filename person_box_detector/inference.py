@@ -20,7 +20,7 @@ from person_box_detector.utils.utils import non_max_suppression, load_classes
 Tensor = torch.FloatTensor
 
 
-def detect_image(img: np.ndarray, img_size: int, model, conf_thresh: float, nms_thresh: float):
+def detect_image(img: np.ndarray, img_size: int, model: Darknet, conf_thresh: float, nms_thresh: float):
     # scale and pad image
     ratio = min(img_size/img.size[0], img_size/img.size[1])
     imw = round(img.size[0] * ratio)
