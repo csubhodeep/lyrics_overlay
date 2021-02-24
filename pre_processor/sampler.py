@@ -27,8 +27,14 @@ def process_lyrics(lyrics: pd.DataFrame) -> pd.DataFrame:
 
 
 def resize(img: np.ndarray, new_res: int) -> np.ndarray:
-	width = int(img.shape[1] * new_res / img.shape[0])
-	height = int(img.shape[0] / new_res)
+
+	if img.shape[1] >= img.shape[0]:
+		width = int(img.shape[1] * new_res / img.shape[0])
+		height = new_res
+	else:
+		height = int(img.shape[0] * new_res / img.shape[1])
+		width = new_res
+
 	dim = (width, height)
 	resized = cv2.resize(img, dim, interpolation=cv2.INTER_AREA)
 	return resized
