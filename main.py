@@ -39,10 +39,10 @@ def clear_files():
 if __name__ == "__main__":
 
 	"""The basic procedure to compose a pipeline is done by doing the following steps:
-		1. Read the config from the file under - './configs/*.json' - make a dict of Config objects
+		1. Read the config from the file under - './configs/*.hjson' - make a dict of Config objects
 		2. Create the steps using the Job objects - each Job object requires a function and a Config object
 		3. Put the above Job objects in any kind of iterable or collection (like List or Tuple) following a particular order.
-		4. Make a Pipeline object.
+		4. Make a Pipeline object using the list of Jobs created in Step - 3
 	"""
 
 	clear_files()
