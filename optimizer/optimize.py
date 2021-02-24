@@ -1,8 +1,8 @@
 from pathlib import Path
-import json
 
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 from scipy.optimize import differential_evolution
 
 from statistics import variance
@@ -13,7 +13,6 @@ from configs.make_config import Config
 from optimizer.lib.defs import Box, Point, Lyrics
 from optimizer.utils.utils import text_fits_box
 from optimizer.utils.utils import get_distance_from_image_edges
-
 
 
 def get_loss(x,
@@ -62,27 +61,68 @@ def get_loss(x,
 
 	# loss = np.var(all_distances)
 
+
+def get_optimal_boxes(row, conf: Config):
+
+	persons = (
+		Box(first_diagonal_coords=Point(coords=(row['x1'], row['y1'])),
+			second_diagonal_coords=Point(coords=(row['x3'], row['y3'])))
+	)
+
+	lyrics = Lyrics(row['text'])
+
+	limits = (
+		(0, conf.img_size),
+		(0, conf.img_size),
+		(0, conf.img_size),
+		(0, conf.img_size),
+		(conf.font_size_min_limit, conf.font_size_max_limit)
+	)
+
+	res = differential_evolution(get_loss,
+								 bounds=limits,
+								 args=((conf.img_size, conf.img_size), persons, lyrics),
+								 popsize=100
+								 )
+
+	return int(round(res.x[0])), int(round(res.x[1])), int(round(res.x[2])), int(round(res.x[3]))
+
+
 def optimize(conf: Config) -> bool:
-	# doing random stuff
-	some_output = {}
-	file_name = f"{conf.run_id}.json"
-	file_path = Path(conf.output_data_path).joinpath(file_name)
-	with open(file_path, 'w') as f:
-		json.dump(some_output, f)
+
+	input_file_path = Path.cwd().joinpath(conf.input_data_path).joinpath(f"{conf.run_id}.feather")
+	output_file_path = Path.cwd().joinpath(conf.output_data_path).joinpath(f"{conf.run_id}.feather")
+
+	df_input = pd.read_feather(input_file_path)
+
+	df_output = df_input[['start_time', 'end_time', 'text']]
+
+	df_output = pd.DataFrame()
+
+	df_output[['x1', 'y1', 'x3', 'y3']] = df_input.apply(get_optimal_boxes, axis=1, args=(conf,), result_type='expand')
+
+	df_output.to_feather(output_file_path)
 
 	return True
 
 
 if __name__ == "__main__":
-	lyrics = Lyrics("I love you I love you I love you I love you")
 
-	limits = (
-		(0, 100),
-		(0, 100),
-		(0, 100),
-		(0, 100),
-		(1,5)
-	)
+	config = Config(output_data_path="./data/optimizer_output",
+					input_data_path="./data/detected_persons_output")
+	config.set_run_id(run_id="8b09068f-9351-40d1-abb8-805de9d41fb9")
+
+	optimize(conf=config)
+
+	# lyrics = Lyrics("I love you I love you I love you I love you")
+	#
+	# limits = (
+	# 	(0, 100),
+	# 	(0, 100),
+	# 	(0, 100),
+	# 	(0, 100),
+	# 	(1, 5)
+	# )
 
 	# #binary_mask[y1:y3, x1:x3]
 
@@ -114,16 +154,16 @@ if __name__ == "__main__":
 	# )
 
 	### case 3
-	binary_mask = np.zeros([100, 100])
-	binary_mask[20:60, 10:40] = 1
-	binary_mask[10:30, 65:85] = 1
-	binary_mask[70:90, 50:70] = 1
-
-	persons = (
-		Box(first_diagonal_coords=Point(coords=(10, 20)), second_diagonal_coords=Point(coords=(40, 60))),
-		Box(first_diagonal_coords=Point(coords=(65, 10)), second_diagonal_coords=Point(coords=(85, 30))),
-		Box(first_diagonal_coords=Point(coords=(50, 70)), second_diagonal_coords=Point(coords=(70, 90)))
-	)
+	# binary_mask = np.zeros([100, 100])
+	# binary_mask[20:60, 10:40] = 1
+	# binary_mask[10:30, 65:85] = 1
+	# binary_mask[70:90, 50:70] = 1
+	#
+	# persons = (
+	# 	Box(first_diagonal_coords=Point(coords=(10, 20)), second_diagonal_coords=Point(coords=(40, 60))),
+	# 	Box(first_diagonal_coords=Point(coords=(65, 10)), second_diagonal_coords=Point(coords=(85, 30))),
+	# 	Box(first_diagonal_coords=Point(coords=(50, 70)), second_diagonal_coords=Point(coords=(70, 90)))
+	# )
 
 	### case 4
 	# binary_mask = np.zeros([100, 100])
@@ -139,19 +179,19 @@ if __name__ == "__main__":
 
 	# TODO: why not exclude certain solutions before triggering the opti algo for faster convergence
 
-	res = differential_evolution(get_loss,
-								 bounds=limits,
-								 args=(binary_mask.shape, persons, lyrics),
-								 popsize=100
-								 )
-
-	if res.success:
-		optimal_box = Box(first_diagonal_coords=Point((res.x[0], res.x[1])),
-					  second_diagonal_coords=Point((res.x[2], res.x[3])))
-
-		plt.imshow(optimal_box.overlay_on_image(binary_mask))
-		plt.show()
-		print(res)
+	# res = differential_evolution(get_loss,
+	# 							 bounds=limits,
+	# 							 args=(binary_mask.shape, persons, lyrics),
+	# 							 popsize=100
+	# 							 )
+	#
+	# if res.success:
+	# 	optimal_box = Box(first_diagonal_coords=Point((res.x[0], res.x[1])),
+	# 				  second_diagonal_coords=Point((res.x[2], res.x[3])))
+	#
+	# 	plt.imshow(optimal_box.overlay_on_image(binary_mask))
+	# 	plt.show()
+	# 	print(res)
 
 
 
