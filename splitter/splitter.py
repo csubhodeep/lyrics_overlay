@@ -19,6 +19,7 @@ def split(conf: Config) -> bool:
 	#   get a slice from f_zone df
 	#   split the slices based on IOU.
 	#   union the split slices . (define union function and use in lambda)
+	# check readme of splitter to understand the output
 	# sub splitting function
 	return True
 
