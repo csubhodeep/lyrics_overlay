@@ -93,7 +93,7 @@ def detect_persons(conf: Config) -> bool:
             persons = post_process_detection(detections, classes, pilimg, conf.img_size)
             for person in persons:
                 row = {
-                    "frame": item.name.rstrip(".npy"),
+                    "frame": float(item.name.rstrip(".npy")),
                     "x1": person["x1"],
                     "x3": person["x3"],
                     "y1": person["y1"],

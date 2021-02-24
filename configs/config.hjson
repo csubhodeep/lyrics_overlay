@@ -19,7 +19,7 @@
   },
   "split": {
     "output_data_path": "./data/splitter_output",
-    "lyrics_input_path": "./data/input"
+    "lyrics_input_path": "./data/pre_processed_output"
   },
   "optimization": {
     "output_data_path": "./data/optimizer_output"
