@@ -42,10 +42,8 @@ def resize(img: np.ndarray, new_res: int) -> np.ndarray:
 
 def sample(conf: Config) -> bool:
 
-	input_video_file_name = f"{conf.run_id}.mp4"
-	input_lyrics_file_name = f"{conf.run_id}.csv"
-	input_video_path = Path.cwd().joinpath(conf.input_data_path).joinpath(input_video_file_name)
-	input_lyrics_path = Path.cwd().joinpath(conf.input_data_path).joinpath(input_lyrics_file_name)
+	input_video_path = Path.cwd().joinpath(conf.input_data_path).joinpath(f"{conf.run_id}.mp4")
+	input_lyrics_path = Path.cwd().joinpath(conf.input_data_path).joinpath(f"{conf.run_id}.csv")
 
 	output_lyrics_path = Path.cwd().joinpath(conf.output_data_path).joinpath(f"{conf.run_id}.feather")
 

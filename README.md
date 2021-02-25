@@ -9,7 +9,9 @@ Assumptions:
 1. In this case "subjects" are "persons".
 2. Number of subjects = 1
 3. Maximum time-length = 5 minutes
-4. No overlapping lyrics
+4. Maximum frames per second = 60
+5. Maximum resolution = 1920x1080 (FHD)
+5. No time-overlapping lyrics
 
 ## Architecture
 
