@@ -9,9 +9,11 @@ from pipeline.lib.defs import Pipeline
 class TestDefs(unittest.TestCase):
 
 	def setUp(self) -> None:
-		self.conf = Config(".")
+		self.conf = Config(output_data_path=".",
+						   input_data_path=".")
 		self.dummy_function = lambda x: x
 		self.job = Job(func=self.dummy_function, conf=self.conf)
+		self.pipeline = Pipeline(start_step=self.job)
 
 	def test_modify_attribute(self) -> None:
 
@@ -28,6 +30,14 @@ class TestDefs(unittest.TestCase):
 			self.job.y = 2
 		except Exception as ex:
 			assert str(ex) == "y is not a valid attribute"
+
+	def test_make_pipeline_with_same_run_ids(self):
+		run_id = getattr(self.pipeline, 'run_id')
+		# run_id = self.pipeline.run_id
+		try:
+			new_pipeline = Pipeline(start_step=self.job, unique_run_id=run_id)
+		except Exception as ex:
+			assert str(ex) == f"Pipeline with run-id: {run_id} already exists !"
 
 
 if __name__ == "__main__":
