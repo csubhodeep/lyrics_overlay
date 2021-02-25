@@ -177,7 +177,7 @@ class Pipeline(UserList):
 		for i, job in enumerate(self):
 			job.clear_files(is_last_job=i == len(self)-1, exclude_files=exclude_files)
 
-		self.data.clear()
+		del self.data
 		self._remove_run_id(self.run_id)
 
 	def insert(self, i: int, item) -> None:
