@@ -10,6 +10,7 @@ def split(conf: Config) -> bool:
 	input_f_zone_file = Path.cwd().joinpath(conf.input_data_path).joinpath(f"{file_name}.feather")
 	f_zone_df = pd.read_feather(input_f_zone_file).sort_values(by='frame')
 	input_lyrics_file = Path.cwd().joinpath(conf.lyrics_input_path).joinpath(f"{file_name}.feather")
+	output_file_path = Path.cwd().joinpath(conf.output_data_path).joinpath(conf.run_id)
 	input_lyrics_df = pd.read_feather(input_lyrics_file)
 
 	result_df = pd.DataFrame()
@@ -52,7 +53,8 @@ def split(conf: Config) -> bool:
 		result_df = result_df.append(row, ignore_index=True)
 
 	result_df = input_lyrics_df.join(result_df, lsuffix='_caller', rsuffix='_other')
-	return result_df
+	result_df.to_feather(f"{output_file_path}.feather")
+	return True
 
 
 if __name__ == "__main__":
