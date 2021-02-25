@@ -1,5 +1,6 @@
 from collections import UserList
 from pathlib import Path
+from typing import Any
 from typing import Callable
 from typing import Iterable
 from typing import Optional
@@ -176,8 +177,23 @@ class Pipeline(UserList):
 		for i, job in enumerate(self):
 			job.clear_files(is_last_job=i == len(self)-1, exclude_files=exclude_files)
 
-		del self.data
+		self.data.clear()
 		self._remove_run_id(self.run_id)
+
+	def insert(self, i: int, item) -> None:
+		raise NotImplementedError
+
+	def pop(self, i: int = ...) -> None:
+		raise NotImplementedError
+
+	def copy(self):
+		raise NotImplementedError
+
+	def sort(self, *args: Any, **kwds: Any) -> None:
+		raise NotImplementedError
+
+	def reverse(self) -> None:
+		raise NotImplementedError
 
 	def __call__(self):
 		"""This function ensures 'lazy' execution of the pipeline"""
