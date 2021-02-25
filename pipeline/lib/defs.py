@@ -1,5 +1,6 @@
 from collections import UserList
 from pathlib import Path
+from typing import Any
 from typing import Callable
 from typing import Iterable
 from typing import Optional
@@ -11,7 +12,7 @@ from configs.make_config import Config
 
 class Job:
 
-	ALLOWED_SETTABLE_ATTRIBUTES = (
+	__ALLOWED_SETTABLE_ATTRIBUTES = (
 		'_func',
 		'_conf'
 	)
@@ -27,7 +28,7 @@ class Job:
 
 	def __setattr__(self, key, value):
 		"""This function ensures immutability of every instance of this class"""
-		if key in Job.ALLOWED_SETTABLE_ATTRIBUTES:
+		if key in Job.__ALLOWED_SETTABLE_ATTRIBUTES:
 			if hasattr(self, key):
 				raise Exception(f"{key} is already set")
 			else:
@@ -74,10 +75,28 @@ class Pipeline(UserList):
 	where X, Y & Z are a "Job" each and "->" is to be read as 'is executed before'
 	The main objective of the pipeline is to 'connect' a bunch of Jobs together.
 	"""
-	ALLOWED_SETTABLE_ATTRIBUTES = (
+	__ALLOWED_SETTABLE_ATTRIBUTES = (
 		'_run_id',
 		'data'
 	)
+
+	__RUN_IDS: Iterable[str] = tuple([])
+
+	@classmethod
+	def _register_run_id(cls, run_id: str):
+		if run_id not in cls.__RUN_IDS:
+			run_ids = list(cls.__RUN_IDS)
+			run_ids.append(run_id)
+			cls.__RUN_IDS = tuple(run_ids)
+		else:
+			raise Exception(f"Pipeline with run-id: {run_id} already exists !")
+
+	@classmethod
+	def _remove_run_id(cls, run_id: str):
+		if run_id in cls.__RUN_IDS:
+			run_ids = list(cls.__RUN_IDS)
+			run_ids.remove(run_id)
+			cls.__RUN_IDS = tuple(run_ids)
 
 	def __init__(self, start_step: Optional[Job] = None, unique_run_id: str = "", list_of_steps: Optional[Iterable[Job]] = None):
 		"""This class must be constructed either using one Job OR a collection of Jobs but NOT both
@@ -95,9 +114,15 @@ class Pipeline(UserList):
 		else:
 			self._run_id: str = unique_run_id
 
+		self._register_run_id(self.run_id)
+
 		if not list_of_steps:
 			assert isinstance(start_step, Job), "step must be of type Job"
-			assert start_step.config.input_data_path, "First step must have a valid input configuration"
+
+			if hasattr(start_step.config, 'input_data_path'):
+				assert start_step.config.input_data_path, "First step must have a valid input configuration"
+			else:
+				raise Exception("First step must have a valid input configuration")
 
 			start_step.config.set_run_id(self.run_id)
 
@@ -108,7 +133,10 @@ class Pipeline(UserList):
 				assert isinstance(step, Job), "step must be of type Job"
 				# do one more check if it is the first job in the collection
 				if flg:
-					assert step.config.input_data_path, "First step must have a valid input configuration"
+					if hasattr(step.config, 'input_data_path'):
+						assert step.config.input_data_path, "First step must have a valid input configuration"
+					else:
+						raise Exception("First step must have a valid input configuration")
 					flg = False
 					step.config.set_run_id(self.run_id)
 					self.data.append(step)
@@ -119,7 +147,7 @@ class Pipeline(UserList):
 		"""This function overrides the default method of the UserList class
 		so that immutability of the '_run_id' attribute can be ensured.
 		"""
-		if key in Pipeline.ALLOWED_SETTABLE_ATTRIBUTES:
+		if key in Pipeline.__ALLOWED_SETTABLE_ATTRIBUTES:
 			if key != 'data':
 				if hasattr(self, key):
 					raise Exception(f"value of {key} is already set")
@@ -149,7 +177,23 @@ class Pipeline(UserList):
 		for i, job in enumerate(self):
 			job.clear_files(is_last_job=i == len(self)-1, exclude_files=exclude_files)
 
-		del self.data
+		self.data.clear()
+		self._remove_run_id(self.run_id)
+
+	def insert(self, i: int, item) -> None:
+		raise NotImplementedError
+
+	def pop(self, i: int = ...) -> None:
+		raise NotImplementedError
+
+	def copy(self):
+		raise NotImplementedError
+
+	def sort(self, *args: Any, **kwds: Any) -> None:
+		raise NotImplementedError
+
+	def reverse(self) -> None:
+		raise NotImplementedError
 
 	def __call__(self):
 		"""This function ensures 'lazy' execution of the pipeline"""

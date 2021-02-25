@@ -15,17 +15,17 @@ This is a file should be read from `data/pre_processed_output`. It would be cont
 
 ```
 start_time,end_time,text,font_type
-00:03.1,01:20.5,"main gaa raha hoon !",""
+1000.555,2000.335,"main gaa raha hoon !",""
 ```
 
 #### some_random_uuid.feather
 
 This file should be read from `data/detected_persons_output`.
-The values in this file would be containing the specifications of the boxes where the persons were detected in the frames with the corresponding timestamp.
+The values in this file would be containing the specifications of the boxes where the persons were detected in the frames with the corresponding timestamp (in ms).
 
 ```
 timestamp,x1,x3,y1,y3
-00:01.23456,24,43,56,80 
+1100.3335,24,43,56,80 
 ```
 
 ### Output format
@@ -36,5 +36,5 @@ The data structure would be same as input format.
 
 ```
 start_time,end_time,text,font_type,x1,x3,y1,y3
-00:01.23456,00:02.45678,"i am singing !","",24,43,56,80
+1000.556,2000.335,"i am singing !","",24,43,56,80
 ```
