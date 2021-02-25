@@ -97,8 +97,6 @@ def optimize(conf: Config) -> bool:
 
 	df_output = df_input[['start_time', 'end_time', 'text']]
 
-	df_output = pd.DataFrame()
-
 	df_output[['x1', 'y1', 'x3', 'y3']] = df_input.apply(get_optimal_boxes, axis=1, args=(conf,), result_type='expand')
 
 	df_output.to_feather(output_file_path)
