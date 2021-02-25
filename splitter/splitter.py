@@ -1,12 +1,17 @@
 from pathlib import Path
 import pandas as pd
 from configs.make_config import Config
+import sys
+
+
+def init_box():
+	return sys.maxsize, sys.maxsize, 0, 0
 
 
 def split(conf: Config) -> bool:
 	"""This function must iterate in the increasing order of time"""
 	file_name = conf.run_id
-	# file_name = "824170fd-b87b-4acc-9e57-82d0e618666b"
+	#file_name = "824170fd-b87b-4acc-9e57-82d0e618666b"
 	input_f_zone_file = Path.cwd().joinpath(conf.input_data_path).joinpath(f"{file_name}.feather")
 	f_zone_df = pd.read_feather(input_f_zone_file).sort_values(by='frame')
 	input_lyrics_file = Path.cwd().joinpath(conf.lyrics_input_path).joinpath(f"{file_name}.feather")
@@ -15,10 +20,8 @@ def split(conf: Config) -> bool:
 
 	result_df = pd.DataFrame()
 	lyrics_index = 0
-	x1 = 500  # todo max int
-	y1 = 500  # todo max int
-	x3 = 0
-	y3 = 0
+	x1, y1, x3, y3 = init_box()
+
 	for index, row in f_zone_df.iterrows():
 		if row['frame'] < input_lyrics_df.loc[lyrics_index, 'start_time']:
 			continue
@@ -31,10 +34,7 @@ def split(conf: Config) -> bool:
 			}
 			result_df = result_df.append(row, ignore_index=True)
 			lyrics_index += 1
-			x1 = 500  # todo max int
-			y1 = 500  # todo max int
-			x3 = 0
-			y3 = 0
+			x1, y1, x3, y3 = init_box()
 			continue
 		# todo Calculate IOU here and compare with last IOU if its a drastic change than cut here and add a row in df
 		x1 = min(x1, row['x1'])
