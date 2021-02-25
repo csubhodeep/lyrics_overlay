@@ -1,7 +1,10 @@
-numpy==1.20.1
-scipy==1.6.0
+hjson==3.0.2
 matplotlib==3.3.4
+numpy==1.20.1
 opencv-python==4.5.1.48
+pandas==1.2.2
+pyarrow==3.0.0
+scipy==1.6.0
 --find-links https://download.pytorch.org/whl/torch_stable.html
 torch==1.7.1+cpu
 torchvision==0.8.2+cpu

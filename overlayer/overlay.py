@@ -12,3 +12,7 @@ def overlay(conf: Config):
 		json.dump(some_output, f)
 
 	return True
+
+
+if __name__ == "__main__":
+	overlay()

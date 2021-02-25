@@ -67,9 +67,6 @@ instance/
 # Scrapy stuff:
 .scrapy
 
-# Sphinx documentation
-docs/_build/
-
 # PyBuilder
 target/
 
@@ -130,3 +127,7 @@ dmypy.json
 # ml stuffs
 .weights
 data
+*.mp4
+*.csv
+*.feather
+*.json

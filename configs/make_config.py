@@ -4,15 +4,15 @@ from typing import Dict
 from typing import Optional
 from typing import Union
 
-import json
+import hjson
 
 
 class Config(UserDict):
-	"""This class creates a portable object with flexible and mutable attributes
-	"""
+	"""This class creates a portable object with immutable but flexible number of attributes"""
 
 	def __init__(self, output_data_path: Union[str, Path], input_data_path: Optional[Union[str, Path]] = "", **kwargs):
 		super().__init__()
+		# # TODO: assert here if path exists or not
 		if input_data_path:
 			self._input_data_path = Path(input_data_path) if isinstance(input_data_path, str) else input_data_path
 		self._output_data_path = Path(output_data_path) if isinstance(output_data_path, str) else output_data_path
@@ -47,8 +47,8 @@ class Config(UserDict):
 
 
 def get_config(path_to_config: Union[Path, str]) -> Dict[str, Config]:
-	with open(path_to_config, 'r') as f:
-		config_dict = json.load(f)
+	with open(str(path_to_config), 'r') as f:
+		config_dict = hjson.load(f)
 
 	config_collection = {}
 	for k, v in config_dict.items():
