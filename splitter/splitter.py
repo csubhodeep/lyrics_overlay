@@ -1,10 +1,11 @@
 from pathlib import Path
-import pandas as pd
-from configs.make_config import Config
 import sys
-
 from typing import Iterable
 from typing import Tuple
+
+import pandas as pd
+
+from configs.make_config import Config
 
 
 def init_box():
