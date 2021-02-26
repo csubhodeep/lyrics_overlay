@@ -57,7 +57,7 @@ def get_loss(x,
 	if min(all_distances) < 5:
 		return 1000
 	else:
-		return variance(all_distances)
+		return variance(all_distances)+1000/lyrics_box.area
 
 	# loss = np.var(all_distances)
 
@@ -82,7 +82,7 @@ def get_optimal_boxes(row, conf: Config):
 	res = differential_evolution(get_loss,
 								 bounds=limits,
 								 args=((conf.img_size, conf.img_size), persons, lyrics),
-								 popsize=100
+								 popsize=1000
 								 )
 
 	return int(round(res.x[0])), int(round(res.x[1])), int(round(res.x[2])), int(round(res.x[3])), 10
@@ -107,11 +107,9 @@ def optimize(conf: Config) -> bool:
 if __name__ == "__main__":
 
 	config = Config(output_data_path="../data/optimizer_output",
-					input_data_path="../data/splitter_output")
-	config.set_run_id(run_id="341e3c19-74db-48b0-b986-73689231a268")
-	config.img_size = 416
-	config.font_size_max_limit = 5
-	config.font_size_min_limit = 1
+					input_data_path="../data/splitter_output",
+					img_size=416)
+	config.set_run_id(run_id="c17e21ec-ba7f-4e11-925b-a8d57fe240d9")
 
 	optimize(conf=config)
 

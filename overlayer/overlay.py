@@ -124,6 +124,6 @@ if __name__ == "__main__":
 					input_data_path="../data/optimizer_output",
 					video_input_path="../data/input",
 					img_size=416)
-	config.set_run_id(run_id="2279a538-1f0f-40c4-98b4-4ecde29a358d")
+	config.set_run_id(run_id="c17e21ec-ba7f-4e11-925b-a8d57fe240d9")
 
 	overlay(conf=config)
