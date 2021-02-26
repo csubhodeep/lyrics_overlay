@@ -80,7 +80,9 @@ def post_process_detection(
 def detect_persons(conf: Config) -> bool:
 
     input_frames_path = Path.cwd().joinpath(conf.input_data_path).joinpath(conf.run_id)
-    output_file_path = Path.cwd().joinpath(conf.output_data_path).joinpath(conf.run_id)
+    output_file_path = (
+        Path.cwd().joinpath(conf.output_data_path).joinpath(f"{conf.run_id}.feather")
+    )
 
     # Load model and weights
     model = Darknet(conf.config_path, img_size=conf.img_size)
@@ -111,7 +113,7 @@ def detect_persons(conf: Config) -> bool:
                 }
                 result_df = result_df.append(row, ignore_index=True)
 
-    result_df.to_feather(f"{output_file_path}.feather")
+    result_df.to_feather(output_file_path)
 
     return True
 
