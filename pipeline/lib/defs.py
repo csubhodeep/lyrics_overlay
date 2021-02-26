@@ -77,15 +77,16 @@ class Job:
 
 
 class Pipeline(UserList):
+
+    __ALLOWED_SETTABLE_ATTRIBUTES = ("_run_id", "data")
+
+    __RUN_IDS: Iterable[str] = tuple([])
+
     """This class is aims to implement the behaviour of a DAG-like flow/pipeline.
     A typical example of a pipeline could be as shown below
         (X)->(Y)->(Z)
     where X, Y & Z are a "Job" each and "->" is to be read as 'is executed before'
     The main objective of the pipeline is to 'connect' a bunch of Jobs together."""
-
-    __ALLOWED_SETTABLE_ATTRIBUTES = ("_run_id", "data")
-
-    __RUN_IDS: Iterable[str] = tuple([])
 
     @classmethod
     def _register_run_id(cls, run_id: str):
@@ -109,8 +110,7 @@ class Pipeline(UserList):
         unique_run_id: str = "",
         list_of_steps: Optional[Iterable[Job]] = None,
     ):
-        """This class must be constructed either using one Job OR a collection of Jobs but NOT both
-		"""
+        """This class must be constructed either using one Job OR a collection of Jobs but NOT both"""
         super().__init__()
 
         if start_step and list_of_steps:
@@ -165,7 +165,14 @@ class Pipeline(UserList):
 
     def __setattr__(self, key, value):
         """This function overrides the default method of the UserList class
-		so that immutability of the '_run_id' attribute can be ensured."""
+        so that immutability of the '_run_id' attribute can be ensured.
+
+        Args:
+            key:
+            value:
+
+        Returns:
+        """
         if key in Pipeline.__ALLOWED_SETTABLE_ATTRIBUTES:
             if key != "data":
                 if hasattr(self, key):
@@ -227,7 +234,7 @@ class Pipeline(UserList):
             if not res:
                 raise Exception(f"Step - {job.name} failed")
         print("=================================")
-        print("Pipeline completed successfully ! ")
+        print("Pipeline completed successfully !")
 
     def __repr__(self):
         return " -> ".join([job.name for job in self])
