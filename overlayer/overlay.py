@@ -3,13 +3,16 @@ from pathlib import Path
 
 from configs.make_config import Config
 
+
 def overlay(conf: Config):
-	# doing random stuff
-	some_output = {}
-	file_name = f"{conf.run_id}.json"
-	file_path = Path(conf.output_data_path).joinpath(file_name)
-	with open(file_path, 'w') as f:
-		json.dump(some_output, f)
+	# TODO: the following steps
+	"""
+	1- cap. open the video and initiate video writer
+	2- if frame is in current lyrics-time-range den draw rectangle
+	3- if frame has already crossed lyrics-time-range. den lyrics index + = 1
+	4- write frame
+	"""
+
 
 	return True
 
