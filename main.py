@@ -1,11 +1,9 @@
 import os
 from pathlib import Path
-from typing import Union
 
 from configs.make_config import get_config
 from optimizer.optimize import optimize
 from overlayer.overlay import overlay
-from overlayer.upload import upload_video
 from person_box_detector.inference import detect_persons
 from pipeline.lib.defs import Job
 from pipeline.lib.defs import Pipeline
