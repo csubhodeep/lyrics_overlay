@@ -99,7 +99,7 @@ if __name__ == "__main__":
     # pipeline_1()
 
     """Below we make another pipeline following the exact same steps described before.
-	We do this to check for parallel execution - ideally a new pipeline means a new config"""
+    We do this to check for parallel execution - ideally a new pipeline means a new config"""
     # collection_of_configs_2 = get_config(path_to_config="./configs/config.json")
     # #
     # # # declare jobs
