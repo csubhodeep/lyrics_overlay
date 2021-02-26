@@ -73,7 +73,10 @@ def split(conf: Config) -> bool:
 		for df in list_of_split_dfs:
 			x1, y1, x3, y3 = do_union(df)
 			row = {
-				"start_time": int(row['start_time']),
+				"start_time": df['frame'].min(),
+				"end_time": df['frame'].max(),
+				"text": row["text"],
+				"font_type": row["font_type"],
 				"x1": x1,
 				"x3": x3,
 				"y1": y1,
@@ -83,8 +86,6 @@ def split(conf: Config) -> bool:
 			result_df = result_df.append(row, ignore_index=True)
 
 	result_df[['x1', 'y1', 'x3', 'y3']] = result_df[['x1', 'y1', 'x3', 'y3']].astype(int)
-
-	result_df = input_lyrics_df.merge(result_df, on='start_time', how='inner')
 
 	result_df.to_feather(output_file_path)
 
