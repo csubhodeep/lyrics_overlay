@@ -1,10 +1,9 @@
+from math import sqrt
 from pathlib import Path
 from statistics import variance
 from typing import Iterable
 from typing import Tuple
 
-import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
 from scipy.optimize import differential_evolution
 
@@ -15,6 +14,8 @@ from optimizer.lib.defs import Point
 from optimizer.utils.utils import get_distance_from_image_edges
 from optimizer.utils.utils import get_expected_box_dims
 from optimizer.utils.utils import text_fits_box
+
+# import matplotlib.pyplot as plt
 
 WRONG_COORDINATE_COST = 40000
 OVERLAPPING_COST = 20000
@@ -89,7 +90,7 @@ def get_loss(
     if min(all_distances) < 20:
         return MIN_DISTANCE_COST
     else:
-        return np.sqrt(np.var(all_distances))
+        return sqrt(variance(all_distances))
 
 
 def get_optimal_boxes(row, conf: Config):
@@ -171,7 +172,7 @@ if __name__ == "__main__":
         img_width=739,
         img_height=416,
     )
-    config.set_run_id(run_id="32a0cb58-cd76-46c2-ac06-201697f71743")
+    config.set_run_id(run_id="b0758519-f8f2-4deb-bb32-82c12f6a9c28")
 
     optimize(conf=config)
 
