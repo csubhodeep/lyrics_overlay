@@ -5,9 +5,6 @@ import math
 import numpy as np
 import torch
 
-# import matplotlib.pyplot as plt
-# import matplotlib.patches as patches
-
 
 def load_classes(path):
     """
