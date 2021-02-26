@@ -30,7 +30,7 @@ def get_loss(x,
 	if any([lyrics_box.is_overlapping(zone) for zone in forbidden_zones]):
 		return 5000
 
-	if not text_fits_box(text, font_size=int(round(x[4])), box=lyrics_box, form=2):
+	if not text_fits_box(text, font_size=10, box=lyrics_box, form=2):
 		return 2500
 
 	w1 = 0.50
@@ -76,7 +76,7 @@ def get_optimal_boxes(row, conf: Config):
 		(0, conf.img_size),
 		(0, conf.img_size),
 		(0, conf.img_size),
-		(conf.font_size_min_limit, conf.font_size_max_limit)
+		# (conf.font_size_min_limit, conf.font_size_max_limit)
 	)
 
 	res = differential_evolution(get_loss,
@@ -85,7 +85,7 @@ def get_optimal_boxes(row, conf: Config):
 								 popsize=100
 								 )
 
-	return int(round(res.x[0])), int(round(res.x[1])), int(round(res.x[2])), int(round(res.x[3])), res.x[4]
+	return int(round(res.x[0])), int(round(res.x[1])), int(round(res.x[2])), int(round(res.x[3])), 10
 
 
 def optimize(conf: Config) -> bool:
@@ -95,13 +95,11 @@ def optimize(conf: Config) -> bool:
 
 	df_input = pd.read_feather(input_file_path)
 
-	df_output = df_input[['start_time', 'end_time', 'text', 'font_type']]
+	df_input[['x1_opti', 'y1_opti', 'x3_opti', 'y3_opti', 'font_size']] = df_input.apply(get_optimal_boxes, axis=1, args=(conf,), result_type='expand')
 
-	df_output[['x1', 'y1', 'x3', 'y3', 'font_size']] = df_input.apply(get_optimal_boxes, axis=1, args=(conf,), result_type='expand')
+	df_input[['x1_opti', 'y1_opti', 'x3_opti', 'y3_opti']] = df_input[['x1_opti', 'y1_opti', 'x3_opti', 'y3_opti']].astype(int)
 
-	df_output[['x1', 'y1', 'x3', 'y3']] = df_output[['x1', 'y1', 'x3', 'y3']].astype(int)
-
-	df_output.to_feather(output_file_path)
+	df_input.to_feather(output_file_path)
 
 	return True
 

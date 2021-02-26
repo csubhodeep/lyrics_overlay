@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Tuple
 
 import cv2
 import numpy as np
@@ -7,7 +8,22 @@ import pandas as pd
 from configs.make_config import Config
 
 
-def resize(img: np.ndarray, new_res: int) -> np.ndarray:
+def resize(img_shape: Tuple[int, int], old_img_size: int, coords: Tuple[int, int]) -> Tuple[int, int]:
+
+	if img_shape[1] >= img_shape[0]:
+		width = int(img_shape[1] * old_img_size / img_shape[0])
+		height = old_img_size
+	else:
+		height = int(img_shape[0] * old_img_size / img_shape[1])
+		width = old_img_size
+
+	x = int((coords[0] / width) * img_shape[1])
+	y = int((coords[1] / height) * img_shape[0])
+
+	return x, y
+
+
+def resize2(img: np.ndarray, new_res: int) -> np.ndarray:
 
 	if img.shape[1] >= img.shape[0]:
 		width = int(img.shape[1] * new_res / img.shape[0])
@@ -33,11 +49,12 @@ def overlay(conf: Config):
 	lyrics_boxes_file = Path.cwd().joinpath(conf.input_data_path).joinpath(f"{file_name}.feather")
 	lyrics_and_boxes_df = pd.read_feather(lyrics_boxes_file).sort_values(by='start_time')
 	
-	input_video_file_name = f"{file_name}.mp4"
+	input_video_file_name = Path.cwd().joinpath(conf.video_input_path).joinpath(f"{file_name}.mp4")
 
+	output_video_file = Path.cwd().joinpath(conf.output_data_path).joinpath(f"{conf.run_id}.avi")
 
 	# Create a VideoCapture object
-	cap = cv2.VideoCapture(input_video_file_name)
+	cap = cv2.VideoCapture(str(input_video_file_name))
 
 	# Check if camera opened successfully
 	if (cap.isOpened() == False):
@@ -49,25 +66,39 @@ def overlay(conf: Config):
 	frame_height = int(cap.get(4))
 	fps = cap.get(cv2.CAP_PROP_FPS)
 
-
 	# Define the codec and create VideoWriter object.The output is stored in 'outpy.avi' file.
-	out = cv2.VideoWriter('outpy.avi',cv2.VideoWriter_fourcc('M','J','P','G'), fps, (frame_width,frame_height))
+	out = cv2.VideoWriter(str(output_video_file), cv2.VideoWriter_fourcc('M','J','P','G'), fps, (frame_width,frame_height))
+	lyrics_index = 0
 
-	while(True):
+	while(cap.isOpened()):
 		ret, frame = cap.read()
-		lyrics_index = 0
 		if ret == True:
+			# frame = resize2(frame, conf.img_size)
 			frame_ts = cap.get(cv2.CAP_PROP_POS_MSEC)
-			if frame_ts > lyrics_and_boxes_df.loc[lyrics_index, 'end_time']:
-				lyrics_index += 1
-			if frame_ts >= lyrics_and_boxes_df.loc[lyrics_index, 'start_time']:
-				start_point = (lyrics_and_boxes_df.loc[lyrics_index, 'x1'], lyrics_and_boxes_df.loc[lyrics_index, 'y1'])
-				end_point = (lyrics_and_boxes_df.loc[lyrics_index, 'x3'], lyrics_and_boxes_df.loc[lyrics_index, 'y3'])
-				color = (255, 0, 0)
-				thickness = 2
-				# todo inverse transform the boxes to big resolution before making rectangle
-				frame = cv2.rectangle(frame, start_point, end_point, color, thickness)
-			# Write the frame into the file 'output.avi'
+			if lyrics_index < len(lyrics_and_boxes_df):
+				if lyrics_and_boxes_df.loc[lyrics_index, 'start_time'] <= frame_ts <= lyrics_and_boxes_df.loc[lyrics_index, 'end_time']:
+					first_diag_coord = (lyrics_and_boxes_df.loc[lyrics_index, 'x1'], lyrics_and_boxes_df.loc[lyrics_index, 'y1'])
+					second_diag_coord = (lyrics_and_boxes_df.loc[lyrics_index, 'x3'], lyrics_and_boxes_df.loc[lyrics_index, 'y3'])
+					first_diag_coord_opti = (lyrics_and_boxes_df.loc[lyrics_index, 'x1_opti'], lyrics_and_boxes_df.loc[lyrics_index, 'y1_opti'])
+					second_diag_coord_opti = (lyrics_and_boxes_df.loc[lyrics_index, 'x3_opti'], lyrics_and_boxes_df.loc[lyrics_index, 'y3_opti'])
+					color = (255, 0, 0)
+					color_opti = (100, 50, 0)
+					thickness = 2
+					# # TODO: inverse transform the boxes to big resolution before making rectangle
+					start_point = resize(img_shape=frame.shape, old_img_size=conf.img_size, coords=first_diag_coord)
+					end_point = resize(img_shape=frame.shape, old_img_size=conf.img_size, coords=second_diag_coord)
+					start_point_opti = resize(img_shape=frame.shape, old_img_size=conf.img_size, coords=first_diag_coord_opti)
+					end_point_opti = resize(img_shape=frame.shape, old_img_size=conf.img_size, coords=second_diag_coord_opti)
+					# start_point = first_diag_coord
+					# end_point = second_diag_coord
+					# start_point_opti = first_diag_coord_opti
+					# end_point_opti = second_diag_coord_opti
+					frame = cv2.rectangle(frame, start_point, end_point, color, thickness)
+					frame = cv2.rectangle(frame, start_point_opti, end_point_opti, color_opti, thickness)
+				# Write the frame into the file 'output.avi'
+				if frame_ts > lyrics_and_boxes_df.loc[lyrics_index, 'end_time']:
+					lyrics_index += 1
+
 			out.write(frame)
 
 			# Display the resulting frame
@@ -90,7 +121,9 @@ def overlay(conf: Config):
 if __name__ == "__main__":
 
 	config = Config(output_data_path="../data/final_output",
-					input_data_path="../data/optimizer_output")
-	config.set_run_id(run_id="asdsadsadsad")
+					input_data_path="../data/optimizer_output",
+					video_input_path="../data/input",
+					img_size=416)
+	config.set_run_id(run_id="2279a538-1f0f-40c4-98b4-4ecde29a358d")
 
 	overlay(conf=config)

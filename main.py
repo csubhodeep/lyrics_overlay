@@ -56,7 +56,7 @@ if __name__ == "__main__":
 	detect_persons_step = Job(func=detect_persons, conf=dict_of_configs['detect_persons'])
 	split_step = Job(func=split, conf=dict_of_configs['split'])
 	optimization_step = Job(func=optimize, conf=dict_of_configs['optimization'])
-	# overlay_step = Job(func=overlay, conf=collection_of_configs['overlay'])
+	overlay_step = Job(func=overlay, conf=dict_of_configs['overlay'])
 	# upload_step = Job(func=upload_video, conf=collection_of_configs['upload'])
 
 	# Step-3: the jobs below are put in a certain order for the pipeline
@@ -66,7 +66,7 @@ if __name__ == "__main__":
 		detect_persons_step,
 		split_step,
 		optimization_step,
-		# overlay_step,
+		overlay_step,
 		# upload_step
 	)
 
