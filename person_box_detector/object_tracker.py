@@ -1,13 +1,17 @@
-from models import *
-from utils import *
+import datetime
+import os
+import random
+import sys
+import time
 
-import os, sys, time, datetime, random
 import torch
-from torch.utils.data import DataLoader
-from torchvision import datasets, transforms
-from torch.autograd import Variable
-
+from models import *
 from PIL import Image
+from torch.autograd import Variable
+from torch.utils.data import DataLoader
+from torchvision import datasets
+from torchvision import transforms
+from utils import *
 
 # load weights and set defaults
 config_path = "config/yolov3.cfg"

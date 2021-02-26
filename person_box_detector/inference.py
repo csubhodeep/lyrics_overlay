@@ -1,19 +1,24 @@
-from pathlib import Path
-from typing import Dict, Iterable
 import random
+from pathlib import Path
+from typing import Dict
+from typing import Iterable
 
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from PIL import Image
 import torch
+from PIL import Image
 from torch.autograd import Variable
-from torchvision.transforms import Compose, Resize, Pad, ToTensor
+from torchvision.transforms import Compose
+from torchvision.transforms import Pad
+from torchvision.transforms import Resize
+from torchvision.transforms import ToTensor
 
-from person_box_detector.models import Darknet
 from configs.make_config import Config
-from person_box_detector.utils.utils import non_max_suppression, load_classes
+from person_box_detector.models import Darknet
+from person_box_detector.utils.utils import load_classes
+from person_box_detector.utils.utils import non_max_suppression
 
 
 # Tensor = torch.cuda.FloatTensor

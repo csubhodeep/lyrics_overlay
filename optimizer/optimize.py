@@ -1,4 +1,5 @@
 from pathlib import Path
+from statistics import variance
 from typing import Iterable
 from typing import Tuple
 
@@ -7,13 +8,13 @@ import numpy as np
 import pandas as pd
 from scipy.optimize import differential_evolution
 
-from statistics import variance
-
 from configs.make_config import Config
-from optimizer.lib.defs import Box, Point, Lyrics
+from optimizer.lib.defs import Box
+from optimizer.lib.defs import Lyrics
+from optimizer.lib.defs import Point
+from optimizer.utils.utils import get_distance_from_image_edges
 from optimizer.utils.utils import get_expected_box_dims
 from optimizer.utils.utils import text_fits_box
-from optimizer.utils.utils import get_distance_from_image_edges
 
 WRONG_COORDINATE_COST = 40000
 OVERLAPPING_COST = 20000

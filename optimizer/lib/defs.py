@@ -1,7 +1,7 @@
 from itertools import product
+from typing import Iterable
 from typing import Tuple
 from typing import Union
-from typing import Iterable
 
 import numpy as np
 
