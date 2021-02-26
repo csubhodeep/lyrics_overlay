@@ -84,11 +84,7 @@ def split(conf: Config) -> bool:
 
 	result_df[['x1', 'y1', 'x3', 'y3']] = result_df[['x1', 'y1', 'x3', 'y3']].astype(int)
 
-	print(result_df)
-
 	result_df = input_lyrics_df.merge(result_df, on='start_time', how='inner')
-
-	print(result_df)
 
 	result_df.to_feather(output_file_path)
 

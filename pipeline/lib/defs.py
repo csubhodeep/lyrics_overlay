@@ -65,6 +65,8 @@ class Job:
 			pass
 
 	def __call__(self):
+		print("=================================")
+		print(f"*** Running job: {self.name} ***")
 		return self._func(conf=self.config)
 
 
