@@ -94,10 +94,10 @@ def detect_persons(conf: Config) -> bool:
             for person in persons:
                 row = {
                     "frame": float(item.name.rstrip(".npy")),
-                    "x1": person["x1"],
-                    "x3": person["x3"],
-                    "y1": person["y1"],
-                    "y3": person["y3"]
+                    "x1": np.clip(person['x1'], 0, conf.img_size),
+                    "x3": np.clip(person['x3'], 0, conf.img_size),
+                    "y1": np.clip(person['y1'], 0, conf.img_size),
+                    "y3": np.clip(person['y3'], 0, conf.img_size)
                 }
                 result_df = result_df.append(row, ignore_index=True)
 
