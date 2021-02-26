@@ -28,7 +28,8 @@ def clear_files():
 
 	for folder in data_path.iterdir():
 		for stuff in folder.iterdir():
-			if stuff.name.endswith(".json") or stuff.name.endswith(".mp4") or stuff.name.endswith(".csv") or stuff.name.endswith('feather'):
+			if stuff.name.endswith(".json") or stuff.name.endswith(".mp4") or stuff.name.endswith(".csv") \
+					or stuff.name.endswith('feather') or stuff.name.endswith("avi"):
 				stuff.unlink(missing_ok=True)
 			if stuff.is_dir():
 				for ele in stuff.iterdir():

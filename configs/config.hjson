@@ -22,7 +22,8 @@
     "lyrics_input_path": "./data/pre_processed_output"
   },
   "optimization": {
-    "img_size": 416,
+    "img_height": 416,
+    "img_width": 739,
     "font_size_max_limit": 20,
     "font_size_min_limit": 10,
     "output_data_path": "./data/optimizer_output"
