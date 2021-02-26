@@ -1,8 +1,21 @@
-import json
 from pathlib import Path
 import cv2
 import numpy as np
 from configs.make_config import Config
+
+
+def resize(img: np.ndarray, new_res: int) -> np.ndarray:
+
+	if img.shape[1] >= img.shape[0]:
+		width = int(img.shape[1] * new_res / img.shape[0])
+		height = new_res
+	else:
+		height = int(img.shape[0] * new_res / img.shape[1])
+		width = new_res
+
+	dim = (width, height)
+	resized = cv2.resize(img, dim, interpolation=cv2.INTER_AREA)
+	return resized
 
 
 def overlay(conf: Config):
@@ -25,44 +38,41 @@ def overlay(conf: Config):
 
 	# Check if camera opened successfully
 	if (cap.isOpened() == False):
-	print("Unable to read camera feed")
+		print("Unable to read camera feed")
 
 	# Default resolutions of the frame are obtained.The default resolutions are system dependent.
 	# We convert the resolutions from float to integer.
 	frame_width = int(cap.get(3))
 	frame_height = int(cap.get(4))
-	fps = video.get(cv2.CAP_PROP_FPS)
+	fps = cap.get(cv2.CAP_PROP_FPS)
 
 
 	# Define the codec and create VideoWriter object.The output is stored in 'outpy.avi' file.
 	out = cv2.VideoWriter('outpy.avi',cv2.VideoWriter_fourcc('M','J','P','G'), fps, (frame_width,frame_height))
 
 	while(True):
-	ret, frame = cap.read()
-	lyrics_index = 0
-	if ret == True:
-		frame_ts = cap.get(cv2.CAP_PROP_POS_MSEC)
-		if frame_ts > lyrics_and_boxes_df.loc[lyrics_index, 'end_time']:
-			lyrics_index += 1
-		if frame_ts >= lyrics_and_boxes_df.loc[lyrics_index, 'start_time']:
-			start_point = (lyrics_and_boxes_df.loc[lyrics_index, 'x1'], lyrics_and_boxes_df.loc[lyrics_index, 'y1']) 
-			end_point = (lyrics_and_boxes_df.loc[lyrics_index, 'x3'], lyrics_and_boxes_df.loc[lyrics_index, 'y3']) 
-			color = (255, 0, 0)  
-			thickness = 2
-			# todo inverse transform the boxes to big resolution before making rectangle
-			frame = cv2.rectangle(frame, start_point, end_point, color, thickness) 
-		# Write the frame into the file 'output.avi'
-		out.write(frame)
+		ret, frame = cap.read()
+		lyrics_index = 0
+		if ret == True:
+			frame_ts = cap.get(cv2.CAP_PROP_POS_MSEC)
+			if frame_ts > lyrics_and_boxes_df.loc[lyrics_index, 'end_time']:
+				lyrics_index += 1
+			if frame_ts >= lyrics_and_boxes_df.loc[lyrics_index, 'start_time']:
+				start_point = (lyrics_and_boxes_df.loc[lyrics_index, 'x1'], lyrics_and_boxes_df.loc[lyrics_index, 'y1'])
+				end_point = (lyrics_and_boxes_df.loc[lyrics_index, 'x3'], lyrics_and_boxes_df.loc[lyrics_index, 'y3'])
+				color = (255, 0, 0)
+				thickness = 2
+				# todo inverse transform the boxes to big resolution before making rectangle
+				frame = cv2.rectangle(frame, start_point, end_point, color, thickness)
+			# Write the frame into the file 'output.avi'
+			out.write(frame)
 
-		# Display the resulting frame
-		cv2.imshow('frame',frame)
+			# Display the resulting frame
+			# cv2.imshow('frame',frame)
 
-		# Press Q on keyboard to stop recording
-		if cv2.waitKey(1) &amp; 0xFF == ord('q'):
+		# Break the loop
+		else:
 			break
-	# Break the loop
-	else:
-		break
 
 	# When everything done, release the video capture and video write objects
 	cap.release()
@@ -75,4 +85,9 @@ def overlay(conf: Config):
 
 
 if __name__ == "__main__":
-	overlay()
+
+	config = Config(output_data_path="../data/final_output",
+					input_data_path="../data/optimizer_output")
+	config.set_run_id(run_id="asdsadsadsad")
+
+	overlay(conf=config)
