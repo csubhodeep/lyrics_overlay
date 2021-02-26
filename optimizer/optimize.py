@@ -25,13 +25,13 @@ def get_loss(x,
 		lyrics_box = Box(first_diagonal_coords=Point(coords=(x[0], x[1])),
 						 second_diagonal_coords=Point(coords=(x[2], x[3])))
 	except AssertionError as ex:
-		return 10000
+		return 40000
 
 	if any([lyrics_box.is_overlapping(zone) for zone in forbidden_zones]):
-		return 5000
+		return 20000
 
-	if not text_fits_box(text, font_size=10, box=lyrics_box, form=2):
-		return 2500
+	if not text_fits_box(text, font_size=5, box=lyrics_box, form=2):
+		return 10000
 
 	w1 = 0.50
 	w2 = 0.50
@@ -54,12 +54,10 @@ def get_loss(x,
 	# loss = w1*balance_1 + w2*balance_2
 	all_distances = distance_edges+distance_persons
 
-	if min(all_distances) < 5:
-		return 1000
+	if min(all_distances) < 20:
+		return 4000
 	else:
-		return variance(all_distances)+1000/lyrics_box.area
-
-	# loss = np.var(all_distances)
+		return np.sqrt(np.var(all_distances))
 
 
 def get_optimal_boxes(row, conf: Config):
@@ -72,18 +70,20 @@ def get_optimal_boxes(row, conf: Config):
 	lyrics = Lyrics(row['text'])
 
 	limits = (
-		(0, conf.img_size),
-		(0, conf.img_size),
-		(0, conf.img_size),
-		(0, conf.img_size),
+		(0, conf.img_width),
+		(0, conf.img_height),
+		(0, conf.img_width),
+		(0, conf.img_height),
 		# (conf.font_size_min_limit, conf.font_size_max_limit)
 	)
 
 	res = differential_evolution(get_loss,
 								 bounds=limits,
-								 args=((conf.img_size, conf.img_size), persons, lyrics),
-								 popsize=1000
+								 args=((conf.img_height, conf.img_width), persons, lyrics),
+								 popsize=100
 								 )
+
+	print(res.fun)
 
 	return int(round(res.x[0])), int(round(res.x[1])), int(round(res.x[2])), int(round(res.x[3])), 10
 
@@ -108,8 +108,9 @@ if __name__ == "__main__":
 
 	config = Config(output_data_path="../data/optimizer_output",
 					input_data_path="../data/splitter_output",
-					img_size=416)
-	config.set_run_id(run_id="c17e21ec-ba7f-4e11-925b-a8d57fe240d9")
+					img_width=739,
+					img_height=416)
+	config.set_run_id(run_id="eddd767e-b051-43ee-ab00-47caa574c148")
 
 	optimize(conf=config)
 

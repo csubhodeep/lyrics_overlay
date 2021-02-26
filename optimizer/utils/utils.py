@@ -33,11 +33,15 @@ def text_fits_box(lyrics: Lyrics,
 		lengths_of_lines.append(len_of_text_list(lyrics.text[i:last_index]))
 
 	# max length will never be zero
-	expected_width = max(lengths_of_lines) * font_size
-	expected_height = (n_words / form) * font_size
+	expected_width = max(lengths_of_lines) * font_size / 2
+	expected_height = round(n_words / form) * font_size
+
+	# print(expected_height)
 
 	# 	return box.area > 20 and box.width > 10 and box.height > 10 and box.height == box.width
-	return 0.8*box.width < expected_width <= box.width and 0.8*box.height < expected_height <= box.height
+	# return 0.8*box.width < expected_width <= box.width and 0.8*box.height < expected_height <= box.height
+	return box.width > expected_width and box.height > expected_height and box.width/box.height > 1
+
 
 
 def get_overlap_with_mask(image: np.ndarray,
