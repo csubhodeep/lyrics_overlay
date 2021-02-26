@@ -11,7 +11,6 @@ def init_box():
 def split(conf: Config) -> bool:
 	"""This function must iterate in the increasing order of time"""
 	file_name = conf.run_id
-	#file_name = "824170fd-b87b-4acc-9e57-82d0e618666b"
 	input_f_zone_file = Path.cwd().joinpath(conf.input_data_path).joinpath(f"{file_name}.feather")
 	f_zone_df = pd.read_feather(input_f_zone_file).sort_values(by='frame')
 	input_lyrics_file = Path.cwd().joinpath(conf.lyrics_input_path).joinpath(f"{file_name}.feather")
@@ -53,11 +52,15 @@ def split(conf: Config) -> bool:
 		result_df = result_df.append(row, ignore_index=True)
 
 	result_df = input_lyrics_df.join(result_df, lsuffix='_caller', rsuffix='_other')
+	result_df[['x1', 'y1', 'x3', 'y3']] = result_df[['x1', 'y1', 'x3', 'y3']].astype(int)
 	result_df.to_feather(f"{output_file_path}.feather")
 	return True
 
 
 if __name__ == "__main__":
-	split(Config(input_data_path='/Users/nik/Work/lyrics_overlay/data/detected_persons_output',
-				 output_data_path='/Users/nik/Work/lyrics_overlay/data/splitter_output',
-				 lyrics_input_path='/Users/nik/Work/lyrics_overlay/data/pre_processed_output'))
+	config = Config(input_data_path='../data/detected_persons_output',
+					output_data_path='../data/splitter_output',
+					lyrics_input_path='../data/pre_processed_output')
+	config.set_run_id(run_id="341e3c19-74db-48b0-b986-73689231a268")
+
+	split(conf=config)

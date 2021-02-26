@@ -30,7 +30,7 @@ def get_loss(x,
 	if any([lyrics_box.is_overlapping(zone) for zone in forbidden_zones]):
 		return 5000
 
-	if not text_fits_box(text, font_size=3, box=lyrics_box, form=int(round(x[4]))):
+	if not text_fits_box(text, font_size=int(round(x[4])), box=lyrics_box, form=2):
 		return 2500
 
 	w1 = 0.50
@@ -66,7 +66,7 @@ def get_optimal_boxes(row, conf: Config):
 
 	persons = (
 		Box(first_diagonal_coords=Point(coords=(row['x1'], row['y1'])),
-			second_diagonal_coords=Point(coords=(row['x3'], row['y3'])))
+			second_diagonal_coords=Point(coords=(row['x3'], row['y3']))),
 	)
 
 	lyrics = Lyrics(row['text'])
@@ -85,7 +85,7 @@ def get_optimal_boxes(row, conf: Config):
 								 popsize=100
 								 )
 
-	return int(round(res.x[0])), int(round(res.x[1])), int(round(res.x[2])), int(round(res.x[3]))
+	return int(round(res.x[0])), int(round(res.x[1])), int(round(res.x[2])), int(round(res.x[3])), res.x[4]
 
 
 def optimize(conf: Config) -> bool:
@@ -95,9 +95,11 @@ def optimize(conf: Config) -> bool:
 
 	df_input = pd.read_feather(input_file_path)
 
-	df_output = df_input[['start_time', 'end_time', 'text']]
+	df_output = df_input[['start_time', 'end_time', 'text', 'font_type']]
 
-	df_output[['x1', 'y1', 'x3', 'y3']] = df_input.apply(get_optimal_boxes, axis=1, args=(conf,), result_type='expand')
+	df_output[['x1', 'y1', 'x3', 'y3', 'font_size']] = df_input.apply(get_optimal_boxes, axis=1, args=(conf,), result_type='expand')
+
+	df_output[['x1', 'y1', 'x3', 'y3']] = df_output[['x1', 'y1', 'x3', 'y3']].astype(int)
 
 	df_output.to_feather(output_file_path)
 
@@ -106,9 +108,12 @@ def optimize(conf: Config) -> bool:
 
 if __name__ == "__main__":
 
-	config = Config(output_data_path="./data/optimizer_output",
-					input_data_path="./data/detected_persons_output")
-	config.set_run_id(run_id="8b09068f-9351-40d1-abb8-805de9d41fb9")
+	config = Config(output_data_path="../data/optimizer_output",
+					input_data_path="../data/splitter_output")
+	config.set_run_id(run_id="341e3c19-74db-48b0-b986-73689231a268")
+	config.img_size = 416
+	config.font_size_max_limit = 5
+	config.font_size_min_limit = 1
 
 	optimize(conf=config)
 
