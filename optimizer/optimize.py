@@ -43,12 +43,26 @@ def get_loss(x,
 		distance_persons = tuple([lyrics_box.get_distance_from(zone) for zone in forbidden_zones])
 	else:
 		distance_persons = tuple([])
-
+	skip_left_edge = False
+	skip_right_edge = False
+	if len(forbidden_zones) == 1:
+		dist_of_f_zone_from_left_edge = forbidden_zone[0].vertex_1.x - 0
+		dist_of_f_zone_from_right_edge = 739 - forbidden_zone[0].vertex_3.x
+		if dist_of_f_zone_from_left_edge < dist_of_f_zone_from_right_edge:
+			skip_left_edge = True
+		else:
+			skip_right_edge = True
 	# balance_1 = np.nan_to_num(np.var(distance_persons))
 
 	## distance from all 4 edges - w2
 	distance_edges = get_distance_from_image_edges(canvas_shape, lyrics_box)
-
+	list_of_distances = list(distance_Edges)
+	if skip_left_edge:
+		list_of_distance.pop(0)
+		distance_edges = tuple(list_of_distance)
+	elif skip_right_edge:
+		list_of_distance.pop(1)
+		distance_edges = tuple(list_of_distance)
 	# balance_2 = variance(distance_edges)
 
 	# loss = w1*balance_1 + w2*balance_2
