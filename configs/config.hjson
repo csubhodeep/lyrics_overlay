@@ -12,6 +12,8 @@
     "conf_thresh": 0.8,
     "nms_thresh": 0.4,
     "img_size": 416,
+    "img_height": 416,
+    "img_width": 739,
     "config_path": "./person_box_detector/config/yolov3.cfg",
     "weights_path": "./person_box_detector/config/yolov3.weights",
     "class_path": "./person_box_detector/config/coco.names",
@@ -22,12 +24,14 @@
     "lyrics_input_path": "./data/pre_processed_output"
   },
   "optimization": {
-    "img_size": 416,
-    "font_size_max_limit": 5,
-    "font_size_min_limit": 1,
+    "img_height": 416,
+    "img_width": 739,
+    "font_size_max_limit": 20,
+    "font_size_min_limit": 10,
     "output_data_path": "./data/optimizer_output"
   },
   "overlay": {
+    "img_size": 416,
     "video_input_path": "./data/input",
     "output_data_path": "./data/final_output"
   },
@@ -35,4 +39,3 @@
     "output_data_path": "./data/final_output" // this would also be a remote location where the pipeline uploads the video
   }
 }
-

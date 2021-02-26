@@ -1,32 +1,42 @@
-
 from pathlib import Path
 from shutil import copy
+
 from configs.make_config import Config
 
 
 def download_data(src: Path, dest: Path) -> None:
 
-	# # FIXME: right now we are copying a file from local location to emulate the same behaviour
-	copy(src=src, dst=dest)
+    # # FIXME: right now we are copying a file from local location to emulate the same behaviour
+    copy(src=src, dst=dest)
 
 
 def fetch_data(conf: Config) -> bool:
-	"""This function is responsible to get/pull/download data from a certain location
+    """This function is responsible to get/pull/download data from a certain location
 	to the machine where the pipeline is running"""
 
-	output_file_path_video = Path.cwd().joinpath(conf.output_data_path).joinpath(f"{conf.run_id}.mp4")
-	output_file_path_lyrics = Path.cwd().joinpath(conf.output_data_path).joinpath(f"{conf.run_id}.csv")
+    output_file_path_video = (
+        Path.cwd().joinpath(conf.output_data_path).joinpath(f"{conf.run_id}.mp4")
+    )
+    output_file_path_lyrics = (
+        Path.cwd().joinpath(conf.output_data_path).joinpath(f"{conf.run_id}.csv")
+    )
 
-	assert Path.cwd().joinpath(conf.output_data_path).exists()
+    assert Path.cwd().joinpath(conf.output_data_path).exists()
 
-	input_file_path_video = Path.cwd().joinpath(conf.input_data_path).joinpath("oh_oh_jaane_jaana.mp4")
-	input_file_path_lyrics = Path.cwd().joinpath("oh_oh_jaane_jaana_lyrics.csv")
+    input_file_path_video = (
+        Path.cwd().joinpath(conf.input_data_path).joinpath("oh_oh_jaane_jaana.mp4")
+    )
+    input_file_path_lyrics = Path.cwd().joinpath("oh_oh_jaane_jaana_lyrics.csv")
 
-	download_data(src=input_file_path_lyrics, dest=output_file_path_lyrics)
-	download_data(src=input_file_path_video, dest=output_file_path_video)
+    download_data(src=input_file_path_lyrics, dest=output_file_path_lyrics)
+    download_data(src=input_file_path_video, dest=output_file_path_video)
 
-	return True
+    return True
 
 
 if __name__ == "__main__":
-	fetch_data(conf=Config(output_data_path="./data/input", input_data_path="./data", run_id="asdsa132"))
+    fetch_data(
+        conf=Config(
+            output_data_path="./data/input", input_data_path="./data", run_id="asdsa132"
+        )
+    )

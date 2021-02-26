@@ -2,7 +2,7 @@
 
 ## What?
 
-This part of the pipeline is responsible to cut the video into sections depending on the time 
+This part of the pipeline is responsible to cut the video into sections depending on the time
 of lyrics and change in the positions of persons in the video.
 
 ## Data Contract
@@ -25,7 +25,7 @@ The values in this file would be containing the specifications of the boxes wher
 
 ```
 timestamp,x1,x3,y1,y3
-1100.3335,24,43,56,80 
+1100.3335,24,43,56,80
 ```
 
 ### Output format

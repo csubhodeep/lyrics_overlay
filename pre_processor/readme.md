@@ -19,7 +19,7 @@ Below we are specify the data contract for the `sampler.py` only.
 This is the file containing the details of the lyrics having the below format
 ```
 start_time,end_time,text,font_type
-00:03.1,01:20.5,"main gaa raha hoon !",""
+00:03.1,00:05.5,"main gaa raha hoon !",""
 ```
 
 #### some_random_uuid.mp4
@@ -33,9 +33,9 @@ This is the video file containing the total video.
 This file contains the details of the lyrics having the below format but rows are sorted by `start_time`
 ```
 start_time,end_time,text,font_type
-00:03.1,01:20.5,"main gaa raha hoon !",""
+3100,5500,"main gaa raha hoon !",""
 ```
 
 #### some_random_uuid/*.npy
 
-These files are the frames resized, sampled and stored with their name as timestamps of the frames.  
+These files are the frames resized, sampled and stored with their name as timestamps (in ms) of the frames.
