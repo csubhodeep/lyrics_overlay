@@ -207,6 +207,7 @@ class Pipeline(UserList):
 			res = job()
 			if not res:
 				raise Exception(f"Step - {job.name} failed")
+		print("=================================")
 		print("Pipeline completed successfully ! ")
 
 	def __repr__(self):

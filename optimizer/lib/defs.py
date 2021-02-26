@@ -2,7 +2,6 @@ from itertools import product
 from typing import Tuple
 from typing import Union
 from typing import Iterable
-from fractions import Fraction
 
 import numpy as np
 
@@ -23,6 +22,7 @@ class Point:
 	@property
 	def y(self) -> int:
 		return self._y
+
 
 class LineSegment:
 
@@ -49,6 +49,7 @@ class LineSegment:
 	@property
 	def slope(self) -> float:
 		return (self.point_2.y - self.point_1.y)/(self.point_2.x - self.point_1.x)
+
 
 class Box:
 	"""
@@ -123,8 +124,8 @@ class Box:
 		return LineSegment(first_coord=self.vertex_1, second_coord=self.vertex_3).length
 
 	@property
-	def aspect_ratio(self) -> Tuple[int, int]:
-		return Fraction(self.width / self.height).as_integer_ratio()
+	def aspect_ratio(self) -> Union[float, int]:
+		return self.width / self.height
 
 	def get_distance_from(self, box_2) -> int:
 		"""This function calculates the distance between the two closest points of two boxes

@@ -1,5 +1,7 @@
 
-from typing import Iterable, Tuple
+from typing import Iterable
+from typing import List
+from typing import Tuple
 from statistics import mean
 
 import numpy as np
@@ -17,11 +19,9 @@ def len_of_text_list(text: Iterable[str]) -> int:
 	return length
 
 
-def text_fits_box(lyrics: Lyrics,
-				  font_size: int,
-				  form: int,  # 1,2,3
-				  box: Box,
-				  ) -> bool:
+def get_expected_box_dims(lyrics: Lyrics,
+						  font_size: int,
+						  form: int) -> Tuple[int, int]:
 
 	n_words = len(lyrics.text)
 	lengths_of_lines = []
@@ -33,15 +33,17 @@ def text_fits_box(lyrics: Lyrics,
 		lengths_of_lines.append(len_of_text_list(lyrics.text[i:last_index]))
 
 	# max length will never be zero
-	expected_width = max(lengths_of_lines) * font_size / 2
+	expected_width = int(max(lengths_of_lines) * font_size / 2)
 	expected_height = round(n_words / form) * font_size
 
-	# print(expected_height)
+	return expected_width, expected_height
 
-	# 	return box.area > 20 and box.width > 10 and box.height > 10 and box.height == box.width
-	# return 0.8*box.width < expected_width <= box.width and 0.8*box.height < expected_height <= box.height
+
+def text_fits_box(expected_width: int,
+				  expected_height: int,
+				  box: Box) -> bool:
+
 	return box.width > expected_width and box.height > expected_height and box.width/box.height > 1
-
 
 
 def get_overlap_with_mask(image: np.ndarray,
@@ -58,13 +60,13 @@ def get_overlap_with_mask(image: np.ndarray,
 
 
 def get_distance_from_image_edges(canvas_shape: Tuple[int, int],
-								  box: Box) -> Tuple[int, int, int, int]:
+								  box: Box) -> List[int]:
 	distance_edge_1 = box.vertex_1.x
 	distance_edge_2 = canvas_shape[1] - box.vertex_3.x
 	distance_edge_3 = box.vertex_1.y
 	distance_edge_4 = canvas_shape[0] - box.vertex_3.y
 
-	return (distance_edge_1, distance_edge_2, distance_edge_3, distance_edge_4)
+	return [distance_edge_1, distance_edge_2, distance_edge_3, distance_edge_4]
 
 
 def get_combined_box(boxes: Iterable[Box]) -> Box:

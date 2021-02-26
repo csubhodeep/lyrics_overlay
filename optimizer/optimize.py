@@ -1,4 +1,6 @@
 from pathlib import Path
+from typing import Iterable
+from typing import Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -6,13 +8,19 @@ import pandas as pd
 from scipy.optimize import differential_evolution
 
 from statistics import variance
-from typing import Iterable, Tuple
 
 from configs.make_config import Config
-
 from optimizer.lib.defs import Box, Point, Lyrics
+from optimizer.utils.utils import get_expected_box_dims
 from optimizer.utils.utils import text_fits_box
 from optimizer.utils.utils import get_distance_from_image_edges
+
+WRONG_COORDINATE_COST = 40000
+OVERLAPPING_COST = 20000
+TEXT_NOT_FITTING_COST = 10000
+MIN_DISTANCE_COST = 4000
+FONT_SIZE = 5
+FORM = 2
 
 
 def get_loss(x,
@@ -20,21 +28,32 @@ def get_loss(x,
 			 forbidden_zones: Iterable[Box],
 			 text: Lyrics,
 			 ) -> float:
+	"""
+	Args:
+		x:
+		canvas_shape:
+		forbidden_zones:
+		text:
 
+	Returns:
+
+	"""
 	try:
 		lyrics_box = Box(first_diagonal_coords=Point(coords=(x[0], x[1])),
 						 second_diagonal_coords=Point(coords=(x[2], x[3])))
 	except AssertionError as ex:
-		return 40000
+		return WRONG_COORDINATE_COST
 
 	if any([lyrics_box.is_overlapping(zone) for zone in forbidden_zones]):
-		return 20000
+		return OVERLAPPING_COST
 
-	if not text_fits_box(text, font_size=5, box=lyrics_box, form=2):
-		return 10000
+	expected_width, expected_height = get_expected_box_dims(lyrics=text, font_size=FONT_SIZE, form=FORM)
 
-	w1 = 0.50
-	w2 = 0.50
+	is_fit = text_fits_box(expected_width, expected_height, lyrics_box)
+
+	if not is_fit:
+		return TEXT_NOT_FITTING_COST
+
 	# include the following:
 	# distance from all person-boxes - w1
 
@@ -43,33 +62,27 @@ def get_loss(x,
 		distance_persons = tuple([lyrics_box.get_distance_from(zone) for zone in forbidden_zones])
 	else:
 		distance_persons = tuple([])
-	skip_left_edge = False
-	skip_right_edge = False
-	if len(forbidden_zones) == 1:
-		dist_of_f_zone_from_left_edge = forbidden_zone[0].vertex_1.x - 0
-		dist_of_f_zone_from_right_edge = 739 - forbidden_zone[0].vertex_3.x
-		if dist_of_f_zone_from_left_edge < dist_of_f_zone_from_right_edge:
-			skip_left_edge = True
-		else:
-			skip_right_edge = True
-	# balance_1 = np.nan_to_num(np.var(distance_persons))
 
 	## distance from all 4 edges - w2
 	distance_edges = get_distance_from_image_edges(canvas_shape, lyrics_box)
-	list_of_distances = list(distance_Edges)
-	if skip_left_edge:
-		list_of_distance.pop(0)
-		distance_edges = tuple(list_of_distance)
-	elif skip_right_edge:
-		list_of_distance.pop(1)
-		distance_edges = tuple(list_of_distance)
+
+	if len(forbidden_zones) == 1:
+		dist_of_f_zone_from_left_edge = forbidden_zones[0].vertex_1.x - 0
+		dist_of_f_zone_from_right_edge = canvas_shape[1] - forbidden_zones[0].vertex_3.x
+		if dist_of_f_zone_from_left_edge < dist_of_f_zone_from_right_edge:
+			distance_edges.pop(0)
+		else:
+			distance_edges.pop(1)
+
+	# balance_1 = np.nan_to_num(np.var(distance_persons))
+
 	# balance_2 = variance(distance_edges)
 
 	# loss = w1*balance_1 + w2*balance_2
-	all_distances = distance_edges+distance_persons
+	all_distances = tuple(distance_edges)+distance_persons
 
 	if min(all_distances) < 20:
-		return 4000
+		return MIN_DISTANCE_COST
 	else:
 		return np.sqrt(np.var(all_distances))
 
@@ -97,9 +110,17 @@ def get_optimal_boxes(row, conf: Config):
 								 popsize=100
 								 )
 
-	print(res.fun)
-
-	return int(round(res.x[0])), int(round(res.x[1])), int(round(res.x[2])), int(round(res.x[3])), 10
+	if res.success:
+		return int(round(res.x[0])), int(round(res.x[1])), int(round(res.x[2])), int(round(res.x[3])), FONT_SIZE
+	else:
+		expected_width, expected_height = get_expected_box_dims(lyrics, font_size=5, form=2)
+		x = conf.img_width // 2
+		y = int(conf.img_height*0.9)
+		x1 = x - expected_width // 2
+		y1 = y - expected_height // 2
+		x3 = x1 + expected_width
+		y3 = y1 + expected_height
+		return x1, y1, x3, y3, FONT_SIZE
 
 
 def optimize(conf: Config) -> bool:
@@ -124,7 +145,7 @@ if __name__ == "__main__":
 					input_data_path="../data/splitter_output",
 					img_width=739,
 					img_height=416)
-	config.set_run_id(run_id="eddd767e-b051-43ee-ab00-47caa574c148")
+	config.set_run_id(run_id="32a0cb58-cd76-46c2-ac06-201697f71743")
 
 	optimize(conf=config)
 
