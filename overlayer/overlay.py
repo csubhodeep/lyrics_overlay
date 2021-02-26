@@ -82,7 +82,7 @@ def overlay(conf: Config):
 					first_diag_coord_opti = (lyrics_and_boxes_df.loc[lyrics_index, 'x1_opti'], lyrics_and_boxes_df.loc[lyrics_index, 'y1_opti'])
 					second_diag_coord_opti = (lyrics_and_boxes_df.loc[lyrics_index, 'x3_opti'], lyrics_and_boxes_df.loc[lyrics_index, 'y3_opti'])
 					color = (255, 0, 0)
-					color_opti = (100, 50, 0)
+					color_opti = (0, 255, 0)
 					thickness = 2
 					# # TODO: inverse transform the boxes to big resolution before making rectangle
 					start_point = resize(img_shape=frame.shape, old_img_size=conf.img_size, coords=first_diag_coord)
