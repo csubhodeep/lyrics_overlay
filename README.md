@@ -2,7 +2,7 @@
 
 ## What?
 
-This project aims to put lyrics for a particular frame of a video in an optimal location avoiding 
+This project aims to put lyrics for a particular frame of a video in an optimal location avoiding
 overlap with the main subjects of the video.
 
 Assumptions:

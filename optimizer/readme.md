@@ -1,6 +1,6 @@
 # Optimizer
 
-This step is responsible to find out the best location of the 
+This step is responsible to find out the best location of the
 lyrics box for each frame.
 
 ## Data Contract

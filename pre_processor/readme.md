@@ -38,4 +38,4 @@ start_time,end_time,text,font_type
 
 #### some_random_uuid/*.npy
 
-These files are the frames resized, sampled and stored with their name as timestamps (in ms) of the frames.  
+These files are the frames resized, sampled and stored with their name as timestamps (in ms) of the frames.
