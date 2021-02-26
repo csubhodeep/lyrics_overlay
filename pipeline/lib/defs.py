@@ -14,7 +14,8 @@ class Job:
 
     __ALLOWED_SETTABLE_ATTRIBUTES = ("_func", "_conf")
 
-    """This is a basic abstraction of a process (a function or a method of a class) that can be run as a step in a flow"""
+    """This is a basic abstraction of a process (a function or a method of a class)
+    that can be run as a step in a flow"""
 
     def __init__(self, func: Callable, conf: Config):
         """This function can be constructed using a callable object or function and a Config object"""
@@ -77,11 +78,10 @@ class Job:
 
 class Pipeline(UserList):
     """This class is aims to implement the behaviour of a DAG-like flow/pipeline.
-	A typical example of a pipeline could be as shown below
-		(X)->(Y)->(Z)
-	where X, Y & Z are a "Job" each and "->" is to be read as 'is executed before'
-	The main objective of the pipeline is to 'connect' a bunch of Jobs together.
-	"""
+    A typical example of a pipeline could be as shown below
+        (X)->(Y)->(Z)
+    where X, Y & Z are a "Job" each and "->" is to be read as 'is executed before'
+    The main objective of the pipeline is to 'connect' a bunch of Jobs together."""
 
     __ALLOWED_SETTABLE_ATTRIBUTES = ("_run_id", "data")
 
@@ -165,8 +165,7 @@ class Pipeline(UserList):
 
     def __setattr__(self, key, value):
         """This function overrides the default method of the UserList class
-		so that immutability of the '_run_id' attribute can be ensured.
-		"""
+		so that immutability of the '_run_id' attribute can be ensured."""
         if key in Pipeline.__ALLOWED_SETTABLE_ATTRIBUTES:
             if key != "data":
                 if hasattr(self, key):

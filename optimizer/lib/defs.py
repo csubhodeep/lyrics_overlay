@@ -184,7 +184,7 @@ class Box:
             and self.vertex_1.x <= point.x <= self.vertex_3.x
         )
 
-    def overlay_on_image(self, image: np.ndarray) -> np.ndarray:
+    def overlay_on_image(self, image):
         overlaid_image = image.copy()
         overlaid_image[
             self.vertex_1.y : self.vertex_3.y, self.vertex_1.x : self.vertex_3.x
