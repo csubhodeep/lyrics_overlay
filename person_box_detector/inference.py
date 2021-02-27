@@ -81,8 +81,8 @@ def post_process_detection(
             list_of_persons.append(
                 {
                     "x1": np.clip(x1, 0, conf.img_width - 1),
-                    "y1": np.clip(y1, 0, conf.img_width - 1),
-                    "x3": np.clip(x3, 0, conf.img_height - 1),
+                    "y1": np.clip(y1, 0, conf.img_height - 1),
+                    "x3": np.clip(x3, 0, conf.img_width - 1),
                     "y3": np.clip(y3, 0, conf.img_height - 1),
                 }
             )
