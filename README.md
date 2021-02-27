@@ -20,13 +20,13 @@ Assumptions:
 ## How to run?
 
 ### Pre-requisites
-1. Since its a Python project - one needs to Python v3.8+.
+1. Since its a Python project - one needs to have Python v3.8+.
 1. Clone the repo.
 2. Make and activate a virtual environment either from your IDE or by following the instructions [here](https://docs.python.org/3/tutorial/venv.html).
 3. Install all the `pip` dependencies by running - `pip3 install -r requirements.txt`.
 
 #### For Mac users
-The `torch` and `torchvision` can be installed `pip3 install torch torchvision`.
+The `torch` and `torchvision` can be installed by running `pip3 install torch torchvision`.
 
 ### Running the application
 
