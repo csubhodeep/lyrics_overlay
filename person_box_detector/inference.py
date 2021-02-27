@@ -2,6 +2,7 @@ import random
 from pathlib import Path
 from typing import Dict
 from typing import Iterable
+from typing import Tuple
 
 import cv2
 import matplotlib.pyplot as plt
@@ -59,16 +60,16 @@ def detect_image(
 
 
 def post_process_detection(
-    detections, classes, pilimg: Image, img_size: int
+    detections, classes, pilimg: Image, conf: Config
 ) -> Iterable[Dict[str, float]]:
 
     list_of_persons = []
     img = np.array(pilimg)
-    pad_x = max(img.shape[0] - img.shape[1], 0) * (img_size / max(img.shape))
-    pad_y = max(img.shape[1] - img.shape[0], 0) * (img_size / max(img.shape))
-    unpad_h = img_size - pad_y
-    unpad_w = img_size - pad_x
-    for x1, y1, x3, y3, conf, cls_conf, cls_pred in detections:
+    pad_x = max(img.shape[0] - img.shape[1], 0) * (conf.img_size / max(img.shape))
+    pad_y = max(img.shape[1] - img.shape[0], 0) * (conf.img_size / max(img.shape))
+    unpad_h = conf.img_size - pad_y
+    unpad_w = conf.img_size - pad_x
+    for x1, y1, x3, y3, cnf, cls_conf, cls_pred in detections:
         cls = classes[int(cls_pred)]
         if cls == "person":
             box_h = int(((y3 - y1) / unpad_h) * img.shape[0])
@@ -77,9 +78,34 @@ def post_process_detection(
             x1 = int(((x1 - pad_x // 2) / unpad_w) * img.shape[1])
             x3 = x1 + box_w
             y3 = y1 + box_h
-            list_of_persons.append({"x1": x1, "y1": y1, "x3": x3, "y3": y3})
+            list_of_persons.append(
+                {
+                    "x1": np.clip(x1, 0, conf.img_width - 1),
+                    "y1": np.clip(y1, 0, conf.img_width - 1),
+                    "x3": np.clip(x3, 0, conf.img_height - 1),
+                    "y3": np.clip(y3, 0, conf.img_height - 1),
+                }
+            )
 
     return list_of_persons
+
+
+def get_persons(
+    frame_info: Tuple[np.ndarray, Path], conf: Config, model: Darknet, classes
+):
+
+    frame = cv2.cvtColor(frame_info[0], cv2.COLOR_BGR2RGB)
+    pilimg = Image.fromarray(frame)
+    detections = detect_image(
+        pilimg, conf.img_size, model, conf.conf_thresh, conf.nms_thresh
+    )
+    if detections is not None:
+        persons = post_process_detection(detections, classes, pilimg, conf)
+
+    for person in persons:
+        person["frame"] = float(frame_info[1].name.rstrip(".npy"))
+
+    return persons
 
 
 def detect_persons(conf: Config) -> bool:
@@ -98,26 +124,46 @@ def detect_persons(conf: Config) -> bool:
 
     result_df = pd.DataFrame()
 
+    persons = []
     for item in input_frames_path.iterdir():
         with open(str(item), "rb") as f:
             frame = np.load(f)
-        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        pilimg = Image.fromarray(frame)
-        detections = detect_image(
-            pilimg, conf.img_size, model, conf.conf_thresh, conf.nms_thresh
+        persons.extend(
+            get_persons(
+                frame_info=(frame, item), conf=conf, model=model, classes=classes
+            )
         )
-        if detections is not None:
-            persons = post_process_detection(detections, classes, pilimg, conf.img_size)
-            for person in persons:
-                row = {
-                    "frame": float(item.name.rstrip(".npy")),
-                    "x1": np.clip(person["x1"], 0, conf.img_width - 1),
-                    "x3": np.clip(person["x3"], 0, conf.img_width - 1),
-                    "y1": np.clip(person["y1"], 0, conf.img_height - 1),
-                    "y3": np.clip(person["y3"], 0, conf.img_height - 1),
-                }
-                result_df = result_df.append(row, ignore_index=True)
 
+    for person in persons:
+        # row = {
+        #     "frame": float(item.name.rstrip(".npy")),
+        #     "x1": np.clip(person["x1"], 0, conf.img_width - 1),
+        #     "x3": np.clip(person["x3"], 0, conf.img_width - 1),
+        #     "y1": np.clip(person["y1"], 0, conf.img_height - 1),
+        #     "y3": np.clip(person["y3"], 0, conf.img_height - 1),
+        # }
+        result_df = result_df.append(person, ignore_index=True)
+
+    """
+        # with open(str(item), "rb") as f:
+        #     frame = np.load(f)
+        # frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        # pilimg = Image.fromarray(frame)
+        # detections = detect_image(
+        #     pilimg, conf.img_size, model, conf.conf_thresh, conf.nms_thresh
+        # )
+        # if detections is not None:
+        #     persons = post_process_detection(detections, classes, pilimg, conf.img_size)
+        #     for person in persons:
+        #         row = {
+        #             "frame": float(item.name.rstrip(".npy")),
+        #             "x1": np.clip(person["x1"], 0, conf.img_width - 1),
+        #             "x3": np.clip(person["x3"], 0, conf.img_width - 1),
+        #             "y1": np.clip(person["y1"], 0, conf.img_height - 1),
+        #             "y3": np.clip(person["y3"], 0, conf.img_height - 1),
+        #         }
+        #         result_df = result_df.append(row, ignore_index=True)
+    """
     result_df.to_feather(output_file_path)
 
     return True
