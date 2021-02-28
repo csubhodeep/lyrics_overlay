@@ -13,6 +13,8 @@ from optimizer.lib.defs import Lyrics
 from optimizer.lib.defs import Point
 from optimizer.utils.params import Costs
 from optimizer.utils.params import FontLimits
+from optimizer.utils.params import LossFunctionParameters
+from optimizer.utils.params import OptimizerParameters
 from optimizer.utils.utils import get_distance_from_image_edges
 from optimizer.utils.utils import get_expected_box_dims
 from optimizer.utils.utils import text_fits_box
@@ -77,7 +79,7 @@ def get_loss(
 
     all_distances = tuple(distance_edges) + distance_persons
 
-    if min(all_distances) < 20:
+    if min(all_distances) < LossFunctionParameters.MIN_DISTANCE_THRESHOLD:
         return Costs.MIN_DISTANCE_COST
     else:
         return sqrt(variance(all_distances)) + 1 / lyrics_box.area
@@ -107,7 +109,7 @@ def get_optimal_boxes(row, conf: Config):
         get_loss,
         bounds=limits,
         args=((conf.img_height, conf.img_width), persons, lyrics),
-        popsize=100,
+        popsize=OptimizerParameters.POPULATION_SIZE,
     )
 
     if res.success:

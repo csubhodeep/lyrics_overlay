@@ -14,3 +14,13 @@ class Costs:
 class FontLimits:
     FONT_SIZE_LIMIT: Tuple[int, int] = (1, 10)
     FORM_LIMIT: Tuple[int, int] = (1, 1)
+
+
+@dataclass
+class LossFunctionParameters:
+    MIN_DISTANCE_THRESHOLD: int = 20
+
+
+@dataclass
+class OptimizerParameters:
+    POPULATION_SIZE: int = 100
