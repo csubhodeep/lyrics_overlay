@@ -15,7 +15,8 @@ from optimizer.utils.utils import get_distance_from_image_edges
 from optimizer.utils.utils import get_expected_box_dims
 from optimizer.utils.utils import text_fits_box
 
-# import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt # noqa
+
 
 WRONG_COORDINATE_COST = 40000
 OVERLAPPING_COST = 20000
@@ -29,15 +30,15 @@ def get_loss(
     x, canvas_shape: Tuple[int, int], forbidden_zones: Iterable[Box], text: Lyrics
 ) -> float:
     """
-	Args:
-		x:
-		canvas_shape:
-		forbidden_zones:
-		text:
+    Args:
+        x:
+        canvas_shape:
+        forbidden_zones:
+        text:
 
-	Returns:
+    Returns:
 
-	"""
+    """
     try:
         lyrics_box = Box(
             first_diagonal_coords=Point(coords=(x[0], x[1])),
@@ -58,10 +59,10 @@ def get_loss(
     if not is_fit:
         return TEXT_NOT_FITTING_COST
 
-    # include the following:
-    # distance from all person-boxes - w1
+    # # include the following:
+    # # distance from all person-boxes - w1
 
-    # iterate over all the edges of all person-boxes and find the distances of them from the lyrics-box
+    # # iterate over all the edges of all person-boxes and find the distances of them from the lyrics-box
     if len(forbidden_zones):
         distance_persons = tuple(
             [lyrics_box.get_distance_from(zone) for zone in forbidden_zones]
@@ -69,7 +70,7 @@ def get_loss(
     else:
         distance_persons = tuple([])
 
-    ## distance from all 4 edges - w2
+    # # distance from all 4 edges - w2
     distance_edges = get_distance_from_image_edges(canvas_shape, lyrics_box)
 
     if len(forbidden_zones) == 1:
@@ -79,10 +80,6 @@ def get_loss(
             distance_edges.pop(0)
         else:
             distance_edges.pop(1)
-
-    # balance_1 = np.nan_to_num(np.var(distance_persons))
-
-    # balance_2 = variance(distance_edges)
 
     # loss = w1*balance_1 + w2*balance_2
     all_distances = tuple(distance_edges) + distance_persons

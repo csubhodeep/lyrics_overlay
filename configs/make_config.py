@@ -17,7 +17,6 @@ class Config(UserDict):
         **kwargs,
     ):
         super().__init__()
-        # # TODO: assert here if path exists or not
         if input_data_path:
             self._input_data_path = (
                 Path(input_data_path)
@@ -29,6 +28,9 @@ class Config(UserDict):
             if isinstance(output_data_path, str)
             else output_data_path
         )
+
+        assert self.output_data_path.exists(), "Input data path must exist"
+        assert self.output_data_path.exists(), "Output data path must exist"
 
         for k, v in kwargs.items():
             self.__setattr__(k, v)

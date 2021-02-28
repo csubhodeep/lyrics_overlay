@@ -53,16 +53,13 @@ class LineSegment:
 
 
 class Box:
-    """
-	A box is represented as below
-		(x1, y1)              (x2, y2)
-				*-------------*
-				|			  |
-				|			  |
-				*-------------*
-		(x4, y4)              (x3, y3)
-
-	"""
+    """A box is represented as below
+    	(x1, y1)              (x2, y2)
+    			*-------------*
+    			|			  |
+    			|			  |
+    			*-------------*
+    	(x4, y4)              (x3, y3)"""
 
     __slots__ = ("_first_diagonal_coords", "_second_diagonal_coords")
 
@@ -84,9 +81,7 @@ class Box:
 
     @property
     def vertex_1(self) -> Point:
-        return Point(
-            coords=(self._first_diagonal_coords.x, self._first_diagonal_coords.y)
-        )
+        return self._first_diagonal_coords
 
     @property
     def vertex_2(self) -> Point:
@@ -96,9 +91,7 @@ class Box:
 
     @property
     def vertex_3(self) -> Point:
-        return Point(
-            coords=(self._second_diagonal_coords.x, self._second_diagonal_coords.y)
-        )
+        return self._second_diagonal_coords
 
     @property
     def vertex_4(self) -> Point:
