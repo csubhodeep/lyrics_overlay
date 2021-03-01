@@ -111,6 +111,4 @@ if __name__ == "__main__":
     )
     config.set_run_id(run_id="d9868ecd-29ec-4cae-8928-f0e027cc56d0")
 
-    # split(conf=config)
-
-    split2(conf=config)
+    split(conf=config)
