@@ -33,6 +33,10 @@
   "overlay": {
     "img_size": 416,
     "video_input_path": "./data/input",
+    "output_data_path": "./data/overlayer_output"
+  },
+  "audio_adder": {
+    "video_input_path": "./data/input",
     "output_data_path": "./data/final_output"
   },
   "upload": {

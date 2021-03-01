@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 
+from audio_adder.audio_adder import add_audio
 from configs.make_config import get_config
 from optimizer.optimize import optimize
 from overlayer.overlay import overlay
@@ -62,6 +63,7 @@ if __name__ == "__main__":
     split_step = Job(func=split, conf=dict_of_configs["split"])
     optimization_step = Job(func=optimize, conf=dict_of_configs["optimization"])
     overlay_step = Job(func=overlay, conf=dict_of_configs["overlay"])
+    audio_adder_step = Job(func=add_audio, conf=dict_of_configs["audio_adder"])
     # upload_step = Job(func=upload_video, conf=collection_of_configs['upload'])
 
     # Step-3: the jobs below are put in a certain order for the pipeline
@@ -72,6 +74,7 @@ if __name__ == "__main__":
         split_step,
         optimization_step,
         overlay_step,
+        audio_adder_step
         # upload_step
     )
 
