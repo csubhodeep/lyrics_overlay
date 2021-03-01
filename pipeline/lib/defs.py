@@ -12,11 +12,10 @@ from configs.make_config import Config
 
 
 class Job:
+    """This is a basic abstraction of a process (a function or a method of a class)
+        that can be run as a step in a flow"""
 
     __ALLOWED_SETTABLE_ATTRIBUTES: Tuple[str, str] = ("_func", "_conf")
-
-    """This is a basic abstraction of a process (a function or a method of a class)
-    that can be run as a step in a flow"""
 
     def __init__(self, func: Callable, conf: Config):
         """This function can be constructed using a callable object or function and a Config object"""
