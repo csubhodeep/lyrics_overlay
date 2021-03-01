@@ -17,9 +17,6 @@ def add_audio(conf: Config) -> bool:
     input_clip_with_audio = mp.VideoFileClip(str(input_video_with_audio_path))
     input_clip_wo_audio = mp.VideoFileClip(str(input_video_without_audio_path))
 
-    # output_audio_path = Path.cwd().joinpath(conf.output_data_path).joinpath(f"{file_name}.mp3")
-    # input_clip_with_audio.audio.write_audiofile(output_audio_path)
-    # audio_clip = mp.AudioFileClip(str(output_audio_path))
     audio_clip = input_clip_with_audio.audio
     output_video_with_audio = input_clip_wo_audio.set_audio(audio_clip)
 
