@@ -1,13 +1,13 @@
 import os
 from pathlib import Path
 
-from audio_adder.audio_adder import add_audio
 from configs.make_config import get_config
 from optimizer.optimize import optimize
 from overlayer.overlay import overlay
 from person_box_detector.inference import detect_persons
 from pipeline.lib.defs import Job
 from pipeline.lib.defs import Pipeline
+from post_processor.audio_adder import add_audio
 from pre_processor.data_fetcher import fetch_data
 from pre_processor.sampler import sample
 from splitter.splitter import split

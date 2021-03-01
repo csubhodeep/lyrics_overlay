@@ -1,5 +1,5 @@
 from itertools import product
-from typing import Iterable
+from typing import List
 from typing import Tuple
 from typing import Union
 
@@ -41,7 +41,7 @@ class LineSegment:
         return self._second_coord
 
     @property
-    def length(self) -> int:
+    def length(self) -> float:
         return (
             (self.point_1.x - self.point_2.x) ** 2
             + (self.point_1.y - self.point_2.y) ** 2
@@ -118,14 +118,14 @@ class Box:
         return Point(coords=(x_centre, y_centre))
 
     @property
-    def diagonal_length(self) -> int:
+    def diagonal_length(self) -> float:
         return LineSegment(first_coord=self.vertex_1, second_coord=self.vertex_3).length
 
     @property
     def aspect_ratio(self) -> Union[float, int]:
         return self.width / self.height
 
-    def get_distance_from(self, box_2) -> int:
+    def get_distance_from(self, box_2) -> Union[float, int]:
         """This function calculates the distance between the two closest points of two boxes
 		"""
         if self.is_overlapping(box_2):
@@ -189,9 +189,9 @@ class Lyrics:
 
     def __init__(
         self,
-        text: Union[str, Iterable[str]],
-        start_time: Union[str] = "00:00",
-        end_time: Union[str] = "00:01",
+        text: Union[str, List[str]],
+        start_time: Union[int, float] = 0,
+        end_time: Union[int, float] = 1,
         font_size: Union[int, float] = 3,
         font_type: str = "",
     ):
@@ -212,11 +212,11 @@ class Lyrics:
         self._font_type = font_type
 
     @property
-    def start_time(self) -> str:
+    def start_time(self) -> Union[int, float]:
         return self._start_time
 
     @property
-    def end_time(self) -> str:
+    def end_time(self) -> Union[int, float]:
         return self._end_time
 
     @property
@@ -228,7 +228,7 @@ class Lyrics:
         return self._font_type
 
     @property
-    def text(self) -> Iterable[str]:
+    def text(self) -> Tuple[str, ...]:
         return self._text
 
     @property

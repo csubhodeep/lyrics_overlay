@@ -6,7 +6,7 @@
   "sample": {
     "min_output_frame_dim": 416,
     "sampling_fps": 5,
-    "output_data_path": "./data/pre_processed_output"
+    "output_data_path": "./data/pre_processor_output"
   },
   "detect_persons": {
     "conf_thresh": 0.8,
@@ -17,11 +17,11 @@
     "config_path": "./person_box_detector/config/yolov3.cfg",
     "weights_path": "./person_box_detector/config/yolov3.weights",
     "class_path": "./person_box_detector/config/coco.names",
-    "output_data_path": "./data/detected_persons_output"
+    "output_data_path": "./data/person_box_detector_output"
   },
   "split": {
     "output_data_path": "./data/splitter_output",
-    "lyrics_input_path": "./data/pre_processed_output"
+    "lyrics_input_path": "./data/pre_processor_output"
   },
   "optimization": {
     "img_height": 416,
@@ -40,6 +40,6 @@
     "output_data_path": "./data/final_output"
   },
   "upload": {
-    "output_data_path": "./data/final_output" // this would also be a remote location where the pipeline uploads the video
+    "output_data_path": "./" // this would also be a remote location where the pipeline uploads the video
   }
 }

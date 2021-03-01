@@ -47,7 +47,7 @@ def get_loss(
         return Costs.OVERLAPPING_COST
 
     expected_width, expected_height = get_expected_box_dims(
-        lyrics=text, font_size=int(round(x[4])), form=FontLimits.FORM_LIMIT[1]
+        lyrics=text, font_size=int(round(x[4])), form=int(round(x[5]))
     )
 
     is_fit = text_fits_box(expected_width, expected_height, lyrics_box)
@@ -94,7 +94,9 @@ def get_optimal_boxes(row, conf: Config):
         ),
     )
 
-    lyrics = Lyrics(row["text"])
+    lyrics = Lyrics(
+        text=row["text"], start_time=row["start_time"], end_time=row["end_time"]
+    )
 
     limits = (
         (0, conf.img_width),
@@ -102,7 +104,7 @@ def get_optimal_boxes(row, conf: Config):
         (0, conf.img_width),
         (0, conf.img_height),
         FontLimits.FONT_SIZE_LIMIT,
-        # (1, 2),
+        FontLimits.FORM_LIMIT,
     )
 
     res = differential_evolution(
@@ -119,7 +121,7 @@ def get_optimal_boxes(row, conf: Config):
             int(round(res.x[2])),
             int(round(res.x[3])),
             int(round(res.x[4])),
-            FontLimits.FORM_LIMIT[1],
+            int(round(res.x[5])),
         )
     else:
         expected_width, expected_height = get_expected_box_dims(
@@ -166,7 +168,7 @@ if __name__ == "__main__":
         img_width=739,
         img_height=416,
     )
-    config.set_run_id(run_id="a1945f8a-6fbf-4686-a1fe-486fcfed1590")
+    config.set_run_id(run_id="0d18bcb8-283a-4c0a-8855-159d6df3ad7f")
 
     optimize(conf=config)
 

@@ -11,7 +11,7 @@ from optimizer.lib.defs import Lyrics
 from optimizer.lib.defs import Point
 
 
-def len_of_text_list(text: Iterable[str]) -> int:
+def len_of_text_list(text: Iterable[str], text_pad: int = None) -> int:
     text_pad = 1
     length = text_pad  # text pad for left side
     for word in text:
@@ -25,12 +25,15 @@ def get_expected_box_dims(lyrics: Lyrics, font_size: int, form: int) -> Tuple[in
 
     n_words = len(lyrics.text)
     lengths_of_lines = []
-    for i in range(0, n_words - form, form):
-        if i + form < n_words:
-            last_index = i + form
-        else:
-            last_index = n_words - 1
-        lengths_of_lines.append(len_of_text_list(lyrics.text[i:last_index]))
+    if n_words > form:
+        for i in range(0, n_words - form, form):
+            if i + form < n_words:
+                last_index = i + form
+            else:
+                last_index = n_words - 1
+            lengths_of_lines.append(len_of_text_list(lyrics.text[i:last_index]))
+    else:
+        lengths_of_lines.append(len_of_text_list(lyrics.text))
 
     # max length will never be zero
     expected_width = int(max(lengths_of_lines) * font_size / 2)
