@@ -5,11 +5,9 @@ from collections import defaultdict
 import numpy as np
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-from PIL import Image
 from torch.autograd import Variable
 
-from person_box_detector.utils.parse_config import *
+from person_box_detector.utils.parse_config import parse_model_config
 from person_box_detector.utils.utils import build_targets
 
 

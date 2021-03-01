@@ -40,13 +40,18 @@ def resize2(img: np.ndarray, new_res: int) -> np.ndarray:
 
 
 def overlay(conf: Config):
-    # TODO: the following steps
+    """This function does the following:
+    1- cap. open the video and initiate video writer
+    2- if frame is in current lyrics-time-range den draw rectangle
+    3- if frame has already crossed lyrics-time-range. den lyrics index + = 1
+    4- write frame
+
+    Args:
+        conf:
+
+    Returns:
+
     """
-	1- cap. open the video and initiate video writer
-	2- if frame is in current lyrics-time-range den draw rectangle
-	3- if frame has already crossed lyrics-time-range. den lyrics index + = 1
-	4- write frame
-	"""
     file_name = conf.run_id
     lyrics_boxes_file = (
         Path.cwd().joinpath(conf.input_data_path).joinpath(f"{file_name}.feather")
@@ -177,6 +182,6 @@ if __name__ == "__main__":
         video_input_path="../data/input",
         img_size=416,
     )
-    config.set_run_id(run_id="32a0cb58-cd76-46c2-ac06-201697f71743")
+    config.set_run_id(run_id="a1945f8a-6fbf-4686-a1fe-486fcfed1590")
 
     overlay(conf=config)

@@ -1,11 +1,9 @@
 import os
 from pathlib import Path
-from typing import Union
 
 from configs.make_config import get_config
 from optimizer.optimize import optimize
 from overlayer.overlay import overlay
-from overlayer.upload import upload_video
 from person_box_detector.inference import detect_persons
 from pipeline.lib.defs import Job
 from pipeline.lib.defs import Pipeline
@@ -45,11 +43,10 @@ def clear_files():
 if __name__ == "__main__":
 
     """The basic procedure to compose a pipeline is done by doing the following steps:
-		1. Read the config from the file under - './configs/*.hjson' - make a dict of Config objects
-		2. Create the steps using the Job objects - each Job object requires a function and a Config object
-		3. Put the above Job objects in any kind of iterable or collection (like List or Tuple) following a particular order.
-		4. Make a Pipeline object using the list of Jobs created in Step - 3
-	"""
+        1. Read the config from the file under - './configs/*.hjson' - make a dict of Config objects
+        2. Create the steps using the Job objects - each Job object requires a function and a Config object
+        3. Put the above Job objects in any kind of iterable or collection (like List or Tuple) following a particular order.
+        4. Make a Pipeline object using the list of Jobs created in Step - 3"""
 
     clear_files()
 
@@ -102,7 +99,7 @@ if __name__ == "__main__":
     # pipeline_1()
 
     """Below we make another pipeline following the exact same steps described before.
-	We do this to check for parallel execution - ideally a new pipeline means a new config"""
+    We do this to check for parallel execution - ideally a new pipeline means a new config"""
     # collection_of_configs_2 = get_config(path_to_config="./configs/config.json")
     # #
     # # # declare jobs

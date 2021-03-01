@@ -4,6 +4,7 @@ from typing import Any
 from typing import Callable
 from typing import Iterable
 from typing import Optional
+from typing import Tuple
 from typing import Union
 from uuid import uuid4
 
@@ -11,11 +12,10 @@ from configs.make_config import Config
 
 
 class Job:
-
-    __ALLOWED_SETTABLE_ATTRIBUTES = ("_func", "_conf")
-
     """This is a basic abstraction of a process (a function or a method of a class)
-    that can be run as a step in a flow"""
+        that can be run as a step in a flow"""
+
+    __ALLOWED_SETTABLE_ATTRIBUTES: Tuple[str, str] = ("_func", "_conf")
 
     def __init__(self, func: Callable, conf: Config):
         """This function can be constructed using a callable object or function and a Config object"""
@@ -43,7 +43,7 @@ class Job:
         return self._conf
 
     @staticmethod
-    def _clear_files(
+    def __clear_files(
         path: Path, exclude_files: Iterable[Union[str, Path]], run_id: str
     ) -> None:
         for item in path.iterdir():
@@ -62,7 +62,7 @@ class Job:
         self, is_last_job: bool = False, exclude_files: Iterable[str] = (".gitkeep")
     ) -> None:
         if not is_last_job:
-            self._clear_files(
+            self.__clear_files(
                 path=self.config.output_data_path,
                 exclude_files=exclude_files,
                 run_id=self.config.run_id,
@@ -78,17 +78,17 @@ class Job:
 
 class Pipeline(UserList):
     """This class is aims to implement the behaviour of a DAG-like flow/pipeline.
-    A typical example of a pipeline could be as shown below
-        (X)->(Y)->(Z)
-    where X, Y & Z are a "Job" each and "->" is to be read as 'is executed before'
-    The main objective of the pipeline is to 'connect' a bunch of Jobs together."""
+        A typical example of a pipeline could be as shown below
+            (X)->(Y)->(Z)
+        where X, Y & Z are a "Job" each and "->" is to be read as 'is executed before'
+        The main objective of the pipeline is to 'connect' a bunch of Jobs together."""
 
-    __ALLOWED_SETTABLE_ATTRIBUTES = ("_run_id", "data")
+    __ALLOWED_SETTABLE_ATTRIBUTES: Tuple[str, str] = ("_run_id", "data")
 
     __RUN_IDS: Iterable[str] = tuple([])
 
     @classmethod
-    def _register_run_id(cls, run_id: str):
+    def __register_run_id(cls, run_id: str):
         if run_id not in cls.__RUN_IDS:
             run_ids = list(cls.__RUN_IDS)
             run_ids.append(run_id)
@@ -97,7 +97,7 @@ class Pipeline(UserList):
             raise Exception(f"Pipeline with run-id: {run_id} already exists !")
 
     @classmethod
-    def _remove_run_id(cls, run_id: str):
+    def __remove_run_id(cls, run_id: str):
         if run_id in cls.__RUN_IDS:
             run_ids = list(cls.__RUN_IDS)
             run_ids.remove(run_id)
@@ -109,8 +109,7 @@ class Pipeline(UserList):
         unique_run_id: str = "",
         list_of_steps: Optional[Iterable[Job]] = None,
     ):
-        """This class must be constructed either using one Job OR a collection of Jobs but NOT both
-		"""
+        """This class must be constructed either using one Job OR a collection of Jobs but NOT both"""
         super().__init__()
 
         if start_step and list_of_steps:
@@ -124,11 +123,11 @@ class Pipeline(UserList):
             )
 
         if unique_run_id == "":
-            self._run_id: str = str(uuid4())
+            self._run_id = str(uuid4())
         else:
-            self._run_id: str = unique_run_id
+            self._run_id = unique_run_id
 
-        self._register_run_id(self.run_id)
+        self.__register_run_id(self.run_id)
 
         if not list_of_steps:
             assert isinstance(start_step, Job), "step must be of type Job"
@@ -165,7 +164,14 @@ class Pipeline(UserList):
 
     def __setattr__(self, key, value):
         """This function overrides the default method of the UserList class
-		so that immutability of the '_run_id' attribute can be ensured."""
+        so that immutability of the '_run_id' attribute can be ensured.
+
+        Args:
+            key:
+            value:
+
+        Returns:
+        """
         if key in Pipeline.__ALLOWED_SETTABLE_ATTRIBUTES:
             if key != "data":
                 if hasattr(self, key):
@@ -199,7 +205,7 @@ class Pipeline(UserList):
             job.clear_files(is_last_job=i == len(self) - 1, exclude_files=exclude_files)
 
         del self.data
-        self._remove_run_id(self.run_id)
+        self.__remove_run_id(self.run_id)
 
     def insert(self, i: int, item) -> None:
         raise NotImplementedError
@@ -227,7 +233,7 @@ class Pipeline(UserList):
             if not res:
                 raise Exception(f"Step - {job.name} failed")
         print("=================================")
-        print("Pipeline completed successfully ! ")
+        print("Pipeline completed successfully !")
 
     def __repr__(self):
         return " -> ".join([job.name for job in self])

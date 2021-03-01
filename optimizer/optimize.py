@@ -11,57 +11,54 @@ from configs.make_config import Config
 from optimizer.lib.defs import Box
 from optimizer.lib.defs import Lyrics
 from optimizer.lib.defs import Point
+from optimizer.utils.params import Costs
+from optimizer.utils.params import FontLimits
+from optimizer.utils.params import LossFunctionParameters
+from optimizer.utils.params import OptimizerParameters
 from optimizer.utils.utils import get_distance_from_image_edges
 from optimizer.utils.utils import get_expected_box_dims
 from optimizer.utils.utils import text_fits_box
 
-# import matplotlib.pyplot as plt
-
-WRONG_COORDINATE_COST = 40000
-OVERLAPPING_COST = 20000
-TEXT_NOT_FITTING_COST = 10000
-MIN_DISTANCE_COST = 4000
-FONT_SIZE = 5
-FORM = 2
+# import matplotlib.pyplot as plt # noqa
 
 
 def get_loss(
     x, canvas_shape: Tuple[int, int], forbidden_zones: Iterable[Box], text: Lyrics
 ) -> float:
     """
-	Args:
-		x:
-		canvas_shape:
-		forbidden_zones:
-		text:
+    Args:
+        x:
+        canvas_shape:
+        forbidden_zones:
+        text:
 
-	Returns:
+    Returns:
 
-	"""
+    """
     try:
         lyrics_box = Box(
             first_diagonal_coords=Point(coords=(x[0], x[1])),
             second_diagonal_coords=Point(coords=(x[2], x[3])),
         )
     except AssertionError as ex:
-        return WRONG_COORDINATE_COST
+        return Costs.WRONG_COORDINATE_COST
 
     if any([lyrics_box.is_overlapping(zone) for zone in forbidden_zones]):
-        return OVERLAPPING_COST
+        return Costs.OVERLAPPING_COST
 
     expected_width, expected_height = get_expected_box_dims(
-        lyrics=text, font_size=FONT_SIZE, form=FORM
+        lyrics=text, font_size=int(round(x[4])), form=FontLimits.FORM_LIMIT[1]
     )
 
     is_fit = text_fits_box(expected_width, expected_height, lyrics_box)
 
     if not is_fit:
-        return TEXT_NOT_FITTING_COST
+        return Costs.TEXT_NOT_FITTING_COST
 
-    # include the following:
-    # distance from all person-boxes - w1
+    # # include the following:
+    # # distance from all person-boxes - w1
 
-    # iterate over all the edges of all person-boxes and find the distances of them from the lyrics-box
+    # # iterate over all the edges of all person-boxes and find the distances of them from the lyrics-box
     if len(forbidden_zones):
         distance_persons = tuple(
             [lyrics_box.get_distance_from(zone) for zone in forbidden_zones]
@@ -69,7 +66,7 @@ def get_loss(
     else:
         distance_persons = tuple([])
 
-    ## distance from all 4 edges - w2
+    # # distance from all 4 edges - w2
     distance_edges = get_distance_from_image_edges(canvas_shape, lyrics_box)
 
     if len(forbidden_zones) == 1:
@@ -80,17 +77,12 @@ def get_loss(
         else:
             distance_edges.pop(1)
 
-    # balance_1 = np.nan_to_num(np.var(distance_persons))
-
-    # balance_2 = variance(distance_edges)
-
-    # loss = w1*balance_1 + w2*balance_2
     all_distances = tuple(distance_edges) + distance_persons
 
-    if min(all_distances) < 20:
-        return MIN_DISTANCE_COST
+    if min(all_distances) < LossFunctionParameters.MIN_DISTANCE_THRESHOLD:
+        return Costs.MIN_DISTANCE_COST
     else:
-        return sqrt(variance(all_distances))
+        return sqrt(variance(all_distances)) + 1 / lyrics_box.area
 
 
 def get_optimal_boxes(row, conf: Config):
@@ -109,14 +101,15 @@ def get_optimal_boxes(row, conf: Config):
         (0, conf.img_height),
         (0, conf.img_width),
         (0, conf.img_height),
-        # (conf.font_size_min_limit, conf.font_size_max_limit)
+        FontLimits.FONT_SIZE_LIMIT,
+        # (1, 2),
     )
 
     res = differential_evolution(
         get_loss,
         bounds=limits,
         args=((conf.img_height, conf.img_width), persons, lyrics),
-        popsize=100,
+        popsize=OptimizerParameters.POPULATION_SIZE,
     )
 
     if res.success:
@@ -125,7 +118,8 @@ def get_optimal_boxes(row, conf: Config):
             int(round(res.x[1])),
             int(round(res.x[2])),
             int(round(res.x[3])),
-            FONT_SIZE,
+            int(round(res.x[4])),
+            FontLimits.FORM_LIMIT[1],
         )
     else:
         expected_width, expected_height = get_expected_box_dims(
@@ -137,7 +131,7 @@ def get_optimal_boxes(row, conf: Config):
         y1 = y - expected_height // 2
         x3 = x1 + expected_width
         y3 = y1 + expected_height
-        return x1, y1, x3, y3, FONT_SIZE
+        return x1, y1, x3, y3, FontLimits.FONT_SIZE_LIMIT[1], FontLimits.FORM_LIMIT[1]
 
 
 def optimize(conf: Config) -> bool:
@@ -152,7 +146,7 @@ def optimize(conf: Config) -> bool:
     df_input = pd.read_feather(input_file_path)
 
     df_input[
-        ["x1_opti", "y1_opti", "x3_opti", "y3_opti", "font_size"]
+        ["x1_opti", "y1_opti", "x3_opti", "y3_opti", "font_size", "form"]
     ] = df_input.apply(get_optimal_boxes, axis=1, args=(conf,), result_type="expand")
 
     df_input[["x1_opti", "y1_opti", "x3_opti", "y3_opti"]] = df_input[
@@ -172,7 +166,7 @@ if __name__ == "__main__":
         img_width=739,
         img_height=416,
     )
-    config.set_run_id(run_id="b0758519-f8f2-4deb-bb32-82c12f6a9c28")
+    config.set_run_id(run_id="a1945f8a-6fbf-4686-a1fe-486fcfed1590")
 
     optimize(conf=config)
 

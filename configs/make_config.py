@@ -1,4 +1,3 @@
-from collections import UserDict
 from pathlib import Path
 from typing import Dict
 from typing import Optional
@@ -7,7 +6,7 @@ from typing import Union
 import hjson
 
 
-class Config(UserDict):
+class Config:
     """This class creates a portable object with immutable but flexible number of attributes"""
 
     def __init__(
@@ -16,8 +15,6 @@ class Config(UserDict):
         input_data_path: Optional[Union[str, Path]] = "",
         **kwargs,
     ):
-        super().__init__()
-        # # TODO: assert here if path exists or not
         if input_data_path:
             self._input_data_path = (
                 Path(input_data_path)
@@ -29,6 +26,9 @@ class Config(UserDict):
             if isinstance(output_data_path, str)
             else output_data_path
         )
+
+        assert self.output_data_path.exists(), "Input data path must exist"
+        assert self.output_data_path.exists(), "Output data path must exist"
 
         for k, v in kwargs.items():
             self.__setattr__(k, v)
