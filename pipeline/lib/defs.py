@@ -77,16 +77,15 @@ class Job:
 
 
 class Pipeline(UserList):
+    """This class is aims to implement the behaviour of a DAG-like flow/pipeline.
+        A typical example of a pipeline could be as shown below
+            (X)->(Y)->(Z)
+        where X, Y & Z are a "Job" each and "->" is to be read as 'is executed before'
+        The main objective of the pipeline is to 'connect' a bunch of Jobs together."""
 
     __ALLOWED_SETTABLE_ATTRIBUTES: Tuple[str, str] = ("_run_id", "data")
 
     __RUN_IDS: Iterable[str] = tuple([])
-
-    """This class is aims to implement the behaviour of a DAG-like flow/pipeline.
-    A typical example of a pipeline could be as shown below
-        (X)->(Y)->(Z)
-    where X, Y & Z are a "Job" each and "->" is to be read as 'is executed before'
-    The main objective of the pipeline is to 'connect' a bunch of Jobs together."""
 
     @classmethod
     def __register_run_id(cls, run_id: str):
