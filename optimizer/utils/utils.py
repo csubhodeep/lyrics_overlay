@@ -1,5 +1,4 @@
 from statistics import mean
-from typing import Iterable
 from typing import List
 from typing import Tuple
 
@@ -11,7 +10,7 @@ from optimizer.lib.defs import Lyrics
 from optimizer.lib.defs import Point
 
 
-def len_of_text_list(text: Iterable[str], text_pad: int = None) -> int:
+def len_of_text_list(text: Tuple[str, ...]) -> int:
     text_pad = 1
     length = text_pad  # text pad for left side
     for word in text:
@@ -73,7 +72,7 @@ def get_distance_from_image_edges(canvas_shape: Tuple[int, int], box: Box) -> Li
     return [distance_edge_1, distance_edge_2, distance_edge_3, distance_edge_4]
 
 
-def get_combined_box(boxes: Iterable[Box]) -> Box:
+def get_combined_box(boxes: Tuple[Box, ...]) -> Box:
 
     min_x = min([box.vertex_1.x for box in boxes])
     min_y = min([box.vertex_1.y for box in boxes])
@@ -89,13 +88,13 @@ def get_combined_box(boxes: Iterable[Box]) -> Box:
     return new_box
 
 
-def get_nearness_to_preferred_centre(centre_1: Point, centre_2: Point) -> int:
+def get_nearness_to_preferred_centre(centre_1: Point, centre_2: Point) -> float:
     line_seg = LineSegment(centre_1, centre_2)
 
     return line_seg.length
 
 
-def get_preferred_centre(boxes: Iterable[Box], image: np.ndarray) -> Point:
+def get_preferred_centre(boxes: Tuple[Box, ...], image: np.ndarray) -> Point:
 
     # check the spread of boxes
     combi_box = get_combined_box(boxes)

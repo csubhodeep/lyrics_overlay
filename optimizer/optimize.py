@@ -1,7 +1,6 @@
 from math import sqrt
 from pathlib import Path
 from statistics import variance
-from typing import Iterable
 from typing import Tuple
 
 import pandas as pd
@@ -23,7 +22,7 @@ from optimizer.utils.utils import text_fits_box
 
 
 def get_loss(
-    x, canvas_shape: Tuple[int, int], forbidden_zones: Iterable[Box], text: Lyrics
+    x, canvas_shape: Tuple[int, int], forbidden_zones: Tuple[Box, ...], text: Lyrics
 ) -> float:
     """
     Args:

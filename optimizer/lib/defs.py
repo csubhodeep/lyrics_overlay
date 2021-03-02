@@ -1,5 +1,4 @@
 from itertools import product
-from typing import List
 from typing import Tuple
 from typing import Union
 
@@ -189,7 +188,7 @@ class Lyrics:
 
     def __init__(
         self,
-        text: Union[str, List[str]],
+        text: Union[str, Tuple[str, ...]],
         start_time: Union[int, float] = 0,
         end_time: Union[int, float] = 1,
         font_size: Union[int, float] = 3,
