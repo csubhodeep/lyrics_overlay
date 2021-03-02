@@ -201,8 +201,6 @@ class Lyrics:
 
         if isinstance(text, str):
             self._text = tuple(text.split(" "))
-        else:
-            self._text = tuple(text)
 
         self._start_time = start_time
         self._end_time = end_time
