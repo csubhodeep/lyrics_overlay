@@ -18,8 +18,8 @@ class Job:
     def __init__(self, func: Callable, conf: Config):
         """This function can be constructed using a callable object or function and a Config object"""
         assert isinstance(
-            func, Callable
-        ), "'func' should be of type Callable"  # type: ignore
+            func, Callable  # type: ignore
+        ), "'func' should be of type Callable"
         assert isinstance(conf, Config), "'conf' should be of type Config"
         self._func = func
         self._conf = conf
