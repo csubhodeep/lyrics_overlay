@@ -148,20 +148,12 @@ class Box:
 
     def is_x_overlapping(self, box_2) -> bool:
         return not (
-            (self.vertex_1.x < box_2.vertex_1.x and self.vertex_3.x < box_2.vertex_1.x)
-            or (
-                self.vertex_1.x > box_2.vertex_3.x
-                and self.vertex_3.x > box_2.vertex_3.x
-            )
+            self.vertex_3.x < box_2.vertex_1.x or self.vertex_1.x > box_2.vertex_3.x
         )
 
     def is_y_overlapping(self, box_2) -> bool:
         return not (
-            (self.vertex_1.y < box_2.vertex_1.y and self.vertex_3.y < box_2.vertex_1.y)
-            or (
-                self.vertex_1.y > box_2.vertex_3.y
-                and self.vertex_3.y > box_2.vertex_3.y
-            )
+            self.vertex_3.y < box_2.vertex_1.y or self.vertex_1.y > box_2.vertex_3.y
         )
 
     def is_overlapping(self, box_2) -> bool:
