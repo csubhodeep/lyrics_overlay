@@ -72,7 +72,7 @@ def overlay(conf: Config):
     cap = cv2.VideoCapture(str(input_video_file_name))
 
     # Check if camera opened successfully
-    if cap.isOpened() == False:
+    if not cap.isOpened():
         print("Unable to read camera feed")
 
     # Default resolutions of the frame are obtained.The default resolutions are system dependent.
@@ -92,7 +92,7 @@ def overlay(conf: Config):
 
     while cap.isOpened():
         ret, frame = cap.read()
-        if ret == True:
+        if ret:
             # frame = resize2(frame, conf.img_size)
             frame_ts = cap.get(cv2.CAP_PROP_POS_MSEC)
             if lyrics_index < len(lyrics_and_boxes_df):

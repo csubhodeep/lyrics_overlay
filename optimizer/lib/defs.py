@@ -53,19 +53,19 @@ class LineSegment:
 
 class Box:
     """A box is represented as below
-    	(x1, y1)              (x2, y2)
-    			*-------------*
-    			|			  |
-    			|			  |
-    			*-------------*
-    	(x4, y4)              (x3, y3)"""
+        (x1, y1)              (x2, y2)
+                *-------------*
+                |			  |
+                |			  |
+                *-------------*
+        (x4, y4)              (x3, y3)"""
 
     __slots__ = ("_first_diagonal_coords", "_second_diagonal_coords")
 
     def __init__(self, first_diagonal_coords: Point, second_diagonal_coords: Point):
         """
-		:param first_diagonal_coords: Point(x1, y1)
-		:param second_diagonal_coords: Point(x3, y3)
+        :param first_diagonal_coords: Point(x1, y1)
+        :param second_diagonal_coords: Point(x3, y3)
 		"""
         assert (
             first_diagonal_coords.x < second_diagonal_coords.x
@@ -125,8 +125,7 @@ class Box:
         return self.width / self.height
 
     def get_distance_from(self, box_2) -> Union[float, int]:
-        """This function calculates the distance between the two closest points of two boxes
-		"""
+        """This function calculates the distance between the two closest points of two boxes"""
         if self.is_overlapping(box_2):
             return 0
         elif self.is_x_overlapping(box_2):

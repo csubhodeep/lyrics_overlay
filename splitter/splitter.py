@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Iterable
+from typing import List
 from typing import Tuple
 
 import pandas as pd
@@ -7,28 +7,28 @@ import pandas as pd
 from configs.make_config import Config
 
 
-def get_cut_points(df: pd.DataFrame) -> Iterable[float]:
+def get_cut_points(df: pd.DataFrame) -> Tuple[float, ...]:
 
     # # TODO: implement IOU logic
     """IOU logic splits it further"""
 
-    cut_frames = [df["frame"].max() + 1]
+    cut_frames = (df["frame"].max() + 1,)
 
     return cut_frames
 
 
 def split_dfs(
-    df: pd.DataFrame, cutting_frames: Iterable[float]
-) -> Iterable[pd.DataFrame]:
+    df: pd.DataFrame, cutting_frames: Tuple[float, ...]
+) -> List[pd.DataFrame]:
     """This function gives us a list of slices of the input dataframe"""
     list_of_df = []
-    cutting_frames = sorted(cutting_frames)
-    for idx, frame in enumerate(cutting_frames):
+    cutting_frames_sorted = sorted(cutting_frames)
+    for idx, frame in enumerate(cutting_frames_sorted):
         curr_spltting_point = frame
         if idx == 0:
-            previous_splitting_point = 0
+            previous_splitting_point = 0.0
         else:
-            previous_splitting_point = cutting_frames[idx - 1]
+            previous_splitting_point = cutting_frames_sorted[idx - 1]
         list_of_df.append(
             df.loc[
                 (df["frame"] < curr_spltting_point)
