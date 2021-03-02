@@ -124,7 +124,9 @@ def get_optimal_boxes(row, conf: Config):
         )
     else:
         expected_width, expected_height = get_expected_box_dims(
-            lyrics, font_size=5, form=2
+            lyrics,
+            font_size=FontLimits.FONT_SIZE_LIMIT[1],
+            form=FontLimits.FORM_LIMIT[1],
         )
         x = conf.img_width // 2
         y = int(conf.img_height * 0.9)
