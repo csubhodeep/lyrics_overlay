@@ -13,7 +13,7 @@ class Costs:
 @dataclass
 class FontLimits:
     FONT_SIZE_LIMIT: Tuple[int, int] = (1, 10)
-    FORM_LIMIT: Tuple[int, int] = (1, 1)
+    FORM_LIMIT: Tuple[int, int] = (1, 3)
 
 
 @dataclass

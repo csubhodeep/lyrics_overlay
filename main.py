@@ -7,6 +7,7 @@ from overlayer.overlay import overlay
 from person_box_detector.inference import detect_persons
 from pipeline.lib.defs import Job
 from pipeline.lib.defs import Pipeline
+from post_processor.audio_adder import add_audio
 from pre_processor.data_fetcher import fetch_data
 from pre_processor.sampler import sample
 from splitter.splitter import split
@@ -62,6 +63,7 @@ if __name__ == "__main__":
     split_step = Job(func=split, conf=dict_of_configs["split"])
     optimization_step = Job(func=optimize, conf=dict_of_configs["optimization"])
     overlay_step = Job(func=overlay, conf=dict_of_configs["overlay"])
+    audio_adder_step = Job(func=add_audio, conf=dict_of_configs["audio_adder"])
     # upload_step = Job(func=upload_video, conf=collection_of_configs['upload'])
 
     # Step-3: the jobs below are put in a certain order for the pipeline
@@ -72,6 +74,7 @@ if __name__ == "__main__":
         split_step,
         optimization_step,
         overlay_step,
+        audio_adder_step
         # upload_step
     )
 

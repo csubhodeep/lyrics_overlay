@@ -1,7 +1,7 @@
 import random
 from pathlib import Path
 from typing import Dict
-from typing import Iterable
+from typing import List
 from typing import Tuple
 
 import cv2
@@ -61,7 +61,7 @@ def detect_image(
 
 def post_process_detection(
     detections, classes, pilimg: Image, conf: Config
-) -> Iterable[Dict[str, float]]:
+) -> List[Dict[str, float]]:
 
     list_of_persons = []
     img = np.array(pilimg)
@@ -102,10 +102,12 @@ def get_persons(
     if detections is not None:
         persons = post_process_detection(detections, classes, pilimg, conf)
 
-    for person in persons:
-        person["frame"] = float(frame_info[1].name.rstrip(".npy"))
+        for person in persons:
+            person["frame"] = float(frame_info[1].name.rstrip(".npy"))
 
-    return persons
+        return persons
+    else:
+        return []
 
 
 def detect_persons(conf: Config) -> bool:
@@ -135,13 +137,6 @@ def detect_persons(conf: Config) -> bool:
         )
 
     for person in persons:
-        # row = {
-        #     "frame": float(item.name.rstrip(".npy")),
-        #     "x1": np.clip(person["x1"], 0, conf.img_width - 1),
-        #     "x3": np.clip(person["x3"], 0, conf.img_width - 1),
-        #     "y1": np.clip(person["y1"], 0, conf.img_height - 1),
-        #     "y3": np.clip(person["y3"], 0, conf.img_height - 1),
-        # }
         result_df = result_df.append(person, ignore_index=True)
 
     """

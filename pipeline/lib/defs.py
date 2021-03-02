@@ -2,10 +2,8 @@ from collections import UserList
 from pathlib import Path
 from typing import Any
 from typing import Callable
-from typing import Iterable
 from typing import Optional
 from typing import Tuple
-from typing import Union
 from uuid import uuid4
 
 from configs.make_config import Config
@@ -43,9 +41,7 @@ class Job:
         return self._conf
 
     @staticmethod
-    def __clear_files(
-        path: Path, exclude_files: Iterable[Union[str, Path]], run_id: str
-    ) -> None:
+    def __clear_files(path: Path, exclude_files: Tuple[str, ...], run_id: str) -> None:
         for item in path.iterdir():
             if item.is_dir() and item.name == run_id:
                 for ele in item.iterdir():
@@ -59,7 +55,7 @@ class Job:
                     pass
 
     def clear_files(
-        self, is_last_job: bool = False, exclude_files: Iterable[str] = (".gitkeep")
+        self, is_last_job: bool = False, exclude_files: Tuple[str, ...] = (".gitkeep",)
     ) -> None:
         if not is_last_job:
             self.__clear_files(
@@ -85,7 +81,7 @@ class Pipeline(UserList):
 
     __ALLOWED_SETTABLE_ATTRIBUTES: Tuple[str, str] = ("_run_id", "data")
 
-    __RUN_IDS: Iterable[str] = tuple([])
+    __RUN_IDS: Tuple[str, ...] = tuple([])
 
     @classmethod
     def __register_run_id(cls, run_id: str):
@@ -107,7 +103,7 @@ class Pipeline(UserList):
         self,
         start_step: Optional[Job] = None,
         unique_run_id: str = "",
-        list_of_steps: Optional[Iterable[Job]] = None,
+        list_of_steps: Optional[Tuple[Job, ...]] = None,
     ):
         """This class must be constructed either using one Job OR a collection of Jobs but NOT both"""
         super().__init__()
@@ -184,7 +180,7 @@ class Pipeline(UserList):
             raise Exception(f"{key} is not a valid attribute")
 
     @property
-    def run_id(self):
+    def run_id(self) -> str:
         return self._run_id
 
     def add_job(self, step: Job) -> None:
@@ -200,7 +196,7 @@ class Pipeline(UserList):
         step.config.set_run_id(self[-1].config.run_id)
         self.data.append(step)
 
-    def clear(self, exclude_files: Iterable[str] = (".gitkeep")) -> None:
+    def clear(self, exclude_files: Tuple[str, ...] = (".gitkeep",)) -> None:
         for i, job in enumerate(self):
             job.clear_files(is_last_job=i == len(self) - 1, exclude_files=exclude_files)
 

@@ -1,10 +1,13 @@
-def parse_model_config(path):
+from typing import List
+
+
+def parse_model_config(path: str):
     """Parses the yolo-v3 layer configuration file and returns module definitions"""
     file = open(path, "r")
     lines = file.read().split("\n")
     lines = [x for x in lines if x and not x.startswith("#")]
     lines = [x.rstrip().lstrip() for x in lines]  # get rid of fringe whitespaces
-    module_defs = []
+    module_defs: List = []
     for line in lines:
         if line.startswith("["):  # This marks the start of a new block
             module_defs.append({})
@@ -19,7 +22,7 @@ def parse_model_config(path):
     return module_defs
 
 
-def parse_data_config(path):
+def parse_data_config(path: str):
     """Parses the data configuration file"""
     options = dict()
     options["gpus"] = "0,1,2,3"

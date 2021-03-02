@@ -27,7 +27,6 @@ class Config:
             else output_data_path
         )
 
-        assert self.output_data_path.exists(), "Input data path must exist"
         assert self.output_data_path.exists(), "Output data path must exist"
 
         for k, v in kwargs.items():
