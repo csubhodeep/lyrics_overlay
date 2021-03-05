@@ -3,11 +3,11 @@ from pathlib import Path
 
 from configs.make_config import get_config
 from optimizer.optimize import optimize
-from overlayer.overlay import overlay
 from person_box_detector.inference import detect_persons
 from pipeline.lib.defs import Job
 from pipeline.lib.defs import Pipeline
 from post_processor.audio_adder import add_audio
+from post_processor.overlay import overlay
 from pre_processor.data_fetcher import fetch_data
 from pre_processor.sampler import sample
 from splitter.splitter import split
@@ -98,32 +98,32 @@ if __name__ == "__main__":
     # pipeline.add_job(overlay_step)
     # pipeline.add_job(upload_step)
 
-    # execute pipeline
+    # # execute pipeline
     # pipeline_1()
 
     """Below we make another pipeline following the exact same steps described before.
     We do this to check for parallel execution - ideally a new pipeline means a new config"""
     # collection_of_configs_2 = get_config(path_to_config="./configs/config.json")
-    # #
-    # # # declare jobs
+
+    # # declare jobs
     # fetch_data_step_2 = Job(func=fetch_data, conf=collection_of_configs_2['fetch_data'])
     # sample_step_2 = Job(func=sample, conf=collection_of_configs_2['sample'])
     # detect_persons_step_2 = Job(func=detect_persons, conf=collection_of_configs_2['detect_persons'])
     # split_step_2 = Job(func=split, conf=collection_of_configs_2['split'])
-    # #
-    # # # the jobs below are put in a certain order for the pipeline
+
+    # # the jobs below are put in a certain order for the pipeline
     # list_of_jobs_2 = [
     # 	fetch_data_step_2,
     #  	sample_step_2,
     #  	detect_persons_step_2,
     # ]
-    # # # declare another pipeline
+    # # declare another pipeline
     # pipeline_2 = Pipeline(list_of_steps=list_of_jobs_2)
-    # #
-    # # # bundle the pipelines together
+
+    # # bundle the pipelines together
     # collection_of_pipelines = [pipeline_1, pipeline_2]
-    # #
-    # # # run the pipelines in parallel
+
+    # # run the pipelines in parallel
     # from multiprocessing import Pool
     # with Pool() as p:
     # 	res = p.map(wrapper_function, collection_of_pipelines)

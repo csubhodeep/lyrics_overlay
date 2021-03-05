@@ -92,7 +92,7 @@ def post_process_detection(
 
 def get_persons(
     frame_info: Tuple[np.ndarray, Path], conf: Config, model: Darknet, classes
-):
+) -> List[Dict[str, float]]:
 
     frame = cv2.cvtColor(frame_info[0], cv2.COLOR_BGR2RGB)
     pilimg = Image.fromarray(frame)
@@ -139,26 +139,6 @@ def detect_persons(conf: Config) -> bool:
     for person in persons:
         result_df = result_df.append(person, ignore_index=True)
 
-    """
-        # with open(str(item), "rb") as f:
-        #     frame = np.load(f)
-        # frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        # pilimg = Image.fromarray(frame)
-        # detections = detect_image(
-        #     pilimg, conf.img_size, model, conf.conf_thresh, conf.nms_thresh
-        # )
-        # if detections is not None:
-        #     persons = post_process_detection(detections, classes, pilimg, conf.img_size)
-        #     for person in persons:
-        #         row = {
-        #             "frame": float(item.name.rstrip(".npy")),
-        #             "x1": np.clip(person["x1"], 0, conf.img_width - 1),
-        #             "x3": np.clip(person["x3"], 0, conf.img_width - 1),
-        #             "y1": np.clip(person["y1"], 0, conf.img_height - 1),
-        #             "y3": np.clip(person["y3"], 0, conf.img_height - 1),
-        #         }
-        #         result_df = result_df.append(row, ignore_index=True)
-    """
     result_df.to_feather(output_file_path)
 
     return True
