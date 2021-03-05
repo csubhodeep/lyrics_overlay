@@ -10,7 +10,6 @@ from configs.make_config import Config
 from optimizer.lib.defs import Box
 from optimizer.lib.defs import Lyrics
 from optimizer.lib.defs import Point
-from optimizer.utils.params import Costs
 from optimizer.utils.params import FontLimits
 from optimizer.utils.params import LossFunctionParameters
 from optimizer.utils.params import OptimizerParameters
@@ -40,10 +39,10 @@ def get_loss(
             second_diagonal_coords=Point(coords=(x[2], x[3])),
         )
     except AssertionError:
-        return Costs.WRONG_COORDINATE_COST
+        return LossFunctionParameters.WRONG_COORDINATE_COST
 
     if any([lyrics_box.is_overlapping(zone) for zone in forbidden_zones]):
-        return Costs.OVERLAPPING_COST
+        return LossFunctionParameters.OVERLAPPING_COST
 
     expected_width, expected_height = get_expected_box_dims(
         lyrics=text, font_size=int(round(x[4])), form=int(round(x[5]))
@@ -52,7 +51,7 @@ def get_loss(
     is_fit = text_fits_box(expected_width, expected_height, lyrics_box)
 
     if not is_fit:
-        return Costs.TEXT_NOT_FITTING_COST
+        return LossFunctionParameters.TEXT_NOT_FITTING_COST
 
     # # include the following:
     # # distance from all person-boxes - w1
@@ -79,7 +78,7 @@ def get_loss(
     all_distances = tuple(distance_edges) + distance_persons
 
     if min(all_distances) < LossFunctionParameters.MIN_DISTANCE_THRESHOLD:
-        return Costs.MIN_DISTANCE_COST
+        return LossFunctionParameters.MIN_DISTANCE_COST
     else:
         return sqrt(variance(all_distances)) + 1 / lyrics_box.area
 
