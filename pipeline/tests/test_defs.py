@@ -16,7 +16,7 @@ class TestDefs(unittest.TestCase):
 
         # 1. value of attributes must NOT be modifiable
         try:
-            self.job._conf = "nikhil"
+            self.job._conf = Config(".")
         except Exception as ex:
             assert str(ex) == "_conf is already set"
 
@@ -33,6 +33,7 @@ class TestDefs(unittest.TestCase):
         # run_id = self.pipeline.run_id
         try:
             new_pipeline = Pipeline(start_step=self.job, unique_run_id=run_id)
+            new_pipeline.clear()
         except Exception as ex:
             assert str(ex) == f"Pipeline with run-id: {run_id} already exists !"
 

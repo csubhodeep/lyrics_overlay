@@ -53,19 +53,19 @@ class LineSegment:
 
 class Box:
     """A box is represented as below
-    	(x1, y1)              (x2, y2)
-    			*-------------*
-    			|			  |
-    			|			  |
-    			*-------------*
-    	(x4, y4)              (x3, y3)"""
+        (x1, y1)              (x2, y2)
+                *-------------*
+                |			  |
+                |			  |
+                *-------------*
+        (x4, y4)              (x3, y3)"""
 
     __slots__ = ("_first_diagonal_coords", "_second_diagonal_coords")
 
     def __init__(self, first_diagonal_coords: Point, second_diagonal_coords: Point):
         """
-		:param first_diagonal_coords: Point(x1, y1)
-		:param second_diagonal_coords: Point(x3, y3)
+        :param first_diagonal_coords: Point(x1, y1)
+        :param second_diagonal_coords: Point(x3, y3)
 		"""
         assert (
             first_diagonal_coords.x < second_diagonal_coords.x
@@ -125,8 +125,7 @@ class Box:
         return self.width / self.height
 
     def get_distance_from(self, box_2) -> Union[float, int]:
-        """This function calculates the distance between the two closest points of two boxes
-		"""
+        """This function calculates the distance between the two closest points of two boxes"""
         if self.is_overlapping(box_2):
             return 0
         elif self.is_x_overlapping(box_2):
@@ -149,20 +148,12 @@ class Box:
 
     def is_x_overlapping(self, box_2) -> bool:
         return not (
-            (self.vertex_1.x < box_2.vertex_1.x and self.vertex_3.x < box_2.vertex_1.x)
-            or (
-                self.vertex_1.x > box_2.vertex_3.x
-                and self.vertex_3.x > box_2.vertex_3.x
-            )
+            self.vertex_3.x < box_2.vertex_1.x or self.vertex_1.x > box_2.vertex_3.x
         )
 
     def is_y_overlapping(self, box_2) -> bool:
         return not (
-            (self.vertex_1.y < box_2.vertex_1.y and self.vertex_3.y < box_2.vertex_1.y)
-            or (
-                self.vertex_1.y > box_2.vertex_3.y
-                and self.vertex_3.y > box_2.vertex_3.y
-            )
+            self.vertex_3.y < box_2.vertex_1.y or self.vertex_1.y > box_2.vertex_3.y
         )
 
     def is_overlapping(self, box_2) -> bool:
@@ -202,8 +193,6 @@ class Lyrics:
 
         if isinstance(text, str):
             self._text = tuple(text.split(" "))
-        else:
-            self._text = tuple(text)
 
         self._start_time = start_time
         self._end_time = end_time

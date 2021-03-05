@@ -21,6 +21,7 @@ class Config:
                 if isinstance(input_data_path, str)
                 else input_data_path
             )
+            assert self.input_data_path.exists(), "Input data path must exist"
         self._output_data_path = (
             Path(output_data_path)
             if isinstance(output_data_path, str)

@@ -10,7 +10,6 @@ from configs.make_config import Config
 from optimizer.lib.defs import Box
 from optimizer.lib.defs import Lyrics
 from optimizer.lib.defs import Point
-from optimizer.utils.params import Costs
 from optimizer.utils.params import FontLimits
 from optimizer.utils.params import LossFunctionParameters
 from optimizer.utils.params import OptimizerParameters
@@ -39,11 +38,11 @@ def get_loss(
             first_diagonal_coords=Point(coords=(x[0], x[1])),
             second_diagonal_coords=Point(coords=(x[2], x[3])),
         )
-    except AssertionError as ex:
-        return Costs.WRONG_COORDINATE_COST
+    except AssertionError:
+        return LossFunctionParameters.WRONG_COORDINATE_COST
 
     if any([lyrics_box.is_overlapping(zone) for zone in forbidden_zones]):
-        return Costs.OVERLAPPING_COST
+        return LossFunctionParameters.OVERLAPPING_COST
 
     expected_width, expected_height = get_expected_box_dims(
         lyrics=text, font_size=int(round(x[4])), form=int(round(x[5]))
@@ -52,7 +51,7 @@ def get_loss(
     is_fit = text_fits_box(expected_width, expected_height, lyrics_box)
 
     if not is_fit:
-        return Costs.TEXT_NOT_FITTING_COST
+        return LossFunctionParameters.TEXT_NOT_FITTING_COST
 
     # # include the following:
     # # distance from all person-boxes - w1
@@ -79,7 +78,7 @@ def get_loss(
     all_distances = tuple(distance_edges) + distance_persons
 
     if min(all_distances) < LossFunctionParameters.MIN_DISTANCE_THRESHOLD:
-        return Costs.MIN_DISTANCE_COST
+        return LossFunctionParameters.MIN_DISTANCE_COST
     else:
         return sqrt(variance(all_distances)) + 1 / lyrics_box.area
 
@@ -124,7 +123,9 @@ def get_optimal_boxes(row, conf: Config):
         )
     else:
         expected_width, expected_height = get_expected_box_dims(
-            lyrics, font_size=5, form=2
+            lyrics,
+            font_size=FontLimits.FONT_SIZE_LIMIT[1],
+            form=FontLimits.FORM_LIMIT[1],
         )
         x = conf.img_width // 2
         y = int(conf.img_height * 0.9)
@@ -181,14 +182,14 @@ if __name__ == "__main__":
     # 	(1, 5)
     # )
 
-    # #binary_mask[y1:y3, x1:x3]
+    # binary_mask[y1:y3, x1:x3]
 
-    ### case 0
+    # # case 0
     # binary_mask = np.zeros([100, 100])
     #
     # persons = ()
 
-    ### case 1
+    # # case 1
     # binary_mask = np.zeros([100, 100])
     # binary_mask[40:60, 60:80] = 1
     #
@@ -196,7 +197,7 @@ if __name__ == "__main__":
     # 		Box(first_diagonal_coords=Point(coords=(60,40)), second_diagonal_coords=Point(coords=(80,60))),
     # 	)
 
-    ### case 2
+    # # case 2
     # binary_mask = np.zeros([100, 100])
     #
     # binary_mask[10:30, 10:30] = 1
@@ -209,7 +210,7 @@ if __name__ == "__main__":
     # 	Box(first_diagonal_coords=Point(coords=(70, 70)), second_diagonal_coords=Point(coords=(90, 90)))
     # )
 
-    ### case 3
+    # # case 3
     # binary_mask = np.zeros([100, 100])
     # binary_mask[20:60, 10:40] = 1
     # binary_mask[10:30, 65:85] = 1
@@ -221,7 +222,7 @@ if __name__ == "__main__":
     # 	Box(first_diagonal_coords=Point(coords=(50, 70)), second_diagonal_coords=Point(coords=(70, 90)))
     # )
 
-    ### case 4
+    # # case 4
     # binary_mask = np.zeros([100, 100])
     # binary_mask[20:80, 10:25] = 1
     # binary_mask[20:80, 47:52] = 1

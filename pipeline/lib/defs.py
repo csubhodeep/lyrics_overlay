@@ -2,6 +2,7 @@ from collections import UserList
 from pathlib import Path
 from typing import Any
 from typing import Callable
+from typing import Iterable
 from typing import Optional
 from typing import Tuple
 from uuid import uuid4
@@ -17,14 +18,16 @@ class Job:
 
     def __init__(self, func: Callable, conf: Config):
         """This function can be constructed using a callable object or function and a Config object"""
-        assert isinstance(func, Callable), "'func' should be of type Callable"
+        assert isinstance(
+            func, Callable  # type: ignore
+        ), "'func' should be of type Callable"
         assert isinstance(conf, Config), "'conf' should be of type Config"
         self._func = func
         self._conf = conf
 
     def __setattr__(self, key, value):
         """This function ensures immutability of every instance of this class"""
-        if key in Job.__ALLOWED_SETTABLE_ATTRIBUTES:
+        if key in self.__ALLOWED_SETTABLE_ATTRIBUTES:
             if hasattr(self, key):
                 raise Exception(f"{key} is already set")
             else:
@@ -168,7 +171,7 @@ class Pipeline(UserList):
 
         Returns:
         """
-        if key in Pipeline.__ALLOWED_SETTABLE_ATTRIBUTES:
+        if key in self.__ALLOWED_SETTABLE_ATTRIBUTES:
             if key != "data":
                 if hasattr(self, key):
                     raise Exception(f"value of {key} is already set")
@@ -216,6 +219,9 @@ class Pipeline(UserList):
         raise NotImplementedError
 
     def reverse(self) -> None:
+        raise NotImplementedError
+
+    def extend(self, other: Iterable) -> None:
         raise NotImplementedError
 
     def __call__(self):

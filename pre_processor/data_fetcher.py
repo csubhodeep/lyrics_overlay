@@ -12,7 +12,7 @@ def download_data(src: Path, dest: Path) -> None:
 
 def fetch_data(conf: Config) -> bool:
     """This function is responsible to get/pull/download data from a certain location
-	to the machine where the pipeline is running"""
+        to the machine where the pipeline is running"""
 
     output_file_path_video = (
         Path.cwd().joinpath(conf.output_data_path).joinpath(f"{conf.run_id}.mp4")

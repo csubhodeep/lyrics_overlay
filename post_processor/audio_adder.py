@@ -13,16 +13,15 @@ def add_audio(conf: Config) -> bool:
     input_video_without_audio_path = (
         Path.cwd().joinpath(conf.input_data_path).joinpath(f"{file_name}.avi")
     )
+    output_video_path = (
+        Path.cwd().joinpath(conf.output_data_path).joinpath(f"{file_name}.mp4")
+    )
 
     input_clip_with_audio = mp.VideoFileClip(str(input_video_with_audio_path))
     input_clip_wo_audio = mp.VideoFileClip(str(input_video_without_audio_path))
 
-    audio_clip = input_clip_with_audio.audio
-    output_video_with_audio = input_clip_wo_audio.set_audio(audio_clip)
+    output_video_with_audio = input_clip_wo_audio.set_audio(input_clip_with_audio.audio)
 
-    output_video_path = (
-        Path.cwd().joinpath(conf.output_data_path).joinpath(f"{file_name}.mp4")
-    )
     output_video_with_audio.write_videofile(str(output_video_path))
 
     return True
