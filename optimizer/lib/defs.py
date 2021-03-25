@@ -1,6 +1,9 @@
+from functools import cached_property
 from itertools import product
 from typing import Tuple
 from typing import Union
+
+from pipeline.lib.decorators import make_immutable
 
 
 class Point:
@@ -24,12 +27,13 @@ class Point:
 
 
 class LineSegment:
-
-    __slots__ = ("_first_coord", "_second_coord")
-
     def __init__(self, first_coord: Point, second_coord: Point):
         self._first_coord = first_coord
         self._second_coord = second_coord
+
+    @make_immutable(allowed_settable_attributes=("_first_coord", "_second_coord"))
+    def __setattr__(self, key, value):
+        self.__dict__[key] = value
 
     @property
     def point_1(self) -> Point:
@@ -39,14 +43,14 @@ class LineSegment:
     def point_2(self) -> Point:
         return self._second_coord
 
-    @property
+    @cached_property
     def length(self) -> float:
         return (
             (self.point_1.x - self.point_2.x) ** 2
             + (self.point_1.y - self.point_2.y) ** 2
         ) ** 0.5
 
-    @property
+    @cached_property
     def slope(self) -> float:
         return (self.point_2.y - self.point_1.y) / (self.point_2.x - self.point_1.x)
 
@@ -60,8 +64,6 @@ class Box:
                 *-------------*
         (x4, y4)              (x3, y3)"""
 
-    __slots__ = ("_first_diagonal_coords", "_second_diagonal_coords")
-
     def __init__(self, first_diagonal_coords: Point, second_diagonal_coords: Point):
         """
         :param first_diagonal_coords: Point(x1, y1)
@@ -73,6 +75,15 @@ class Box:
         ), "Wrong coordinates !"
         self._first_diagonal_coords = first_diagonal_coords
         self._second_diagonal_coords = second_diagonal_coords
+
+    @make_immutable(
+        allowed_settable_attributes=(
+            "_first_diagonal_coords",
+            "_second_diagonal_coords",
+        )
+    )
+    def __setattr__(self, key, value):
+        self.__dict__[key] = value
 
     @property
     def vertices(self) -> Tuple[Point, Point, Point, Point]:
@@ -98,29 +109,29 @@ class Box:
             coords=(self._first_diagonal_coords.x, self._second_diagonal_coords.y)
         )
 
-    @property
+    @cached_property
     def height(self) -> int:
         return self.vertex_4.y - self.vertex_1.y
 
-    @property
+    @cached_property
     def width(self) -> int:
         return self.vertex_2.x - self.vertex_1.x
 
-    @property
+    @cached_property
     def area(self) -> int:
         return self.height * self.width
 
-    @property
+    @cached_property
     def centre(self) -> Point:
         x_centre = (self.vertex_1.x + self.vertex_3.x) // 2
         y_centre = (self.vertex_1.y + self.vertex_3.y) // 2
         return Point(coords=(x_centre, y_centre))
 
-    @property
+    @cached_property
     def diagonal_length(self) -> float:
         return LineSegment(first_coord=self.vertex_1, second_coord=self.vertex_3).length
 
-    @property
+    @cached_property
     def aspect_ratio(self) -> Union[float, int]:
         return self.width / self.height
 
@@ -219,7 +230,7 @@ class Lyrics:
     def text(self) -> Tuple[str, ...]:
         return self._text
 
-    @property
+    @cached_property
     def longest_word(self) -> str:
         word = self.text[0]
         for w in self.text:
