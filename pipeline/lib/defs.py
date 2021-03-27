@@ -185,8 +185,8 @@ class Pipeline(UserList):
             job.name for job in self
         ], "same step cannot be a part of a pipeline"
 
-        step.config.set_input_data_path(self[-1].config.output_data_path)
-        step.config.set_run_id(self[-1].config.run_id)
+        step.config.input_data_path = self[-1].config.output_data_path
+        step.config.run_id = self[-1].config.run_id
         self.data.append(step)
 
     def clear(self, exclude_files: Tuple[str, ...] = (".gitkeep",)) -> None:
