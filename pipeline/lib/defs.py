@@ -129,7 +129,7 @@ class Pipeline(UserList):
             else:
                 raise Exception("First step must have a valid input configuration")
 
-            start_step.config.set_run_id(self.run_id)
+            start_step.config.run_id = self.run_id
 
             self.data.append(start_step)
         else:
@@ -147,7 +147,7 @@ class Pipeline(UserList):
                             "First step must have a valid input configuration"
                         )
                     flg = False
-                    step.config.set_run_id(self.run_id)
+                    step.config.run_id = self.run_id
                     self.data.append(step)
                 else:
                     self.add_job(step)
