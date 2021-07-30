@@ -4,8 +4,8 @@ from typing import Tuple
 
 @dataclass
 class FontLimits:
-    FONT_SIZE_LIMIT: Tuple[int, int] = (1, 10)
-    FORM_LIMIT: Tuple[int, int] = (1, 3)
+    FONT_SIZE_LIMIT: Tuple[int, int] = (1, 30)
+    FORM_LIMIT: Tuple[int, int] = (1, 4)
 
 
 @dataclass

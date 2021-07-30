@@ -66,7 +66,8 @@ def draw_text_inside_box(
     text_y = int(y + font_size / 4)
     for i in range(0, len(text), pattern):
         text_line = " ".join(text.split(" ")[i : i + pattern])
-        draw.text((text_x, text_y), text_line, font=font)
+        # TODO: font colour should come from outside
+        draw.text((text_x, text_y), text_line, font=font, fill="black")
         text_y = text_y + font_size
     return image
 
@@ -194,7 +195,8 @@ def overlay(conf: Config):
                         h=abs(start_point_opti[1] - end_point_opti[1]),
                         text=lyrics_and_boxes_df.loc[lyrics_index, "text"],
                         font_path=FONT_LIB_PATH.joinpath(DEFAULT_FONT_NAME),
-                        font_size=lyrics_and_boxes_df.loc[lyrics_index, "font_size"],
+                        font_size=2
+                        * lyrics_and_boxes_df.loc[lyrics_index, "font_size"],
                         pattern=lyrics_and_boxes_df.loc[lyrics_index, "form"],
                     )
 

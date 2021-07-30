@@ -84,6 +84,19 @@ def get_loss(
         return sqrt(variance(all_distances)) + 1 / lyrics_box.area
 
 
+def is_good_enough(config, result) -> bool:
+
+    lyrics_box = Box(
+        Point((result.x[0], result.x[1])), Point((result.x[2], result.x[3]))
+    )
+
+    # width and height of lyrics-box should be greater than 25% of width & height of the image
+    return (
+        lyrics_box.width > 0.25 * config.img_width
+        and lyrics_box.height > 0.25 * config.img_height
+    )
+
+
 def get_optimal_boxes(row, conf: Config):
 
     persons = (
@@ -113,7 +126,7 @@ def get_optimal_boxes(row, conf: Config):
         popsize=OptimizerParameters.POPULATION_SIZE,
     )
 
-    if res.success:
+    if res.success and is_good_enough(conf, res):
         size, pattern = find_font_size_and_pattern(
             lyrics_box=Box(
                 first_diagonal_coords=Point((res.x[0], res.x[1])),
@@ -136,12 +149,19 @@ def get_optimal_boxes(row, conf: Config):
             form=FontLimits.FORM_LIMIT[1],
         )
         x = conf.img_width // 2
-        y = int(conf.img_height * 0.9)
+        y = int(conf.img_height * 0.95)
         x1 = x - expected_width // 2
-        y1 = y - expected_height // 2
+        y1 = y - expected_height
         x3 = x1 + expected_width
-        y3 = y1 + expected_height
-        return x1, y1, x3, y3, FontLimits.FONT_SIZE_LIMIT[1], FontLimits.FORM_LIMIT[1]
+        y3 = y
+        size, pattern = find_font_size_and_pattern(
+            lyrics_box=Box(
+                first_diagonal_coords=Point((x1, y1)),
+                second_diagonal_coords=Point((x3, y3)),
+            ),
+            lyrics=lyrics,
+        )
+        return x1, y1, x3, y3, size, pattern
 
 
 def optimize(conf: Config) -> bool:
