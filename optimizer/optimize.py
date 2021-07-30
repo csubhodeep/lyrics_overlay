@@ -13,6 +13,7 @@ from optimizer.lib.defs import Point
 from optimizer.utils.params import FontLimits
 from optimizer.utils.params import LossFunctionParameters
 from optimizer.utils.params import OptimizerParameters
+from optimizer.utils.utils import find_font_size_and_pattern
 from optimizer.utils.utils import get_distance_from_image_edges
 from optimizer.utils.utils import get_expected_box_dims
 from optimizer.utils.utils import text_fits_box
@@ -113,13 +114,20 @@ def get_optimal_boxes(row, conf: Config):
     )
 
     if res.success:
+        size, pattern = find_font_size_and_pattern(
+            lyrics_box=Box(
+                first_diagonal_coords=Point((res.x[0], res.x[1])),
+                second_diagonal_coords=Point((res.x[2], res.x[3])),
+            ),
+            lyrics=lyrics,
+        )
         return (
             int(round(res.x[0])),
             int(round(res.x[1])),
             int(round(res.x[2])),
             int(round(res.x[3])),
-            int(round(res.x[4])),
-            int(round(res.x[5])),
+            size,
+            pattern,
         )
     else:
         expected_width, expected_height = get_expected_box_dims(

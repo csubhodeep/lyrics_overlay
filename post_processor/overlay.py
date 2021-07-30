@@ -4,15 +4,23 @@ from typing import Tuple
 import cv2
 import numpy as np
 import pandas as pd
+from PIL import Image
+from PIL import ImageDraw
+from PIL import ImageFont
 
 from configs.make_config import Config
+
+FONT_LIB_PATH = Path.cwd().joinpath("post_processor/font_lib")
+DEFAULT_FONT_NAME = "Black.otf"
 
 
 def resize(
     img_shape: Tuple[int, int], old_img_size: int, coords: Tuple[int, int]
 ) -> Tuple[int, int]:
 
-    if img_shape[1] >= img_shape[0]:
+    if img_shape[1] >= img_shape[0]:  # for landscape frames
+        # unitary method - if image has height = 500 and width = 700
+        # for 500 height, width = 700 therefore, for height = 416, width = (700/500)*416
         width = int(img_shape[1] * old_img_size / img_shape[0])
         height = old_img_size
     else:
@@ -37,6 +45,30 @@ def resize2(img: np.ndarray, new_res: int) -> np.ndarray:
     dim = (width, height)
     resized = cv2.resize(img, dim, interpolation=cv2.INTER_AREA)
     return resized
+
+
+def draw_text_inside_box(
+    image: Image,
+    x: int,
+    y: int,
+    w: int,
+    h: int,
+    text: str,
+    pattern: int,
+    font_size: int,
+    font_path: Path,
+) -> Image:
+    draw = ImageDraw.Draw(image)
+
+    font = ImageFont.truetype(str(font_path), font_size)
+    # draw.rectangle(((x, y), (x+w, y+h)), fill="black") #only debug purpose
+    text_x = int(x + font_size / 2)
+    text_y = int(y + font_size / 4)
+    for i in range(0, len(text), pattern):
+        text_line = " ".join(text.split(" ")[i : i + pattern])
+        draw.text((text_x, text_y), text_line, font=font)
+        text_y = text_y + font_size
+    return image
 
 
 def overlay(conf: Config):
@@ -148,9 +180,26 @@ def overlay(conf: Config):
                     frame = cv2.rectangle(
                         frame, start_point, end_point, color, thickness
                     )
+
                     frame = cv2.rectangle(
                         frame, start_point_opti, end_point_opti, color_opti, thickness
                     )
+                    # You may need to convert the color.
+                    img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                    drawn_pil_img = draw_text_inside_box(
+                        image=Image.fromarray(img),
+                        x=start_point_opti[0],
+                        y=start_point_opti[1],
+                        w=abs(start_point_opti[0] - end_point_opti[0]),
+                        h=abs(start_point_opti[1] - end_point_opti[1]),
+                        text=lyrics_and_boxes_df.loc[lyrics_index, "text"],
+                        font_path=FONT_LIB_PATH.joinpath(DEFAULT_FONT_NAME),
+                        font_size=lyrics_and_boxes_df.loc[lyrics_index, "font_size"],
+                        pattern=lyrics_and_boxes_df.loc[lyrics_index, "form"],
+                    )
+
+                    frame = cv2.cvtColor(np.asarray(drawn_pil_img), cv2.COLOR_RGB2BGR)
+
                 # Write the frame into the file 'output.avi'
                 if frame_ts > lyrics_and_boxes_df.loc[lyrics_index, "end_time"]:
                     lyrics_index += 1

@@ -1,3 +1,4 @@
+from math import ceil
 from statistics import mean
 from typing import List
 from typing import Tuple
@@ -18,6 +19,27 @@ def len_of_text_list(text: Tuple[str, ...]) -> int:
         length += 1  # added for a space between word
     length += text_pad  # adding text pad for right side
     return length
+
+
+def find_font_size_and_pattern(lyrics_box: Box, lyrics: Lyrics):
+    pattern = int(lyrics_box.width / lyrics_box.height) + 1
+    if pattern < 2:
+        pattern = 2
+    elif pattern > 5:
+        pattern = 5
+    max_width = 0
+    num_lines = ceil(len(lyrics.text) / pattern)
+    for i in range(0, len(lyrics.text), pattern):
+        length = len(" ".join(lyrics.text[i : i + pattern]))
+        if length > max_width:
+            max_width = length
+    max_width += 2
+    font_size_init = int(lyrics_box.height / (num_lines + 1))
+    for size in range(font_size_init, int(font_size_init / 4), -1):
+        if (size / 2) * max_width < lyrics_box.width:
+            return size, pattern
+
+    return False, False
 
 
 def get_expected_box_dims(lyrics: Lyrics, font_size: int, form: int) -> Tuple[int, int]:
