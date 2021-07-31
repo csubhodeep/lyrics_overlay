@@ -112,8 +112,8 @@ def find_font_size_and_pattern(x: int, y: int, w: int, h: int, text: str):
     pattern = int(w / h) + 1
     if pattern < 2:
         pattern = 2
-    elif pattern > 5:
-        pattern = 5
+    elif pattern > 7:  # 7 worked best for ed sheeren perfect, o o jaane jaana
+        pattern = 7
     max_width = 0
     num_lines = ceil(len(text.split(" ")) / pattern)
     for i in range(0, len(text), pattern):
@@ -121,15 +121,11 @@ def find_font_size_and_pattern(x: int, y: int, w: int, h: int, text: str):
         if length > max_width:
             max_width = length
     max_width += 2
-    font_size_init = int(h / (num_lines + 1))
-    smallest_font = min(font_size_init, int(w/max_width))
-    for size in range(font_size_init, smallest_font, -1):
-        if (size / 2) * max_width < w:
-            return size, pattern
-    # this is default font size and pattern
-    # this should either come from config or some logic
-    print("WARNING: Default font size and pattern used, fix this in future")
-    return smallest_font, 2
+    best_font_size_based_on_height = int(h / (num_lines + 1))  # we can go smaller than this
+    best_font_size_based_on_width = int(2*w/max_width)  # we can go smaller than this
+    best_font_size = min(best_font_size_based_on_height, best_font_size_based_on_width)
+
+    return best_font_size, pattern
 
 
 def overlay(conf: Config):
