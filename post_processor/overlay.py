@@ -13,6 +13,7 @@ from configs.make_config import Config
 
 FONT_LIB_PATH = Path(__file__).parent.joinpath("font_lib")
 DEFAULT_FONT_NAME = "yatra_one.ttf"
+DEBUG_DRAW = False
 
 
 def resize(
@@ -237,13 +238,14 @@ def overlay(conf: Config):
                     # end_point = second_diag_coord
                     # start_point_opti = first_diag_coord_opti
                     # end_point_opti = second_diag_coord_opti
-                    frame = cv2.rectangle(
-                        frame, start_point, end_point, color, thickness
-                    )
+                    if DEBUG_DRAW:
+                        frame = cv2.rectangle(
+                            frame, start_point, end_point, color, thickness
+                        )
 
-                    frame = cv2.rectangle(
-                        frame, start_point_opti, end_point_opti, color_opti, thickness
-                    )
+                        frame = cv2.rectangle(
+                            frame, start_point_opti, end_point_opti, color_opti, thickness
+                        )
                     # You may need to convert the color.
                     img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                     text_box_x1 = start_point_opti[0]

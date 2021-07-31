@@ -104,7 +104,7 @@ def get_optimal_boxes(row, conf: Config):
         popsize=OptimizerParameters.POPULATION_SIZE,
     )
 
-    if res.success:
+    if res.success and res.fun < LossFunctionParameters.MAXIMUM_LOSS_THRESHOLD:
         return (
             int(round(res.x[0])),
             int(round(res.x[1])),
@@ -112,16 +112,11 @@ def get_optimal_boxes(row, conf: Config):
             int(round(res.x[3])),
         )
     else:
-        expected_width, expected_height = get_expected_box_dims(
-            lyrics,
-            font_size=FontLimits.FONT_SIZE_LIMIT[1],
-            form=FontLimits.FORM_LIMIT[1],
-        )
         x = conf.img_width // 2
         y = int(conf.img_height * 0.95)
-        x1 = x - expected_width // 2
-        y1 = y - expected_height
-        x3 = x1 + expected_width
+        x1 = x - conf.img_width // 4
+        y1 = y - int(.10*conf.img_height)
+        x3 = x + conf.img_width // 4
         y3 = y
         return x1, y1, x3, y3
 
@@ -157,7 +152,7 @@ if __name__ == "__main__":
         input_data_path="../data/splitter_output",
         img_width=739,
         img_height=416,
-        run_id="c3ac8a47-9e99-412e-962a-1c2337832a63",
+        run_id="8c65d401-ceea-47fa-a273-39512d0a295e",
     )
 
     optimize(conf=config)
