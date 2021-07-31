@@ -12,7 +12,7 @@ from PIL import ImageFont
 from configs.make_config import Config
 
 FONT_LIB_PATH = Path(__file__).parent.joinpath("font_lib")
-DEFAULT_FONT_NAME = "Black.otf"
+DEFAULT_FONT_NAME = "yatra_one.ttf"
 
 
 def resize(
@@ -303,7 +303,7 @@ if __name__ == "__main__":
         input_data_path="../data/optimizer_output",
         video_input_path="../data/input",
         img_size=416,
-        run_id="a1945f8a-6fbf-4686-a1fe-486fcfed1590",
+        run_id="8c65d401-ceea-47fa-a273-39512d0a295e",
     )
 
     overlay(conf=config)
