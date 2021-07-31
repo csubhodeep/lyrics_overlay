@@ -11,8 +11,8 @@ from PIL import ImageFont
 
 from configs.make_config import Config
 
-FONT_LIB_PATH = Path.cwd().joinpath("font_lib")
-DEFAULT_FONT_NAME = "yatra_one.ttf"
+FONT_LIB_PATH = Path(__file__).parent.joinpath("font_lib")
+DEFAULT_FONT_NAME = "Black.otf"
 
 
 def resize(
@@ -60,7 +60,7 @@ def draw_text_inside_box(
     font_path: Path,
 ) -> Image:
     image_rgba = image.convert("RGBA")
-    text_canvas = Image.new('RGBA', image.size, (255, 255, 255, 0))
+    text_canvas = Image.new("RGBA", image.size, (255, 255, 255, 0))
     draw = ImageDraw.Draw(text_canvas)
     font = ImageFont.truetype(str(font_path), font_size)
     # draw.rectangle(((x, y), (x+w, y+h)), fill="black") #only debug purpose
@@ -70,14 +70,34 @@ def draw_text_inside_box(
     shadowcolor = (128, 128, 128, 50)
     shadow_font = ImageFont.truetype(str(font_path), font_size + int(shadow_width / 2))
     for i in range(0, len(text), pattern):
-        text_line = " ".join(text.split(" ")[i:i + pattern])
+        text_line = " ".join(text.split(" ")[i : i + pattern])
 
         # thin border
 
-        draw.text((text_x - shadow_width, text_y), text_line, font=shadow_font, fill=shadowcolor)
-        draw.text((text_x + shadow_width, text_y), text_line, font=shadow_font, fill=shadowcolor)
-        draw.text((text_x, text_y - shadow_width), text_line, font=shadow_font, fill=shadowcolor)
-        draw.text((text_x, text_y + shadow_width), text_line, font=shadow_font, fill=shadowcolor)
+        draw.text(
+            (text_x - shadow_width, text_y),
+            text_line,
+            font=shadow_font,
+            fill=shadowcolor,
+        )
+        draw.text(
+            (text_x + shadow_width, text_y),
+            text_line,
+            font=shadow_font,
+            fill=shadowcolor,
+        )
+        draw.text(
+            (text_x, text_y - shadow_width),
+            text_line,
+            font=shadow_font,
+            fill=shadowcolor,
+        )
+        draw.text(
+            (text_x, text_y + shadow_width),
+            text_line,
+            font=shadow_font,
+            fill=shadowcolor,
+        )
         # main text
         draw.text((text_x, text_y), text_line, font=font)
 
@@ -282,7 +302,7 @@ if __name__ == "__main__":
         input_data_path="../data/optimizer_output",
         video_input_path="../data/input",
         img_size=416,
-        run_id="8c65d401-ceea-47fa-a273-39512d0a295e",
+        run_id="a1945f8a-6fbf-4686-a1fe-486fcfed1590",
     )
 
     overlay(conf=config)
