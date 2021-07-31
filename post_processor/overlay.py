@@ -1,6 +1,6 @@
+from math import ceil
 from pathlib import Path
 from typing import Tuple
-from math import ceil
 
 import cv2
 import numpy as np
@@ -75,21 +75,21 @@ def draw_text_inside_box(
 
 # it takes x,y , w and h of resized text box (resized according to original image)
 def find_font_size_and_pattern(x: int, y: int, w: int, h: int, text: str):
-    pattern = int(w/h) + 1
+    pattern = int(w / h) + 1
     if pattern < 2:
         pattern = 2
     elif pattern > 5:
         pattern = 5
     max_width = 0
-    num_lines = ceil(len(text.split(" "))/pattern)
+    num_lines = ceil(len(text.split(" ")) / pattern)
     for i in range(0, len(text), pattern):
-        length = len(" ".join(text.split(" ")[i:i+pattern]))
+        length = len(" ".join(text.split(" ")[i : i + pattern]))
         if length > max_width:
             max_width = length
     max_width += 2
-    font_size_init = int(h/(num_lines+1))
-    for size in range(font_size_init, int(font_size_init/4), -1):
-        if (size/2)*max_width < w:
+    font_size_init = int(h / (num_lines + 1))
+    for size in range(font_size_init, int(font_size_init / 4), -1):
+        if (size / 2) * max_width < w:
             return size, pattern
 
     return False, False
@@ -210,13 +210,19 @@ def overlay(conf: Config):
                     )
                     # You may need to convert the color.
                     img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                    text_box_x1 = start_point_opti[0],
+                    text_box_x1 = start_point_opti[0]
                     text_box_y1 = start_point_opti[1]
                     text_box_width = abs(start_point_opti[0] - end_point_opti[0])
                     text_box_height = abs(start_point_opti[1] - end_point_opti[1])
                     lyrics_text = lyrics_and_boxes_df.loc[lyrics_index, "text"]
                     # calculate font size and pattern here from resize box
-                    size, pattern = find_font_size_and_pattern(text_box_x1, text_box_y1, text_box_width, text_box_height, lyrics_text)
+                    size, pattern = find_font_size_and_pattern(
+                        text_box_x1,
+                        text_box_y1,
+                        text_box_width,
+                        text_box_height,
+                        lyrics_text,
+                    )
                     drawn_pil_img = draw_text_inside_box(
                         image=Image.fromarray(img),
                         x=text_box_x1,

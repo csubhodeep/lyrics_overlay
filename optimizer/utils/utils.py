@@ -72,6 +72,15 @@ def text_fits_box(expected_width: int, expected_height: int, box: Box) -> bool:
     )
 
 
+def is_box_big_enough(canvas_shape: Tuple[int, int], lyrics_box: Box) -> bool:
+
+    # width and height of lyrics-box should be greater than 20% of width & 10% height of the image
+    return (
+        lyrics_box.width > 0.20 * canvas_shape[1]  # width
+        and lyrics_box.height > 0.10 * canvas_shape[0]  # height
+    )
+
+
 def get_overlap_with_mask(image: np.ndarray, lyrics_box: Box, padding: int):
     box_array = np.ones(shape=[lyrics_box.height + padding, lyrics_box.width + padding])
 

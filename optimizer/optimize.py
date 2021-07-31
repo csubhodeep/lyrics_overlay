@@ -13,10 +13,9 @@ from optimizer.lib.defs import Point
 from optimizer.utils.params import FontLimits
 from optimizer.utils.params import LossFunctionParameters
 from optimizer.utils.params import OptimizerParameters
-from optimizer.utils.utils import find_font_size_and_pattern
 from optimizer.utils.utils import get_distance_from_image_edges
 from optimizer.utils.utils import get_expected_box_dims
-from optimizer.utils.utils import text_fits_box
+from optimizer.utils.utils import is_box_big_enough
 
 # import matplotlib.pyplot as plt # noqa
 
@@ -45,16 +44,8 @@ def get_loss(
     if any([lyrics_box.is_overlapping(zone) for zone in forbidden_zones]):
         return LossFunctionParameters.OVERLAPPING_COST
 
-    #expected_width, expected_height = get_expected_box_dims(
-    #    lyrics=text, font_size=int(round(x[4])), form=int(round(x[5]))
-    #)
-
-    #is_fit = text_fits_box(expected_width, expected_height, lyrics_box)
-    is_big_enough = is_box_big_enough(canvas_shape=canvas_shape, lyrics_box=lyrics_box)
-    if not is_big_enough:
+    if not is_box_big_enough(canvas_shape=canvas_shape, lyrics_box=lyrics_box):
         return LossFunctionParameters.SMALL_BOX_COST
-    #if not is_fit:
-    #    return LossFunctionParameters.TEXT_NOT_FITTING_COST
 
     # # include the following:
     # # distance from all person-boxes - w1
@@ -86,15 +77,6 @@ def get_loss(
         return sqrt(variance(all_distances)) + 1 / lyrics_box.area
 
 
-def is_box_big_enough(canvas_shape: Tuple[int, int], lyrics_box) -> bool:
-
-    # width and height of lyrics-box should be greater than 20% of width & 10% height of the image
-    return (
-        lyrics_box.width > 0.20 * canvas_shape[1]  # width
-        and lyrics_box.height > 0.10 * canvas_shape[0]  # height
-    )
-
-
 def get_optimal_boxes(row, conf: Config):
 
     persons = (
@@ -113,8 +95,6 @@ def get_optimal_boxes(row, conf: Config):
         (0, conf.img_height),
         (0, conf.img_width),
         (0, conf.img_height),
-        FontLimits.FONT_SIZE_LIMIT,
-        FontLimits.FORM_LIMIT,
     )
 
     res = differential_evolution(
@@ -125,21 +105,11 @@ def get_optimal_boxes(row, conf: Config):
     )
 
     if res.success:
-        # we can remove this code as this is calculated again in overlay
-        size, pattern = find_font_size_and_pattern(
-            lyrics_box=Box(
-                first_diagonal_coords=Point((res.x[0], res.x[1])),
-                second_diagonal_coords=Point((res.x[2], res.x[3])),
-            ),
-            lyrics=lyrics,
-        )
         return (
             int(round(res.x[0])),
             int(round(res.x[1])),
             int(round(res.x[2])),
             int(round(res.x[3])),
-            size,
-            pattern,
         )
     else:
         expected_width, expected_height = get_expected_box_dims(
@@ -153,15 +123,7 @@ def get_optimal_boxes(row, conf: Config):
         y1 = y - expected_height
         x3 = x1 + expected_width
         y3 = y
-        # we can remove this code as this is calculated again in overlay
-        size, pattern = find_font_size_and_pattern(
-            lyrics_box=Box(
-                first_diagonal_coords=Point((x1, y1)),
-                second_diagonal_coords=Point((x3, y3)),
-            ),
-            lyrics=lyrics,
-        )
-        return x1, y1, x3, y3, size, pattern
+        return x1, y1, x3, y3
 
 
 def optimize(conf: Config) -> bool:
@@ -175,9 +137,9 @@ def optimize(conf: Config) -> bool:
 
     df_input = pd.read_feather(input_file_path)
 
-    df_input[
-        ["x1_opti", "y1_opti", "x3_opti", "y3_opti", "font_size", "form"]
-    ] = df_input.apply(get_optimal_boxes, axis=1, args=(conf,), result_type="expand")
+    df_input[["x1_opti", "y1_opti", "x3_opti", "y3_opti"]] = df_input.apply(
+        get_optimal_boxes, axis=1, args=(conf,), result_type="expand"
+    )
 
     df_input[["x1_opti", "y1_opti", "x3_opti", "y3_opti"]] = df_input[
         ["x1_opti", "y1_opti", "x3_opti", "y3_opti"]
