@@ -127,7 +127,7 @@ def find_font_size_and_pattern(x: int, y: int, w: int, h: int, text: str):
             return size, pattern
     # this is default font size and pattern
     # this should either come from config or some logic
-    print("Default font size and pattern used, fix this in future")
+    print("WARNING: Default font size and pattern used, fix this in future")
     return smallest_font, 2
 
 
