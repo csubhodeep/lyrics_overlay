@@ -121,13 +121,14 @@ def find_font_size_and_pattern(x: int, y: int, w: int, h: int, text: str):
             max_width = length
     max_width += 2
     font_size_init = int(h / (num_lines + 1))
-    for size in range(font_size_init, int(font_size_init / 4), -1):
+    smallest_font = min(font_size_init, int(w/max_width))
+    for size in range(font_size_init, smallest_font, -1):
         if (size / 2) * max_width < w:
             return size, pattern
     # this is default font size and pattern
     # this should either come from config or some logic
     print("Default font size and pattern used, fix this in future")
-    return 10, 2
+    return smallest_font, 2
 
 
 def overlay(conf: Config):
