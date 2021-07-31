@@ -15,7 +15,7 @@ class LossFunctionParameters:
     OVERLAPPING_COST: int = 20000
     SMALL_BOX_COST: int = 20050
     WRONG_COORDINATE_COST: int = 40000
-    MAXIMUM_LOSS_THRESHOLD: int = 4000
+    MAXIMUM_LOSS_THRESHOLD: int = 5000
 
 
 @dataclass

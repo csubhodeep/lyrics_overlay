@@ -32,7 +32,7 @@ if __name__ == "__main__":
         input_data_path="../data/final_output",
         output_data_path="../data/final_output",
         video_input_path="../data/input",
+        run_id="897ae27a-e851-4cc8-89c9-15240f6a7943"
     )
-    config.set_run_id(run_id="1528efe1-2faa-4f4c-84ff-aa1f3af33701")
 
     add_audio(conf=config)
