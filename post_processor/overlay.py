@@ -12,7 +12,7 @@ from PIL import ImageFont
 from configs.make_config import Config
 
 FONT_LIB_PATH = Path.cwd().joinpath("post_processor/font_lib")
-DEFAULT_FONT_NAME = "Black.otf"
+DEFAULT_FONT_NAME = "yatra_one.otf"
 
 
 def resize(
@@ -59,18 +59,31 @@ def draw_text_inside_box(
     font_size: int,
     font_path: Path,
 ) -> Image:
-    draw = ImageDraw.Draw(image)
-
-    font = ImageFont.truetype(str(font_path), font_size)
+    image_rgba = image.convert("RGBA")
+    text_canvas = Image.new('RGBA', image.size, (255, 255, 255, 0))
+    draw = ImageDraw.Draw(text_canvas)
+    font = ImageFont.truetype(font_path, font_size)
     # draw.rectangle(((x, y), (x+w, y+h)), fill="black") #only debug purpose
     text_x = int(x + font_size / 2)
     text_y = int(y + font_size / 4)
+    shadow_width = 3
+    shadowcolor = (128, 128, 128, 50)
+    shadow_font = ImageFont.truetype(font_path, font_size + int(shadow_width / 2))
     for i in range(0, len(text), pattern):
-        text_line = " ".join(text.split(" ")[i : i + pattern])
-        # TODO: font colour should come from outside
-        draw.text((text_x, text_y), text_line, font=font, fill="black")
+        text_line = " ".join(text.split(" ")[i:i + pattern])
+
+        # thin border
+
+        draw.text((text_x - shadow_width, text_y), text_line, font=shadow_font, fill=shadowcolor)
+        draw.text((text_x + shadow_width, text_y), text_line, font=shadow_font, fill=shadowcolor)
+        draw.text((text_x, text_y - shadow_width), text_line, font=shadow_font, fill=shadowcolor)
+        draw.text((text_x, text_y + shadow_width), text_line, font=shadow_font, fill=shadowcolor)
+        # main text
+        draw.text((text_x, text_y), text_line, font=font)
+
         text_y = text_y + font_size
-    return image
+    combined_image = Image.alpha_composite(image_rgba, text_canvas)
+    return combined_image
 
 
 # it takes x,y , w and h of resized text box (resized according to original image)
@@ -91,8 +104,10 @@ def find_font_size_and_pattern(x: int, y: int, w: int, h: int, text: str):
     for size in range(font_size_init, int(font_size_init / 4), -1):
         if (size / 2) * max_width < w:
             return size, pattern
-
-    return False, False
+    # this is default font size and pattern
+    # this should either come from config or some logic
+    print("Default font size and pattern used, fix this in future")
+    return 10, 2
 
 
 def overlay(conf: Config):

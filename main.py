@@ -26,6 +26,8 @@ def clear_files():
     data_path = Path("./data/")
 
     for folder in data_path.iterdir():
+        if not folder.is_dir():
+            continue
         for stuff in folder.iterdir():
             if (
                 stuff.name.endswith(".json")
