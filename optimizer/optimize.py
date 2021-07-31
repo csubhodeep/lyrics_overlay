@@ -157,8 +157,8 @@ if __name__ == "__main__":
         input_data_path="../data/splitter_output",
         img_width=739,
         img_height=416,
+        run_id="0d18bcb8-283a-4c0a-8855-159d6df3ad7f",
     )
-    config.set_run_id(run_id="0d18bcb8-283a-4c0a-8855-159d6df3ad7f")
 
     optimize(conf=config)
 
