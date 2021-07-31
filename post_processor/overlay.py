@@ -11,8 +11,8 @@ from PIL import ImageFont
 
 from configs.make_config import Config
 
-FONT_LIB_PATH = Path.cwd().joinpath("post_processor/font_lib")
-DEFAULT_FONT_NAME = "yatra_one.otf"
+FONT_LIB_PATH = Path.cwd().joinpath("font_lib")
+DEFAULT_FONT_NAME = "yatra_one.ttf"
 
 
 def resize(
@@ -62,13 +62,13 @@ def draw_text_inside_box(
     image_rgba = image.convert("RGBA")
     text_canvas = Image.new('RGBA', image.size, (255, 255, 255, 0))
     draw = ImageDraw.Draw(text_canvas)
-    font = ImageFont.truetype(font_path, font_size)
+    font = ImageFont.truetype(str(font_path), font_size)
     # draw.rectangle(((x, y), (x+w, y+h)), fill="black") #only debug purpose
     text_x = int(x + font_size / 2)
     text_y = int(y + font_size / 4)
     shadow_width = 3
     shadowcolor = (128, 128, 128, 50)
-    shadow_font = ImageFont.truetype(font_path, font_size + int(shadow_width / 2))
+    shadow_font = ImageFont.truetype(str(font_path), font_size + int(shadow_width / 2))
     for i in range(0, len(text), pattern):
         text_line = " ".join(text.split(" ")[i:i + pattern])
 
@@ -282,7 +282,7 @@ if __name__ == "__main__":
         input_data_path="../data/optimizer_output",
         video_input_path="../data/input",
         img_size=416,
-        run_id="a1945f8a-6fbf-4686-a1fe-486fcfed1590",
+        run_id="8c65d401-ceea-47fa-a273-39512d0a295e",
     )
 
     overlay(conf=config)
