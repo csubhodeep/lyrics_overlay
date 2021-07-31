@@ -215,7 +215,7 @@ def overlay(conf: Config):
                     text_box_width = abs(start_point_opti[0] - end_point_opti[0])
                     text_box_height = abs(start_point_opti[1] - end_point_opti[1])
                     lyrics_text = lyrics_and_boxes_df.loc[lyrics_index, "text"]
-                    ### calculate font size and pattern here from resize box
+                    # calculate font size and pattern here from resize box
                     size, pattern = find_font_size_and_pattern(text_box_x1, text_box_y1, text_box_width, text_box_height, lyrics_text)
                     drawn_pil_img = draw_text_inside_box(
                         image=Image.fromarray(img),
