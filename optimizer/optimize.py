@@ -45,14 +45,16 @@ def get_loss(
     if any([lyrics_box.is_overlapping(zone) for zone in forbidden_zones]):
         return LossFunctionParameters.OVERLAPPING_COST
 
-    expected_width, expected_height = get_expected_box_dims(
-        lyrics=text, font_size=int(round(x[4])), form=int(round(x[5]))
-    )
+    #expected_width, expected_height = get_expected_box_dims(
+    #    lyrics=text, font_size=int(round(x[4])), form=int(round(x[5]))
+    #)
 
-    is_fit = text_fits_box(expected_width, expected_height, lyrics_box)
-
-    if not is_fit:
-        return LossFunctionParameters.TEXT_NOT_FITTING_COST
+    #is_fit = text_fits_box(expected_width, expected_height, lyrics_box)
+    is_big_enough = is_box_big_enough(canvas_shape=canvas_shape, lyrics_box=lyrics_box)
+    if not is_big_enough:
+        return LossFunctionParameters.SMALL_BOX_COST
+    #if not is_fit:
+    #    return LossFunctionParameters.TEXT_NOT_FITTING_COST
 
     # # include the following:
     # # distance from all person-boxes - w1
@@ -84,16 +86,12 @@ def get_loss(
         return sqrt(variance(all_distances)) + 1 / lyrics_box.area
 
 
-def is_good_enough(config, result) -> bool:
+def is_box_big_enough(canvas_shape: Tuple[int, int], lyrics_box) -> bool:
 
-    lyrics_box = Box(
-        Point((result.x[0], result.x[1])), Point((result.x[2], result.x[3]))
-    )
-
-    # width and height of lyrics-box should be greater than 25% of width & height of the image
+    # width and height of lyrics-box should be greater than 20% of width & 10% height of the image
     return (
-        lyrics_box.width > 0.25 * config.img_width
-        and lyrics_box.height > 0.25 * config.img_height
+        lyrics_box.width > 0.20 * canvas_shape[1]  # width
+        and lyrics_box.height > 0.10 * canvas_shape[0]  # height
     )
 
 
@@ -126,7 +124,8 @@ def get_optimal_boxes(row, conf: Config):
         popsize=OptimizerParameters.POPULATION_SIZE,
     )
 
-    if res.success and is_good_enough(conf, res):
+    if res.success:
+        # we can remove this code as this is calculated again in overlay
         size, pattern = find_font_size_and_pattern(
             lyrics_box=Box(
                 first_diagonal_coords=Point((res.x[0], res.x[1])),
@@ -154,6 +153,7 @@ def get_optimal_boxes(row, conf: Config):
         y1 = y - expected_height
         x3 = x1 + expected_width
         y3 = y
+        # we can remove this code as this is calculated again in overlay
         size, pattern = find_font_size_and_pattern(
             lyrics_box=Box(
                 first_diagonal_coords=Point((x1, y1)),
