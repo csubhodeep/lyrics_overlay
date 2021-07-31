@@ -301,11 +301,11 @@ def overlay(conf: Config):
 if __name__ == "__main__":
 
     config = Config(
-        output_data_path="../data/final_output",
+        output_data_path="../data/overlayer_output",
         input_data_path="../data/optimizer_output",
         video_input_path="../data/input",
         img_size=416,
-        run_id="8c65d401-ceea-47fa-a273-39512d0a295e",
+        run_id="1e8e31c5-fa0d-482b-8e40-7c1c1eff769d",
     )
 
     overlay(conf=config)

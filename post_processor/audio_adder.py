@@ -29,10 +29,10 @@ def add_audio(conf: Config) -> bool:
 
 if __name__ == "__main__":
     config = Config(
-        input_data_path="../data/final_output",
+        input_data_path="../data/overlayer_output",
         output_data_path="../data/final_output",
         video_input_path="../data/input",
-        run_id="897ae27a-e851-4cc8-89c9-15240f6a7943"
+        run_id="1e8e31c5-fa0d-482b-8e40-7c1c1eff769d"
     )
 
     add_audio(conf=config)
