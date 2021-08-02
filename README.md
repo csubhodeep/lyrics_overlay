@@ -10,7 +10,7 @@ Assumptions:
 2. Number of subjects = 1
 3. Maximum time-length = 5 minutes
 4. Maximum frames per second = 60
-5. Maximum resolution = 1920x1080 (FHD)
+5. Maximum resolution of each frame (or video) = 1920x1080 (FHD)
 5. No time-overlapping lyrics
 
 ## Architecture

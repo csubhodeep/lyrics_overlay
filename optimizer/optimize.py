@@ -10,12 +10,10 @@ from configs.make_config import Config
 from optimizer.lib.defs import Box
 from optimizer.lib.defs import Lyrics
 from optimizer.lib.defs import Point
-from optimizer.utils.params import FontLimits
 from optimizer.utils.params import LossFunctionParameters
 from optimizer.utils.params import OptimizerParameters
 from optimizer.utils.utils import get_distance_from_image_edges
-from optimizer.utils.utils import get_expected_box_dims
-from optimizer.utils.utils import text_fits_box
+from optimizer.utils.utils import is_box_big_enough
 
 # import matplotlib.pyplot as plt # noqa
 
@@ -44,14 +42,8 @@ def get_loss(
     if any([lyrics_box.is_overlapping(zone) for zone in forbidden_zones]):
         return LossFunctionParameters.OVERLAPPING_COST
 
-    expected_width, expected_height = get_expected_box_dims(
-        lyrics=text, font_size=int(round(x[4])), form=int(round(x[5]))
-    )
-
-    is_fit = text_fits_box(expected_width, expected_height, lyrics_box)
-
-    if not is_fit:
-        return LossFunctionParameters.TEXT_NOT_FITTING_COST
+    if not is_box_big_enough(canvas_shape=canvas_shape, lyrics_box=lyrics_box):
+        return LossFunctionParameters.SMALL_BOX_COST
 
     # # include the following:
     # # distance from all person-boxes - w1
@@ -67,6 +59,9 @@ def get_loss(
     # # distance from all 4 edges - w2
     distance_edges = get_distance_from_image_edges(canvas_shape, lyrics_box)
 
+    # we get distance from 3 edges of the image. and we believe that obviously the best box might be close to
+    # one of the edge. so lets not optimize for all 4 edges. only optimize for 3 edges. (infact we are ingnoring 1 out
+    # 2 side edges )
     if len(forbidden_zones) == 1:
         dist_of_f_zone_from_left_edge = forbidden_zones[0].vertex_1.x - 0
         dist_of_f_zone_from_right_edge = canvas_shape[1] - forbidden_zones[0].vertex_3.x
@@ -74,6 +69,8 @@ def get_loss(
             distance_edges.pop(0)
         else:
             distance_edges.pop(1)
+    else:
+        raise Exception("Optimizer can only with one forbidden zone")
 
     all_distances = tuple(distance_edges) + distance_persons
 
@@ -85,55 +82,52 @@ def get_loss(
 
 def get_optimal_boxes(row, conf: Config):
 
-    persons = (
-        Box(
-            first_diagonal_coords=Point(coords=(row["x1"], row["y1"])),
-            second_diagonal_coords=Point(coords=(row["x3"], row["y3"])),
-        ),
-    )
-
-    lyrics = Lyrics(
-        text=row["text"], start_time=row["start_time"], end_time=row["end_time"]
-    )
-
-    limits = (
-        (0, conf.img_width),
-        (0, conf.img_height),
-        (0, conf.img_width),
-        (0, conf.img_height),
-        FontLimits.FONT_SIZE_LIMIT,
-        FontLimits.FORM_LIMIT,
-    )
-
-    res = differential_evolution(
-        get_loss,
-        bounds=limits,
-        args=((conf.img_height, conf.img_width), persons, lyrics),
-        popsize=OptimizerParameters.POPULATION_SIZE,
-    )
-
-    if res.success:
-        return (
-            int(round(res.x[0])),
-            int(round(res.x[1])),
-            int(round(res.x[2])),
-            int(round(res.x[3])),
-            int(round(res.x[4])),
-            int(round(res.x[5])),
+    # if forbidden zone is an invalid zone...return centre of image
+    if not (row["x1"] == row["y1"] == row["x3"] == row["y3"] == -1):
+        persons = (
+            Box(
+                first_diagonal_coords=Point(coords=(row["x1"], row["y1"])),
+                second_diagonal_coords=Point(coords=(row["x3"], row["y3"])),
+            ),
         )
+
+        lyrics = Lyrics(
+            text=row["text"], start_time=row["start_time"], end_time=row["end_time"]
+        )
+
+        limits = (
+            (0, conf.img_width),
+            (0, conf.img_height),
+            (0, conf.img_width),
+            (0, conf.img_height),
+        )
+
+        res = differential_evolution(
+            get_loss,
+            bounds=limits,
+            args=((conf.img_height, conf.img_width), persons, lyrics),
+            popsize=OptimizerParameters.POPULATION_SIZE,
+        )
+
+        if res.success and res.fun < LossFunctionParameters.MAXIMUM_LOSS_THRESHOLD:
+            x1 = int(round(res.x[0]))
+            y1 = int(round(res.x[1]))
+            x3 = int(round(res.x[2]))
+            y3 = int(round(res.x[3]))
+        else:
+            x = conf.img_width // 2
+            y = int(conf.img_height * 0.90)
+            x1 = x - conf.img_width // 4
+            y1 = y - int(0.10 * conf.img_height)
+            x3 = x + conf.img_width // 4
+            y3 = y
     else:
-        expected_width, expected_height = get_expected_box_dims(
-            lyrics,
-            font_size=FontLimits.FONT_SIZE_LIMIT[1],
-            form=FontLimits.FORM_LIMIT[1],
-        )
-        x = conf.img_width // 2
-        y = int(conf.img_height * 0.9)
-        x1 = x - expected_width // 2
-        y1 = y - expected_height // 2
-        x3 = x1 + expected_width
-        y3 = y1 + expected_height
-        return x1, y1, x3, y3, FontLimits.FONT_SIZE_LIMIT[1], FontLimits.FORM_LIMIT[1]
+        x1 = int(0.20 * conf.img_width)
+        y1 = int(0.20 * conf.img_height)
+        x3 = int(0.80 * conf.img_width)
+        y3 = int(0.80 * conf.img_height)
+
+    return x1, y1, x3, y3
 
 
 def optimize(conf: Config) -> bool:
@@ -147,9 +141,9 @@ def optimize(conf: Config) -> bool:
 
     df_input = pd.read_feather(input_file_path)
 
-    df_input[
-        ["x1_opti", "y1_opti", "x3_opti", "y3_opti", "font_size", "form"]
-    ] = df_input.apply(get_optimal_boxes, axis=1, args=(conf,), result_type="expand")
+    df_input[["x1_opti", "y1_opti", "x3_opti", "y3_opti"]] = df_input.apply(
+        get_optimal_boxes, axis=1, args=(conf,), result_type="expand"
+    )
 
     df_input[["x1_opti", "y1_opti", "x3_opti", "y3_opti"]] = df_input[
         ["x1_opti", "y1_opti", "x3_opti", "y3_opti"]
@@ -167,8 +161,8 @@ if __name__ == "__main__":
         input_data_path="../data/splitter_output",
         img_width=739,
         img_height=416,
+        run_id="897ae27a-e851-4cc8-89c9-15240f6a7943",
     )
-    config.set_run_id(run_id="0d18bcb8-283a-4c0a-8855-159d6df3ad7f")
 
     optimize(conf=config)
 

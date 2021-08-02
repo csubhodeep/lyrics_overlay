@@ -1,5 +1,7 @@
 from collections import UserList
+from datetime import timedelta
 from pathlib import Path
+from time import time
 from typing import Any
 from typing import Callable
 from typing import Iterable
@@ -8,13 +10,12 @@ from typing import Tuple
 from uuid import uuid4
 
 from configs.make_config import Config
+from pipeline.lib.decorators import make_immutable
 
 
 class Job:
     """This is a basic abstraction of a process (a function or a method of a class)
         that can be run as a step in a flow"""
-
-    __ALLOWED_SETTABLE_ATTRIBUTES: Tuple[str, str] = ("_func", "_conf")
 
     def __init__(self, func: Callable, conf: Config):
         """This function can be constructed using a callable object or function and a Config object"""
@@ -25,15 +26,9 @@ class Job:
         self._func = func
         self._conf = conf
 
+    @make_immutable(allowed_settable_attributes=("_func", "_conf"))
     def __setattr__(self, key, value):
-        """This function ensures immutability of every instance of this class"""
-        if key in self.__ALLOWED_SETTABLE_ATTRIBUTES:
-            if hasattr(self, key):
-                raise Exception(f"{key} is already set")
-            else:
-                self.__dict__[key] = value
-        else:
-            raise Exception(f"{key} is not a valid attribute")
+        self.__dict__[key] = value
 
     @property
     def name(self) -> str:
@@ -70,8 +65,9 @@ class Job:
             pass
 
     def __call__(self):
-        print("=================================")
-        print(f"*** Running job: {self.name} ***")
+        msg = f"*** Running job: {self.name} ***"
+        print("=" * len(msg))
+        print(msg)
         return self._func(conf=self.config)
 
 
@@ -81,8 +77,6 @@ class Pipeline(UserList):
             (X)->(Y)->(Z)
         where X, Y & Z are a "Job" each and "->" is to be read as 'is executed before'
         The main objective of the pipeline is to 'connect' a bunch of Jobs together."""
-
-    __ALLOWED_SETTABLE_ATTRIBUTES: Tuple[str, str] = ("_run_id", "data")
 
     __RUN_IDS: Tuple[str, ...] = tuple([])
 
@@ -138,7 +132,7 @@ class Pipeline(UserList):
             else:
                 raise Exception("First step must have a valid input configuration")
 
-            start_step.config.set_run_id(self.run_id)
+            start_step.config.run_id = self.run_id
 
             self.data.append(start_step)
         else:
@@ -156,7 +150,7 @@ class Pipeline(UserList):
                             "First step must have a valid input configuration"
                         )
                     flg = False
-                    step.config.set_run_id(self.run_id)
+                    step.config.run_id = self.run_id
                     self.data.append(step)
                 else:
                     self.add_job(step)
@@ -171,14 +165,13 @@ class Pipeline(UserList):
 
         Returns:
         """
-        if key in self.__ALLOWED_SETTABLE_ATTRIBUTES:
-            if key != "data":
-                if hasattr(self, key):
-                    raise Exception(f"value of {key} is already set")
-                else:
-                    self.__dict__[key] = value
+        if key == "_run_id":
+            if hasattr(self, key):
+                raise Exception(f"value of {key} is already set")
             else:
                 self.__dict__[key] = value
+        elif key == "data":
+            self.__dict__[key] = value
         else:
             raise Exception(f"{key} is not a valid attribute")
 
@@ -195,8 +188,8 @@ class Pipeline(UserList):
             job.name for job in self
         ], "same step cannot be a part of a pipeline"
 
-        step.config.set_input_data_path(self[-1].config.output_data_path)
-        step.config.set_run_id(self[-1].config.run_id)
+        step.config.input_data_path = self[-1].config.output_data_path
+        step.config.run_id = self[-1].config.run_id
         self.data.append(step)
 
     def clear(self, exclude_files: Tuple[str, ...] = (".gitkeep",)) -> None:
@@ -230,12 +223,15 @@ class Pipeline(UserList):
         self.data = tuple(self.data)
         print("Starting the following pipeline: ")
         print(self)
+        start_time = time()
         for job in self:
             res = job()
             if not res:
                 raise Exception(f"Step - {job.name} failed")
         print("=================================")
-        print("Pipeline completed successfully !")
+        print(
+            f"Pipeline completed successfully in {str(timedelta(seconds=time()-start_time))} !"
+        )
 
     def __repr__(self):
         return " -> ".join([job.name for job in self])

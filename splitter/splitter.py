@@ -41,10 +41,19 @@ def split_dfs(
 
 def do_union(df: pd.DataFrame) -> Tuple[int, int, int, int]:
 
-    x1 = df["x1"].min()
-    x3 = df["x3"].max()
-    y1 = df["y1"].min()
-    y3 = df["y3"].max()
+    # take only those frames where people are present
+    df = df.loc[df["x1"] != -1]
+
+    if not df.empty:
+        x1 = df["x1"].min()
+        x3 = df["x3"].max()
+        y1 = df["y1"].min()
+        y3 = df["y3"].max()
+    else:
+        x1 = -1
+        y1 = -1
+        x3 = -1
+        y3 = -1
 
     return x1, y1, x3, y3
 
@@ -108,7 +117,7 @@ if __name__ == "__main__":
         input_data_path="../data/detected_persons_output",
         output_data_path="../data/splitter_output",
         lyrics_input_path="../data/pre_processed_output",
+        run_id="d9868ecd-29ec-4cae-8928-f0e027cc56d0",
     )
-    config.set_run_id(run_id="d9868ecd-29ec-4cae-8928-f0e027cc56d0")
 
     split(conf=config)

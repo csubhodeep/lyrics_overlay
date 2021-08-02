@@ -5,6 +5,8 @@ from typing import Union
 
 import hjson
 
+from pipeline.lib.decorators import make_immutable
+
 
 class Config:
     """This class creates a portable object with immutable but flexible number of attributes"""
@@ -16,13 +18,13 @@ class Config:
         **kwargs,
     ):
         if input_data_path:
-            self._input_data_path = (
+            self.input_data_path = (
                 Path(input_data_path)
                 if isinstance(input_data_path, str)
                 else input_data_path
             )
             assert self.input_data_path.exists(), "Input data path must exist"
-        self._output_data_path = (
+        self.output_data_path = (
             Path(output_data_path)
             if isinstance(output_data_path, str)
             else output_data_path
@@ -33,32 +35,10 @@ class Config:
         for k, v in kwargs.items():
             self.__setattr__(k, v)
 
+    @make_immutable(allowed_settable_attributes=())
     def __setattr__(self, key, value):
         """This function ensures immutability of every instance of this class"""
-        if hasattr(self, key):
-            raise Exception(f"Attribute - {key} is already set !")
-
         self.__dict__[key] = value
-
-    @property
-    def input_data_path(self) -> Path:
-        return self._input_data_path
-
-    @property
-    def output_data_path(self) -> Path:
-        return self._output_data_path
-
-    @property
-    def run_id(self) -> str:
-        return self._run_id
-
-    def set_run_id(self, run_id: str):
-        self._run_id = run_id
-
-    def set_input_data_path(self, new_path: Union[str, Path]) -> None:
-        self._input_data_path = (
-            Path(new_path) if isinstance(new_path, str) else new_path
-        )
 
 
 def get_config(path_to_config: Union[Path, str]) -> Dict[str, Config]:
