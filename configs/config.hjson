@@ -5,7 +5,7 @@
   },
   "sample": {
     "min_output_frame_dim": 416,
-    "sampling_fps": 5,
+    "sampling_fps": 60,
     "output_data_path": "./data/pre_processor_output"
   },
   "detect_persons": {
