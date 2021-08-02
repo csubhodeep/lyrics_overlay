@@ -28,6 +28,7 @@ def _normalized_to_pixel_coordinates(normalized_x: float, normalized_y: float, i
         return None
     x_px = min(math.floor(normalized_x * image_width), image_width - 1)
     y_px = min(math.floor(normalized_y * image_height), image_height - 1)
+
     return x_px, y_px
 
 
@@ -58,10 +59,14 @@ def person_bounding_box(frame, normalized_body_keypoints_1person):
         y_min = min(y_min, idx_to_coordinates[key][1])
         y_max = max(y_max, idx_to_coordinates[key][1])
 
-    person = {"x1": x_min,
-              "y1": y_min,
-              "x3": x_max,
-              "y3": y_max}
+    # padding for safety # this could come based on bodykeypoints
+    if x_max > 0:  # valid box
+        padding = .20*(x_max - x_min)  # 10% of width of bounding box
+
+    person = {"x1": max(x_min-padding, 0),
+              "y1": max(y_min-padding, 0),
+              "x3": min(x_max+padding, image_cols),
+              "y3": min(y_max+padding, image_rows)}
     return person
 
 
