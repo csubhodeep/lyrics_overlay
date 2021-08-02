@@ -230,7 +230,7 @@ class Pipeline(UserList):
                 raise Exception(f"Step - {job.name} failed")
         print("=================================")
         print(
-            f"Pipeline completed successfully in {str(timedelta(time()-start_time))} !"
+            f"Pipeline completed successfully in {str(timedelta(seconds=time()-start_time))} !"
         )
 
     def __repr__(self):
