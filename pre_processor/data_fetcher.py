@@ -23,10 +23,14 @@ def fetch_data(conf: Config) -> bool:
 
     assert Path.cwd().joinpath(conf.output_data_path).exists()
 
+    video_name = "oh_oh_jaane_jaana.mp4"
+    lyrics_name = "oh_oh_jaane_jaana_lyrics.csv"
+    video_name = "perfect.mov"
+    lyrics_name = "perfect.csv"
     input_file_path_video = (
-        Path.cwd().joinpath(conf.input_data_path).joinpath("oh_oh_jaane_jaana.mp4")
+        Path.cwd().joinpath(conf.input_data_path).joinpath(video_name)
     )
-    input_file_path_lyrics = Path.cwd().joinpath("oh_oh_jaane_jaana_lyrics.csv")
+    input_file_path_lyrics = Path.cwd().joinpath(lyrics_name)
 
     download_data(src=input_file_path_lyrics, dest=output_file_path_lyrics)
     download_data(src=input_file_path_video, dest=output_file_path_video)

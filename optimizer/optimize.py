@@ -78,7 +78,7 @@ def get_loss(
 def get_optimal_boxes(row, conf: Config):
 
     # if forbidden zone is an invalid zone...return centre of image
-    if not (row["x1"] == row["y1"] == row["x2"] == row["y2"] == -1):
+    if not (row["x1"] == row["y1"] == row["x3"] == row["y3"] == -1):
         persons = (
             Box(
                 first_diagonal_coords=Point(coords=(row["x1"], row["y1"])),
@@ -156,7 +156,7 @@ if __name__ == "__main__":
         input_data_path="../data/splitter_output",
         img_width=739,
         img_height=416,
-        run_id="8c65d401-ceea-47fa-a273-39512d0a295e",
+        run_id="897ae27a-e851-4cc8-89c9-15240f6a7943",
     )
 
     optimize(conf=config)
