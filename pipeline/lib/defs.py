@@ -1,5 +1,7 @@
 from collections import UserList
+from datetime import timedelta
 from pathlib import Path
+from time import time
 from typing import Any
 from typing import Callable
 from typing import Iterable
@@ -63,8 +65,9 @@ class Job:
             pass
 
     def __call__(self):
-        print("=================================")
-        print(f"*** Running job: {self.name} ***")
+        msg = f"*** Running job: {self.name} ***"
+        print("=" * len(msg))
+        print(msg)
         return self._func(conf=self.config)
 
 
@@ -220,12 +223,15 @@ class Pipeline(UserList):
         self.data = tuple(self.data)
         print("Starting the following pipeline: ")
         print(self)
+        start_time = time()
         for job in self:
             res = job()
             if not res:
                 raise Exception(f"Step - {job.name} failed")
         print("=================================")
-        print("Pipeline completed successfully !")
+        print(
+            f"Pipeline completed successfully in {str(timedelta(time()-start_time))} !"
+        )
 
     def __repr__(self):
         return " -> ".join([job.name for job in self])
