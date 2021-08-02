@@ -3,8 +3,8 @@ from pathlib import Path
 
 from configs.make_config import get_config
 from optimizer.optimize import optimize
-#from person_box_detector.inference import detect_persons
-from person_box_detector.inference_bkp import detect_persons
+from person_box_detector.inference_od import detect_persons
+#from person_box_detector.inference_bkp import detect_persons
 from pipeline.lib.defs import Job
 from pipeline.lib.defs import Pipeline
 from post_processor.audio_adder import add_audio

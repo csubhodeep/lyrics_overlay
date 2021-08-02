@@ -13,7 +13,7 @@ from configs.make_config import Config
 
 FONT_LIB_PATH = Path(__file__).parent.joinpath("font_lib")
 DEFAULT_FONT_NAME = "yatra_one.ttf"
-DEBUG_DRAW = True
+DEBUG_DRAW = False
 
 
 def resize(
