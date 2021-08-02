@@ -1,3 +1,6 @@
+import time
+from concurrent.futures import as_completed
+from concurrent.futures import ThreadPoolExecutor
 from math import sqrt
 from pathlib import Path
 from statistics import variance
@@ -122,7 +125,14 @@ def get_optimal_boxes(row, conf: Config):
         x3 = int(0.80 * conf.img_width)
         y3 = int(0.80 * conf.img_height)
 
-    return x1, y1, x3, y3
+    return {
+        "x1_opti": x1,
+        "y1_opti": y1,
+        "x3_opti": x3,
+        "y3_opti": y3,
+        "start_time": row["start_time"],
+        "end_time": row["end_time"],
+    }
 
 
 def optimize(conf: Config) -> bool:
@@ -136,9 +146,25 @@ def optimize(conf: Config) -> bool:
 
     df_input = pd.read_feather(input_file_path)
 
-    df_input[["x1_opti", "y1_opti", "x3_opti", "y3_opti"]] = df_input.apply(
-        get_optimal_boxes, axis=1, args=(conf,), result_type="expand"
-    )
+    inps = []
+    for idx, row in df_input.iterrows():
+        inps.append(row)
+
+    res = []
+    start_time = time.time()
+    with ThreadPoolExecutor() as executor:
+        jobs = [executor.submit(get_optimal_boxes, inp, conf) for inp in inps]
+        for future in as_completed(jobs):
+            res.append(future.result())
+
+    df_opti = pd.DataFrame(res)
+
+    df_input = df_input.merge(df_opti, on=["start_time", "end_time"])
+
+    # df_input[["x1_opti", "y1_opti", "x3_opti", "y3_opti"]] = df_input.apply(
+    #     get_optimal_boxes, axis=1, args=(conf,), result_type="expand"
+    # )
+    print(time.time() - start_time)
 
     df_input[["x1_opti", "y1_opti", "x3_opti", "y3_opti"]] = df_input[
         ["x1_opti", "y1_opti", "x3_opti", "y3_opti"]
@@ -156,7 +182,7 @@ if __name__ == "__main__":
         input_data_path="../data/splitter_output",
         img_width=739,
         img_height=416,
-        run_id="897ae27a-e851-4cc8-89c9-15240f6a7943",
+        run_id="21c149a4-d7d0-4873-9688-c92c55e2aba2",
     )
 
     optimize(conf=config)
