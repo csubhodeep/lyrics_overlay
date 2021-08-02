@@ -107,7 +107,7 @@ def get_persons(
 
         return persons
     else:
-        return []
+        return [{"x1": -1, "y1": -1, "x3": -1, "y3": -1, "frame": float(frame_info[1].name.rstrip(".npy"))}]
 
 
 def detect_persons(conf: Config) -> bool:

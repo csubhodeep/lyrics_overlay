@@ -59,6 +59,9 @@ def get_loss(
     # # distance from all 4 edges - w2
     distance_edges = get_distance_from_image_edges(canvas_shape, lyrics_box)
 
+    # we get distance from 3 edges of the image. and we believe that obviously the best box might be close to
+    # one of the edge. so lets not optimize for all 4 edges. only optimize for 3 edges. (infact we are ingnoring 1 out
+    # 2 side edges )
     if len(forbidden_zones) == 1:
         dist_of_f_zone_from_left_edge = forbidden_zones[0].vertex_1.x - 0
         dist_of_f_zone_from_right_edge = canvas_shape[1] - forbidden_zones[0].vertex_3.x
@@ -66,6 +69,8 @@ def get_loss(
             distance_edges.pop(0)
         else:
             distance_edges.pop(1)
+    else:
+        raise Exception("Optimizer can only with one forbidden zone")
 
     all_distances = tuple(distance_edges) + distance_persons
 
@@ -111,7 +116,7 @@ def get_optimal_boxes(row, conf: Config):
             y3 = int(round(res.x[3]))
         else:
             x = conf.img_width // 2
-            y = int(conf.img_height * 0.95)
+            y = int(conf.img_height * 0.90)
             x1 = x - conf.img_width // 4
             y1 = y - int(0.10 * conf.img_height)
             x3 = x + conf.img_width // 4
