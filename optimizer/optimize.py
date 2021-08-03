@@ -7,6 +7,7 @@ from typing import Dict
 from typing import Tuple
 from typing import Union
 
+import numpy as np
 import pandas as pd
 from scipy.optimize import differential_evolution
 
@@ -141,7 +142,23 @@ def get_optimal_boxes(row, conf: Config) -> Dict[str, Union[int, float]]:
     }
 
 
+def get_image_height_and_width(conf: Config) -> Config:
+    # TODO: make it better
+
+    path_to_files = Path.cwd().joinpath("data/pre_processor_output")
+
+    for item in path_to_files.iterdir():
+        with open(str(item), "rb") as f:
+            frame = np.load(f)
+
+    conf.img_height, conf.img_width = frame.shape
+
+    return conf
+
+
 def optimize(conf: Config) -> bool:
+
+    conf = get_image_height_and_width(conf)
 
     input_file_path = (
         Path.cwd().joinpath(conf.input_data_path).joinpath(f"{conf.run_id}.feather")
