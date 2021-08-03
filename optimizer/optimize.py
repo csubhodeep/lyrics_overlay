@@ -155,7 +155,9 @@ def get_image_height_and_width(conf: Config) -> Config:
         else:
             continue
 
-    conf.img_height, conf.img_width = frame.shape
+    print(frame.shape)
+
+    conf.img_height, conf.img_width = frame.shape[0], frame.shape[1]
 
     return conf
 
@@ -204,7 +206,7 @@ if __name__ == "__main__":
         input_data_path="../data/splitter_output",
         img_width=739,
         img_height=416,
-        run_id="25ded330-3b33-4645-bd11-b6b9f9bd0340",
+        run_id="1ffadc62-6f97-43e1-a51a-029110d0cb84",
     )
 
     optimize(conf=config)
