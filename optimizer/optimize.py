@@ -88,49 +88,57 @@ def get_loss(
 def get_optimal_boxes(row, conf: Config) -> Dict[str, Union[int, float]]:
 
     # if forbidden zone is an invalid zone...return centre of image
-    if not (row["x1"] == row["y1"] == row["x3"] == row["y3"] == -1):
+    if row["x1"] == row["y1"] == row["x3"] == row["y3"] == -1:
+        x1 = int(0.20 * conf.img_width)
+        y1 = int(0.20 * conf.img_height)
+        x3 = int(0.80 * conf.img_width)
+        y3 = int(0.80 * conf.img_height)
+    else:
         persons = (
             Box(
                 first_diagonal_coords=Point(coords=(row["x1"], row["y1"])),
                 second_diagonal_coords=Point(coords=(row["x3"], row["y3"])),
             ),
         )
-
-        lyrics = Lyrics(
-            text=row["text"], start_time=row["start_time"], end_time=row["end_time"]
-        )
-
-        limits = (
-            (0, conf.img_width),
-            (0, conf.img_height),
-            (0, conf.img_width),
-            (0, conf.img_height),
-        )
-
-        res = differential_evolution(
-            get_loss,
-            bounds=limits,
-            args=((conf.img_height, conf.img_width), persons, lyrics),
-            popsize=OptimizerParameters.POPULATION_SIZE,
-        )
-
-        if res.success and res.fun < LossFunctionParameters.MAXIMUM_LOSS_THRESHOLD:
-            x1 = int(round(res.x[0]))
-            y1 = int(round(res.x[1]))
-            x3 = int(round(res.x[2]))
-            y3 = int(round(res.x[3]))
-        else:
+        # if area if forbidden zone is > 70% of image area den return a box a bottom and center
+        if persons[0].area > 0.70*conf.img_width*conf.img_height:
             x = conf.img_width // 2
             y = int(conf.img_height * 0.90)
             x1 = x - conf.img_width // 4
             y1 = y - int(0.10 * conf.img_height)
             x3 = x + conf.img_width // 4
             y3 = y
-    else:
-        x1 = int(0.20 * conf.img_width)
-        y1 = int(0.20 * conf.img_height)
-        x3 = int(0.80 * conf.img_width)
-        y3 = int(0.80 * conf.img_height)
+        else:
+            lyrics = Lyrics(
+                text=row["text"], start_time=row["start_time"], end_time=row["end_time"]
+            )
+
+            limits = (
+                (0, conf.img_width),
+                (0, conf.img_height),
+                (0, conf.img_width),
+                (0, conf.img_height),
+            )
+
+            res = differential_evolution(
+                get_loss,
+                bounds=limits,
+                args=((conf.img_height, conf.img_width), persons, lyrics),
+                popsize=OptimizerParameters.POPULATION_SIZE,
+            )
+
+            if res.success and res.fun < LossFunctionParameters.MAXIMUM_LOSS_THRESHOLD:
+                x1 = int(round(res.x[0]))
+                y1 = int(round(res.x[1]))
+                x3 = int(round(res.x[2]))
+                y3 = int(round(res.x[3]))
+            else:
+                x = conf.img_width // 2
+                y = int(conf.img_height * 0.90)
+                x1 = x - conf.img_width // 4
+                y1 = y - int(0.10 * conf.img_height)
+                x3 = x + conf.img_width // 4
+                y3 = y
 
     return {
         "x1_opti": x1,
