@@ -1,10 +1,11 @@
-import time
-from concurrent.futures import as_completed
-from concurrent.futures import ThreadPoolExecutor
+from functools import partial
 from math import sqrt
+from multiprocessing import Pool
 from pathlib import Path
 from statistics import variance
+from typing import Dict
 from typing import Tuple
+from typing import Union
 
 import pandas as pd
 from scipy.optimize import differential_evolution
@@ -83,7 +84,7 @@ def get_loss(
         return sqrt(variance(all_distances)) + 1 / lyrics_box.area
 
 
-def get_optimal_boxes(row, conf: Config):
+def get_optimal_boxes(row, conf: Config) -> Dict[str, Union[int, float]]:
 
     # if forbidden zone is an invalid zone...return centre of image
     if not (row["x1"] == row["y1"] == row["x3"] == row["y3"] == -1):
@@ -150,26 +151,21 @@ def optimize(conf: Config) -> bool:
     )
 
     df_input = pd.read_feather(input_file_path)
-
     inps = []
     for idx, row in df_input.iterrows():
         inps.append(row)
 
-    res = []
-    start_time = time.time()
-    with ThreadPoolExecutor() as executor:
-        jobs = [executor.submit(get_optimal_boxes, inp, conf) for inp in inps]
-        for future in as_completed(jobs):
-            res.append(future.result())
+    # using multiprocessing.Pool - takes 18s
+    with Pool() as p:
+        res = p.map(partial(get_optimal_boxes, conf=conf), inps)
 
     df_opti = pd.DataFrame(res)
-
     df_input = df_input.merge(df_opti, on=["start_time", "end_time"])
 
+    # NORMAL pandas apply() - takes 33s kept here only for debugging/testing
     # df_input[["x1_opti", "y1_opti", "x3_opti", "y3_opti"]] = df_input.apply(
     #     get_optimal_boxes, axis=1, args=(conf,), result_type="expand"
     # )
-    print(time.time() - start_time)
 
     df_input[["x1_opti", "y1_opti", "x3_opti", "y3_opti"]] = df_input[
         ["x1_opti", "y1_opti", "x3_opti", "y3_opti"]
@@ -187,7 +183,7 @@ if __name__ == "__main__":
         input_data_path="../data/splitter_output",
         img_width=739,
         img_height=416,
-        run_id="21c149a4-d7d0-4873-9688-c92c55e2aba2",
+        run_id="25ded330-3b33-4645-bd11-b6b9f9bd0340",
     )
 
     optimize(conf=config)
