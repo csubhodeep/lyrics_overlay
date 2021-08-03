@@ -12,10 +12,11 @@ and the corresponding text to be placed in that frame.
 
 #### some_random_uuid.feather
 
-```
-start_time,end_time,text,font_type,x1,y1,x3,y3
-1100,1300,"i love you !","",24,42,56,76
-```
+
+start_time|end_time|text|font_type|x1|y1|x3|y3
+--|--|--|--|--|--|--|--
+1100|1300|"i love you !"|""|24|42|56|76
+
 
 ### Output format
 
