@@ -16,6 +16,17 @@ DEFAULT_FONT_NAME = "yatra_one.ttf"
 DEBUG_DRAW = False
 
 
+"""
+VERY IMPORTANT
+if we got landscape image:
+like h500,w1000
+den we converted it to :
+h416,w 832     (so width is not 736)
+
+if we got portrait image h1000, w=500
+den we converted it to 
+h=832,w=416
+"""
 def resize(
     img_shape: Tuple[int, int], old_img_size: int, coords: Tuple[int, int]
 ) -> Tuple[int, int]:
@@ -116,7 +127,7 @@ def find_font_size_and_pattern(x: int, y: int, w: int, h: int, text: str):
         pattern = 7
     max_width = 0
     num_lines = ceil(len(text.split(" ")) / pattern)
-    for i in range(0, len(text), pattern):
+    for i in range(0, len(text.split(" ")), pattern):
         length = len(" ".join(text.split(" ")[i : i + pattern]))
         if length > max_width:
             max_width = length
@@ -300,7 +311,7 @@ if __name__ == "__main__":
         input_data_path="../data/optimizer_output",
         video_input_path="../data/input",
         img_size=416,
-        run_id="1e8e31c5-fa0d-482b-8e40-7c1c1eff769d",
+        run_id="bffaf4d5-bdd3-4563-8af1-f90d8b1601aa",
     )
 
     overlay(conf=config)

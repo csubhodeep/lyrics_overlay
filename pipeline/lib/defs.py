@@ -225,7 +225,9 @@ class Pipeline(UserList):
         print(self)
         start_time = time()
         for job in self:
+            job_start_time = time()
             res = job()
+            print("This job took: ", str(timedelta(seconds=time()-job_start_time)))
             if not res:
                 raise Exception(f"Step - {job.name} failed")
         print("=================================")

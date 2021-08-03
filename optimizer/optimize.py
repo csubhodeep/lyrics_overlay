@@ -155,8 +155,6 @@ def get_image_height_and_width(conf: Config) -> Config:
         else:
             continue
 
-    print(frame.shape)
-
     conf.img_height, conf.img_width = frame.shape[0], frame.shape[1]
 
     return conf
