@@ -1,7 +1,11 @@
+from functools import partial
 from math import sqrt
+from multiprocessing import Pool
 from pathlib import Path
 from statistics import variance
+from typing import Dict
 from typing import Tuple
+from typing import Union
 
 import pandas as pd
 from scipy.optimize import differential_evolution
@@ -14,8 +18,7 @@ from optimizer.utils.params import LossFunctionParameters
 from optimizer.utils.params import OptimizerParameters
 from optimizer.utils.utils import get_distance_from_image_edges
 from optimizer.utils.utils import is_box_big_enough
-from time import time
-from datetime import timedelta
+
 # import matplotlib.pyplot as plt # noqa
 
 
@@ -81,11 +84,7 @@ def get_loss(
         return sqrt(variance(all_distances)) + 1 / lyrics_box.area
 
 
-def parallel_function(input_tuple):
-    return get_optimal_boxes(input_tuple[0], input_tuple[1])
-
-
-def get_optimal_boxes(row, conf: Config):
+def get_optimal_boxes(row, conf: Config) -> Dict[str, Union[int, float]]:
 
     # if forbidden zone is an invalid zone...return centre of image
     if not (row["x1"] == row["y1"] == row["x3"] == row["y3"] == -1):
@@ -131,8 +130,15 @@ def get_optimal_boxes(row, conf: Config):
         y1 = int(0.20 * conf.img_height)
         x3 = int(0.80 * conf.img_width)
         y3 = int(0.80 * conf.img_height)
-    print(x1,y1,x3,y3)
-    return x1, y1, x3, y3
+
+    return {
+        "x1_opti": x1,
+        "y1_opti": y1,
+        "x3_opti": x3,
+        "y3_opti": y3,
+        "start_time": row["start_time"],
+        "end_time": row["end_time"],
+    }
 
 
 def optimize(conf: Config) -> bool:
@@ -145,16 +151,21 @@ def optimize(conf: Config) -> bool:
     )
 
     df_input = pd.read_feather(input_file_path)
-    # @shubho TODO
-    # import multiprocessing
-    # pool_obj = multiprocessing.Pool()
-    # df_row_list = df_input.to_dict('records')
-    # input_tuples = [(row, conf) for row in df_row_list]
-    # answer = pool_obj.map(parallel_function, input_tuples)
-    #######################################
-    df_input[["x1_opti", "y1_opti", "x3_opti", "y3_opti"]] = df_input.apply(
-        get_optimal_boxes, axis=1, args=(conf,), result_type="expand"
-    )
+    inps = []
+    for idx, row in df_input.iterrows():
+        inps.append(row)
+
+    # using multiprocessing.Pool - takes 18s
+    with Pool() as p:
+        res = p.map(partial(get_optimal_boxes, conf=conf), inps)
+
+    df_opti = pd.DataFrame(res)
+    df_input = df_input.merge(df_opti, on=["start_time", "end_time"])
+
+    # NORMAL pandas apply() - takes 33s kept here only for debugging/testing
+    # df_input[["x1_opti", "y1_opti", "x3_opti", "y3_opti"]] = df_input.apply(
+    #     get_optimal_boxes, axis=1, args=(conf,), result_type="expand"
+    # )
 
     df_input[["x1_opti", "y1_opti", "x3_opti", "y3_opti"]] = df_input[
         ["x1_opti", "y1_opti", "x3_opti", "y3_opti"]
@@ -172,11 +183,10 @@ if __name__ == "__main__":
         input_data_path="../data/splitter_output",
         img_width=739,
         img_height=416,
-        run_id="59e3fc9c-e491-4511-9275-dcdeb1677c36",
+        run_id="25ded330-3b33-4645-bd11-b6b9f9bd0340",
     )
-    start_time = time()
+
     optimize(conf=config)
-    print("Total time", str(timedelta(seconds=time()-start_time)))
 
     # lyrics = Lyrics("I love you I love you I love you I love you")
     #
