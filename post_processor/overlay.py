@@ -178,7 +178,7 @@ def overlay(conf: Config):
         (frame_width, frame_height),
     )
     lyrics_index = 0
-
+    computation_done_for_one_lyrics_line = False
     while cap.isOpened():
         ret, frame = cap.read()
         if ret:
@@ -190,50 +190,61 @@ def overlay(conf: Config):
                     <= frame_ts
                     <= lyrics_and_boxes_df.loc[lyrics_index, "end_time"]
                 ):
-                    first_diag_coord = (
-                        lyrics_and_boxes_df.loc[lyrics_index, "x1"],
-                        lyrics_and_boxes_df.loc[lyrics_index, "y1"],
-                    )
-                    second_diag_coord = (
-                        lyrics_and_boxes_df.loc[lyrics_index, "x3"],
-                        lyrics_and_boxes_df.loc[lyrics_index, "y3"],
-                    )
-                    first_diag_coord_opti = (
-                        lyrics_and_boxes_df.loc[lyrics_index, "x1_opti"],
-                        lyrics_and_boxes_df.loc[lyrics_index, "y1_opti"],
-                    )
-                    second_diag_coord_opti = (
-                        lyrics_and_boxes_df.loc[lyrics_index, "x3_opti"],
-                        lyrics_and_boxes_df.loc[lyrics_index, "y3_opti"],
-                    )
-                    color = (255, 0, 0)
-                    color_opti = (0, 255, 0)
-                    thickness = 2
-                    # # TODO: inverse transform the boxes to big resolution before making rectangle
-                    start_point = resize(
-                        img_shape=frame.shape,
-                        old_img_size=conf.img_size,
-                        coords=first_diag_coord,
-                    )
-                    end_point = resize(
-                        img_shape=frame.shape,
-                        old_img_size=conf.img_size,
-                        coords=second_diag_coord,
-                    )
-                    start_point_opti = resize(
-                        img_shape=frame.shape,
-                        old_img_size=conf.img_size,
-                        coords=first_diag_coord_opti,
-                    )
-                    end_point_opti = resize(
-                        img_shape=frame.shape,
-                        old_img_size=conf.img_size,
-                        coords=second_diag_coord_opti,
-                    )
-                    # start_point = first_diag_coord
-                    # end_point = second_diag_coord
-                    # start_point_opti = first_diag_coord_opti
-                    # end_point_opti = second_diag_coord_opti
+                    if not computation_done_for_one_lyrics_line:
+                        first_diag_coord = (
+                            lyrics_and_boxes_df.loc[lyrics_index, "x1"],
+                            lyrics_and_boxes_df.loc[lyrics_index, "y1"],
+                        )
+                        second_diag_coord = (
+                            lyrics_and_boxes_df.loc[lyrics_index, "x3"],
+                            lyrics_and_boxes_df.loc[lyrics_index, "y3"],
+                        )
+                        first_diag_coord_opti = (
+                            lyrics_and_boxes_df.loc[lyrics_index, "x1_opti"],
+                            lyrics_and_boxes_df.loc[lyrics_index, "y1_opti"],
+                        )
+                        second_diag_coord_opti = (
+                            lyrics_and_boxes_df.loc[lyrics_index, "x3_opti"],
+                            lyrics_and_boxes_df.loc[lyrics_index, "y3_opti"],
+                        )
+                        color = (255, 0, 0)
+                        color_opti = (0, 255, 0)
+                        thickness = 2
+                        # Inverse transform the boxes to big resolution before making rectangle
+                        start_point = resize(
+                            img_shape=frame.shape,
+                            old_img_size=conf.img_size,
+                            coords=first_diag_coord,
+                        )
+                        end_point = resize(
+                            img_shape=frame.shape,
+                            old_img_size=conf.img_size,
+                            coords=second_diag_coord,
+                        )
+                        start_point_opti = resize(
+                            img_shape=frame.shape,
+                            old_img_size=conf.img_size,
+                            coords=first_diag_coord_opti,
+                        )
+                        end_point_opti = resize(
+                            img_shape=frame.shape,
+                            old_img_size=conf.img_size,
+                            coords=second_diag_coord_opti,
+                        )
+                        text_box_x1 = start_point_opti[0]
+                        text_box_y1 = start_point_opti[1]
+                        text_box_width = abs(start_point_opti[0] - end_point_opti[0])
+                        text_box_height = abs(start_point_opti[1] - end_point_opti[1])
+                        lyrics_text = lyrics_and_boxes_df.loc[lyrics_index, "text"]
+                        # calculate font size and pattern here from resize box
+                        size, pattern = find_font_size_and_pattern(
+                            text_box_x1,
+                            text_box_y1,
+                            text_box_width,
+                            text_box_height,
+                            lyrics_text,
+                        )
+                        computation_done_for_one_lyrics_line = True
                     if DEBUG_DRAW:
                         frame = cv2.rectangle(
                             frame, start_point, end_point, color, thickness
@@ -244,19 +255,6 @@ def overlay(conf: Config):
                         )
                     # You may need to convert the color.
                     img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                    text_box_x1 = start_point_opti[0]
-                    text_box_y1 = start_point_opti[1]
-                    text_box_width = abs(start_point_opti[0] - end_point_opti[0])
-                    text_box_height = abs(start_point_opti[1] - end_point_opti[1])
-                    lyrics_text = lyrics_and_boxes_df.loc[lyrics_index, "text"]
-                    # calculate font size and pattern here from resize box
-                    size, pattern = find_font_size_and_pattern(
-                        text_box_x1,
-                        text_box_y1,
-                        text_box_width,
-                        text_box_height,
-                        lyrics_text,
-                    )
                     drawn_pil_img = draw_text_inside_box(
                         image=Image.fromarray(img),
                         x=text_box_x1,
@@ -274,6 +272,7 @@ def overlay(conf: Config):
                 # Write the frame into the file 'output.avi'
                 if frame_ts > lyrics_and_boxes_df.loc[lyrics_index, "end_time"]:
                     lyrics_index += 1
+                    computation_done_for_one_lyrics_line = False
 
             out.write(frame)
 
