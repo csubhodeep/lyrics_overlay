@@ -264,6 +264,16 @@ def overlay(conf: Config):
                         frame = cv2.rectangle(
                             frame, start_point_opti, end_point_opti, color_opti, thickness
                         )
+                    ################
+                    # New feature
+                    # what if user provides a fix box for lyrics
+                    # the following box is for GUL video
+                    #####################
+                    # text_box_x1 = 130
+                    # text_box_y1 = 270
+                    # text_box_width = 240
+                    # text_box_height = 120
+                    ######################
                     # You may need to convert the color.
                     img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                     drawn_pil_img = draw_text_inside_box(
@@ -311,7 +321,7 @@ if __name__ == "__main__":
         input_data_path="../data/optimizer_output",
         video_input_path="../data/input",
         img_size=416,
-        run_id="bffaf4d5-bdd3-4563-8af1-f90d8b1601aa",
+        run_id="a36f77aa-ae02-40de-9fe1-ea6daa9522be",
     )
 
     overlay(conf=config)
