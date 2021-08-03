@@ -38,6 +38,13 @@ to write the video. but what should be loop through ? audio = 5 minutes. 30 fps.
 33 ms. so we loop from 0 to 5 minutes (900 frames) with a gap of 33ms. and for every iteration we do the same logic
 what we have now. frame= input_image (instead of videocapture frame)
 
+# IDEA: to find optimal box
+
+Use simple conv kernal to find zones which are not noisy or which are have a lot of plan area 
+without edges in them. we will get segmentation map. that map will have mines on some pixels and 
+other pixels are fine. then we will have to find location and size of box that fits in this mask without hiting 
+the mines. that box should be big enough. it should be in beautiful location (not on edges and corners)
+
 
 
 
