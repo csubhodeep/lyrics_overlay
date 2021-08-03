@@ -14,7 +14,8 @@ from optimizer.utils.params import LossFunctionParameters
 from optimizer.utils.params import OptimizerParameters
 from optimizer.utils.utils import get_distance_from_image_edges
 from optimizer.utils.utils import is_box_big_enough
-
+from time import time
+from datetime import timedelta
 # import matplotlib.pyplot as plt # noqa
 
 
@@ -80,6 +81,10 @@ def get_loss(
         return sqrt(variance(all_distances)) + 1 / lyrics_box.area
 
 
+def parallel_function(input_tuple):
+    return get_optimal_boxes(input_tuple[0], input_tuple[1])
+
+
 def get_optimal_boxes(row, conf: Config):
 
     # if forbidden zone is an invalid zone...return centre of image
@@ -126,7 +131,7 @@ def get_optimal_boxes(row, conf: Config):
         y1 = int(0.20 * conf.img_height)
         x3 = int(0.80 * conf.img_width)
         y3 = int(0.80 * conf.img_height)
-
+    print(x1,y1,x3,y3)
     return x1, y1, x3, y3
 
 
@@ -140,7 +145,13 @@ def optimize(conf: Config) -> bool:
     )
 
     df_input = pd.read_feather(input_file_path)
-
+    # @shubho TODO
+    # import multiprocessing
+    # pool_obj = multiprocessing.Pool()
+    # df_row_list = df_input.to_dict('records')
+    # input_tuples = [(row, conf) for row in df_row_list]
+    # answer = pool_obj.map(parallel_function, input_tuples)
+    #######################################
     df_input[["x1_opti", "y1_opti", "x3_opti", "y3_opti"]] = df_input.apply(
         get_optimal_boxes, axis=1, args=(conf,), result_type="expand"
     )
@@ -161,10 +172,11 @@ if __name__ == "__main__":
         input_data_path="../data/splitter_output",
         img_width=739,
         img_height=416,
-        run_id="897ae27a-e851-4cc8-89c9-15240f6a7943",
+        run_id="59e3fc9c-e491-4511-9275-dcdeb1677c36",
     )
-
+    start_time = time()
     optimize(conf=config)
+    print("Total time", str(timedelta(seconds=time()-start_time)))
 
     # lyrics = Lyrics("I love you I love you I love you I love you")
     #
