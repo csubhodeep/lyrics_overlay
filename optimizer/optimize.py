@@ -85,6 +85,17 @@ def get_loss(
         return sqrt(variance(all_distances)) + 1 / lyrics_box.area
 
 
+def get_bottom_box(conf: Config) -> Tuple[int, int, int, int]:
+    x = conf.img_width // 2
+    y = int(conf.img_height * 0.90)
+    x1 = x - conf.img_width // 4
+    y1 = y - int(0.10 * conf.img_height)
+    x3 = x + conf.img_width // 4
+    y3 = y
+
+    return x1, y1, x3, y3
+
+
 def get_optimal_boxes(row, conf: Config) -> Dict[str, Union[int, float]]:
 
     # if forbidden zone is an invalid zone...return centre of image
@@ -101,13 +112,11 @@ def get_optimal_boxes(row, conf: Config) -> Dict[str, Union[int, float]]:
             ),
         )
         # if area if forbidden zone is > 70% of image area den return a box a bottom and center
-        if persons[0].area > 0.70*conf.img_width*conf.img_height:
-            x = conf.img_width // 2
-            y = int(conf.img_height * 0.90)
-            x1 = x - conf.img_width // 4
-            y1 = y - int(0.10 * conf.img_height)
-            x3 = x + conf.img_width // 4
-            y3 = y
+        if (
+            sum([person.area for person in persons])
+            > 0.70 * conf.img_width * conf.img_height
+        ):
+            x1, y1, x3, y3 = get_bottom_box(conf)
         else:
             lyrics = Lyrics(
                 text=row["text"], start_time=row["start_time"], end_time=row["end_time"]
@@ -133,12 +142,7 @@ def get_optimal_boxes(row, conf: Config) -> Dict[str, Union[int, float]]:
                 x3 = int(round(res.x[2]))
                 y3 = int(round(res.x[3]))
             else:
-                x = conf.img_width // 2
-                y = int(conf.img_height * 0.90)
-                x1 = x - conf.img_width // 4
-                y1 = y - int(0.10 * conf.img_height)
-                x3 = x + conf.img_width // 4
-                y3 = y
+                x1, y1, x3, y3 = get_bottom_box(conf)
 
     return {
         "x1_opti": x1,
