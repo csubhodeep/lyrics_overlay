@@ -145,11 +145,15 @@ def get_optimal_boxes(row, conf: Config) -> Dict[str, Union[int, float]]:
 def get_image_height_and_width(conf: Config) -> Config:
     # TODO: make it better
 
-    path_to_files = Path.cwd().joinpath("data/pre_processor_output")
+    path_to_files = Path.cwd().joinpath(f"data/pre_processor_output/{conf.run_id}")
 
     for item in path_to_files.iterdir():
-        with open(str(item), "rb") as f:
-            frame = np.load(f)
+        if item.name.endswith("npy"):
+            with open(str(item), "rb") as f:
+                frame = np.load(f)
+                break
+        else:
+            continue
 
     conf.img_height, conf.img_width = frame.shape
 
