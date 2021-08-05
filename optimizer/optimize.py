@@ -95,24 +95,23 @@ def get_constraints(
 ) -> Tuple[NonlinearConstraint, ...]:
     positive_width_constraint = lambda x: x[2] - x[0]
     positive_height_constraint = lambda x: x[3] - x[1]
+    nlc1 = NonlinearConstraint(positive_width_constraint, 1, canvas_width)
+    nlc2 = NonlinearConstraint(positive_height_constraint, 1, canvas_height)
 
     # the next 2 constraints emulate the behaviour of `is_box_big_enough` function
     min_box_width_constraint = lambda x: (x[2] - x[0])
     min_box_height_constraint = lambda x: (x[3] - x[1])
-
-    # this is to signal the solver that every tried-solution (i.e. `x`) in a population
-    # and for every iteration (`generation` in case of DE) should be very close to an integer
-    # currently it is not being used as it slows down the opti
-    # integer_coords_constraint = lambda x: sum(abs(np.round(x) - x))
-
-    nlc1 = NonlinearConstraint(positive_width_constraint, 1, canvas_width)
-    nlc2 = NonlinearConstraint(positive_height_constraint, 1, canvas_height)
     nlc3 = NonlinearConstraint(
         min_box_width_constraint, 0.25 * canvas_width, canvas_width
     )
     nlc4 = NonlinearConstraint(
         min_box_height_constraint, 0.10 * canvas_height, canvas_height
     )
+
+    # this is to signal the solver that every tried-solution (i.e. `x`) in a population
+    # and for every iteration (`generation` in case of DE) should be very close to an integer
+    # currently it is not being used as it slows down the opti
+    # integer_coords_constraint = lambda x: sum(abs(np.round(x) - x))
     # nlc5 = NonlinearConstraint(integer_coords_constraint, -1e-6, 1e-6)
 
     return nlc1, nlc2, nlc3, nlc4  # , nlc5
