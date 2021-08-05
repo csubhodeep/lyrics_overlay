@@ -10,10 +10,11 @@ class FontLimits:
 
 @dataclass
 class LossFunctionParameters:
-    MIN_DISTANCE_THRESHOLD: int = 20
-    MIN_DISTANCE_COST: int = 4000
-    OVERLAPPING_COST: int = 400000
-    MAXIMUM_LOSS_THRESHOLD: int = 5000
+    OVERLAP_WEIGHTAGE: float = 0.5
+    MIN_DISTANCE_WEIGHTAGE: float = 0.30
+    UNIFORM_DISTANCE_WEIGHTAGE: float = 0.05
+    BOX_AREA_WEIGHTAGE: float = 0.15
+    MAXIMUM_LOSS_THRESHOLD: float = 3
 
 
 @dataclass

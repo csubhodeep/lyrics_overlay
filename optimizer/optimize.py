@@ -14,11 +14,11 @@ from scipy.optimize import NonlinearConstraint
 
 from configs.make_config import Config
 from optimizer.lib.defs import Box
-from optimizer.lib.defs import Lyrics
 from optimizer.lib.defs import Point
 from optimizer.utils.params import LossFunctionParameters
 from optimizer.utils.params import OptimizerParameters
-from optimizer.utils.utils import get_distance_from_image_edges
+from optimizer.utils.utils import get_norm_distance_from_image_edges
+from optimizer.utils.utils import get_overlapping_area
 
 # import matplotlib.pyplot as plt # noqa
 
@@ -26,38 +26,35 @@ from optimizer.utils.utils import get_distance_from_image_edges
 def get_loss(
     x, canvas_shape: Tuple[int, int], forbidden_zones: Tuple[Box, ...]
 ) -> float:
-    """
-    Args:
-        x:
-        canvas_shape:
-        forbidden_zones:
-        text:
-
-    Returns:
-
-    """
     lyrics_box = Box(
         first_diagonal_coords=Point(coords=(x[0], x[1])),
         second_diagonal_coords=Point(coords=(x[2], x[3])),
     )
 
-    if any([lyrics_box.is_overlapping(zone) for zone in forbidden_zones]):
-        return LossFunctionParameters.OVERLAPPING_COST
+    total_overlapping_area = sum(
+        [
+            get_overlapping_area(lyrics_box, zone) / (canvas_shape[0] * canvas_shape[1])
+            for zone in forbidden_zones
+        ]
+    )
 
     # # include the following:
     # # distance from all person-boxes - w1
 
     # # iterate over all the edges of all person-boxes and find the distances of them from the lyrics-box
     if len(forbidden_zones):
-        distance_persons = tuple(
-            [lyrics_box.get_distance_from(zone) for zone in forbidden_zones]
+        norm_distance_persons = tuple(
+            [
+                lyrics_box.get_distance_from(zone)
+                / sqrt(canvas_shape[0] ** 2 + canvas_shape[1] ** 2)
+                for zone in forbidden_zones
+            ]
         )
     else:
-        distance_persons = tuple([])
+        norm_distance_persons = tuple([])
 
     # # distance from all 4 edges - w2
-    distance_edges = get_distance_from_image_edges(canvas_shape, lyrics_box)
-
+    norm_distance_edges = get_norm_distance_from_image_edges(canvas_shape, lyrics_box)
     # we get distance from 3 edges of the image. and we believe that obviously the best box might be close to
     # one of the edge. so lets not optimize for all 4 edges. only optimize for 3 edges. (infact we are ingnoring 1 out
     # 2 side edges )
@@ -65,18 +62,23 @@ def get_loss(
         dist_of_f_zone_from_left_edge = forbidden_zones[0].vertex_1.x - 0
         dist_of_f_zone_from_right_edge = canvas_shape[1] - forbidden_zones[0].vertex_3.x
         if dist_of_f_zone_from_left_edge < dist_of_f_zone_from_right_edge:
-            distance_edges.pop(0)
+            norm_distance_edges.pop(0)
         else:
-            distance_edges.pop(1)
+            norm_distance_edges.pop(1)
     else:
-        raise Exception("Optimizer can only with one forbidden zone")
+        raise Exception("Optimizer can only run with 1 forbidden zone in this version.")
 
-    all_distances = tuple(distance_edges) + distance_persons
+    all_norm_distances = tuple(norm_distance_edges) + norm_distance_persons
 
-    if min(all_distances) < LossFunctionParameters.MIN_DISTANCE_THRESHOLD:
-        return LossFunctionParameters.MIN_DISTANCE_COST
-    else:
-        return sqrt(variance(all_distances)) + 1 / lyrics_box.area
+    norm_lyrics_box_area = lyrics_box.area / (canvas_shape[0] * canvas_shape[1])
+
+    return (
+        LossFunctionParameters.UNIFORM_DISTANCE_WEIGHTAGE
+        * sqrt(variance(all_norm_distances))
+        + LossFunctionParameters.BOX_AREA_WEIGHTAGE * (1 / sqrt(norm_lyrics_box_area))
+        + LossFunctionParameters.OVERLAP_WEIGHTAGE * sqrt(total_overlapping_area)
+        + LossFunctionParameters.MIN_DISTANCE_WEIGHTAGE * max(all_norm_distances)
+    )
 
 
 def get_bottom_box(conf: Config) -> Tuple[int, int, int, int]:
@@ -91,14 +93,10 @@ def get_bottom_box(conf: Config) -> Tuple[int, int, int, int]:
 
 
 def get_constraints(
-    canvas_height: int, canvas_width: int
+    canvas_height: int, canvas_width: int, forbidden_zones: Tuple[Box, ...]
 ) -> Tuple[NonlinearConstraint, ...]:
-    positive_width_constraint = lambda x: x[2] - x[0]
-    positive_height_constraint = lambda x: x[3] - x[1]
-    nlc1 = NonlinearConstraint(positive_width_constraint, 1, canvas_width)
-    nlc2 = NonlinearConstraint(positive_height_constraint, 1, canvas_height)
 
-    # the next 2 constraints emulate the behaviour of `is_box_big_enough` function
+    # these constraints emulate the behaviour of `is_box_big_enough` function
     min_box_width_constraint = lambda x: (x[2] - x[0])
     min_box_height_constraint = lambda x: (x[3] - x[1])
     nlc3 = NonlinearConstraint(
@@ -112,9 +110,9 @@ def get_constraints(
     # and for every iteration (`generation` in case of DE) should be very close to an integer
     # currently it is not being used as it slows down the opti
     # integer_coords_constraint = lambda x: sum(abs(np.round(x) - x))
-    # nlc5 = NonlinearConstraint(integer_coords_constraint, -1e-6, 1e-6)
+    # nlc6 = NonlinearConstraint(integer_coords_constraint, -1e-6, 1e-6)
 
-    return nlc1, nlc2, nlc3, nlc4  # , nlc5
+    return nlc3, nlc4
 
 
 def get_optimal_boxes(row, conf: Config) -> Dict[str, Union[int, float]]:
@@ -139,9 +137,6 @@ def get_optimal_boxes(row, conf: Config) -> Dict[str, Union[int, float]]:
         ):
             x1, y1, x3, y3 = get_bottom_box(conf)
         else:
-            lyrics = Lyrics(
-                text=row["text"], start_time=row["start_time"], end_time=row["end_time"]
-            )
 
             limits = (
                 (0, conf.img_width),
@@ -153,16 +148,19 @@ def get_optimal_boxes(row, conf: Config) -> Dict[str, Union[int, float]]:
             res = differential_evolution(
                 get_loss,
                 bounds=limits,
-                args=((conf.img_height, conf.img_width), persons, lyrics),
+                args=((conf.img_height, conf.img_width), persons),
                 popsize=OptimizerParameters.POPULATION_SIZE,
-                constraints=get_constraints(conf.img_height, conf.img_width),
+                constraints=get_constraints(conf.img_height, conf.img_width, persons),
             )
 
-            if res.success and res.fun < LossFunctionParameters.MAXIMUM_LOSS_THRESHOLD:
+            if (
+                res.success
+            ):  # and res.fun < LossFunctionParameters.MAXIMUM_LOSS_THRESHOLD:
                 x1 = int(round(res.x[0]))
                 y1 = int(round(res.x[1]))
                 x3 = int(round(res.x[2]))
                 y3 = int(round(res.x[3]))
+                print(res.fun, row["text"])
             else:
                 x1, y1, x3, y3 = get_bottom_box(conf)
 
@@ -238,7 +236,7 @@ if __name__ == "__main__":
         input_data_path="../data/splitter_output",
         img_width=739,
         img_height=416,
-        run_id="1ffadc62-6f97-43e1-a51a-029110d0cb84",
+        run_id="edcafb91-74b1-4966-9e30-a7e2dd4cc53c",
     )
 
     optimize(conf=config)

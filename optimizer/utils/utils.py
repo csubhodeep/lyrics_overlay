@@ -1,4 +1,5 @@
 from math import ceil
+from math import sqrt
 from statistics import mean
 from typing import List
 from typing import Tuple
@@ -94,11 +95,16 @@ def get_overlap_with_mask(image: np.ndarray, lyrics_box: Box, padding: int):
     return score
 
 
-def get_distance_from_image_edges(canvas_shape: Tuple[int, int], box: Box) -> List[int]:
-    distance_edge_1 = box.vertex_1.x
-    distance_edge_2 = canvas_shape[1] - box.vertex_3.x
-    distance_edge_3 = box.vertex_1.y
-    distance_edge_4 = canvas_shape[0] - box.vertex_3.y
+def get_norm_distance_from_image_edges(
+    canvas_shape: Tuple[int, int], box: Box
+) -> List[int]:
+
+    canvas_diag_length = sqrt(canvas_shape[0] ** 2 + canvas_shape[1] ** 2)
+
+    distance_edge_1 = int(box.vertex_1.x / canvas_diag_length)
+    distance_edge_2 = int((canvas_shape[1] - box.vertex_3.x) / canvas_diag_length)
+    distance_edge_3 = int(box.vertex_1.y / canvas_diag_length)
+    distance_edge_4 = int((canvas_shape[0] - box.vertex_3.y) / canvas_diag_length)
 
     return [distance_edge_1, distance_edge_2, distance_edge_3, distance_edge_4]
 
@@ -160,3 +166,25 @@ def get_preferred_centre(boxes: Tuple[Box, ...], image: np.ndarray) -> Point:
         print("do something else")
 
     return preferred_centre
+
+
+def get_overlapping_area(box_1: Box, box_2: Box) -> int:
+
+    if not box_1.is_overlapping(box_2):
+        return 0
+
+    # make overlap box
+    x1 = max(box_1.vertex_1.x, box_2.vertex_1.x)
+    y1 = max(box_1.vertex_1.y, box_2.vertex_1.y)
+    x3 = min(box_1.vertex_3.x, box_2.vertex_3.x)
+    y3 = min(box_1.vertex_3.y, box_2.vertex_3.y)
+
+    try:
+        return Box(
+            first_diagonal_coords=Point((x1, y1)),
+            second_diagonal_coords=Point((x3, y3)),
+        ).area
+    except AssertionError:
+        # there are only 2 cases when the above fail -
+        # if the two boxes touch each other with a line or a point
+        return 0
