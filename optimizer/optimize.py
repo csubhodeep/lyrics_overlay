@@ -68,14 +68,18 @@ def get_loss(
     else:
         raise Exception("Optimizer can only run with 1 forbidden zone in this version.")
 
-    all_norm_distances = tuple(norm_distance_edges) + norm_distance_persons
+    all_norm_distances = (
+        tuple(norm_distance_edges)
+        + norm_distance_persons
+        + tuple([LossFunctionParameters.DISTANCE_BIAS])
+    )
 
-    norm_lyrics_box_area = lyrics_box.area / (canvas_shape[0] * canvas_shape[1])
+    # norm_lyrics_box_area = lyrics_box.area / (canvas_shape[0] * canvas_shape[1])
 
     return (
         LossFunctionParameters.UNIFORM_DISTANCE_WEIGHTAGE
         * sqrt(variance(all_norm_distances))
-        + LossFunctionParameters.BOX_AREA_WEIGHTAGE * (1 / sqrt(norm_lyrics_box_area))
+        # + LossFunctionParameters.BOX_AREA_WEIGHTAGE * (1 / sqrt(norm_lyrics_box_area))
         + LossFunctionParameters.OVERLAP_WEIGHTAGE * sqrt(total_overlapping_area)
         + LossFunctionParameters.MIN_DISTANCE_WEIGHTAGE * max(all_norm_distances)
     )
