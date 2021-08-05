@@ -1,7 +1,7 @@
+import time
 from collections import UserList
 from datetime import timedelta
 from pathlib import Path
-from time import time
 from typing import Any
 from typing import Callable
 from typing import Iterable
@@ -26,7 +26,7 @@ class Job:
         self._func = func
         self._conf = conf
 
-    @make_immutable(allowed_settable_attributes=("_func", "_conf"))
+    @make_immutable(allowed_settable_attributes=("_func", "_conf", "_time_exec"))
     def __setattr__(self, key, value):
         self.__dict__[key] = value
 
@@ -37,6 +37,10 @@ class Job:
     @property
     def config(self) -> Config:
         return self._conf
+
+    @property
+    def time_exec(self) -> str:
+        return str(timedelta(seconds=self._time_exec))
 
     @staticmethod
     def __clear_files(path: Path, exclude_files: Tuple[str, ...], run_id: str) -> None:
@@ -68,7 +72,10 @@ class Job:
         msg = f"*** Running job: {self.name} ***"
         print("=" * len(msg))
         print(msg)
-        return self._func(conf=self.config)
+        start_time = time.time()
+        is_successful = self._func(conf=self.config)
+        self._time_exec = time.time() - start_time
+        return is_successful
 
 
 class Pipeline(UserList):
@@ -223,14 +230,15 @@ class Pipeline(UserList):
         self.data = tuple(self.data)
         print("Starting the following pipeline: ")
         print(self)
-        start_time = time()
+        start_time = time.time()
         for job in self:
             res = job()
+            print(f"This job took: {job.time_exec}")
             if not res:
                 raise Exception(f"Step - {job.name} failed")
         print("=================================")
         print(
-            f"Pipeline completed successfully in {str(timedelta(seconds=time()-start_time))} !"
+            f"Pipeline completed successfully in {str(timedelta(seconds=time.time()-start_time))} !"
         )
 
     def __repr__(self):

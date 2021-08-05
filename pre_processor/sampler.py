@@ -28,7 +28,17 @@ def process_lyrics(lyrics: pd.DataFrame) -> pd.DataFrame:
 
     return lyrics
 
+"""
+VERY IMPORTANT
+if we get landscape image:
+like h500,w1000
+den we convert it to :
+h416,w 832     (so width is not 736)
 
+if we get portrait image h1000, w=500
+den we convert it to 
+h=832,w=416
+"""
 def resize(img: np.ndarray, new_res: int) -> np.ndarray:
 
     if img.shape[1] >= img.shape[0]:

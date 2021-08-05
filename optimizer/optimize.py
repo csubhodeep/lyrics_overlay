@@ -7,22 +7,24 @@ from typing import Dict
 from typing import Tuple
 from typing import Union
 
+import numpy as np
 import pandas as pd
 from scipy.optimize import differential_evolution
-from scipy.optimize import NonlinearConstraint
 
 from configs.make_config import Config
 from optimizer.lib.defs import Box
+from optimizer.lib.defs import Lyrics
 from optimizer.lib.defs import Point
 from optimizer.utils.params import LossFunctionParameters
 from optimizer.utils.params import OptimizerParameters
 from optimizer.utils.utils import get_distance_from_image_edges
+from optimizer.utils.utils import is_box_big_enough
 
 # import matplotlib.pyplot as plt # noqa
 
 
 def get_loss(
-    x, canvas_shape: Tuple[int, int], forbidden_zones: Tuple[Box, ...]
+    x, canvas_shape: Tuple[int, int], forbidden_zones: Tuple[Box, ...], text: Lyrics
 ) -> float:
     """
     Args:
@@ -34,13 +36,19 @@ def get_loss(
     Returns:
 
     """
-    lyrics_box = Box(
-        first_diagonal_coords=Point(coords=(x[0], x[1])),
-        second_diagonal_coords=Point(coords=(x[2], x[3])),
-    )
+    try:
+        lyrics_box = Box(
+            first_diagonal_coords=Point(coords=(x[0], x[1])),
+            second_diagonal_coords=Point(coords=(x[2], x[3])),
+        )
+    except AssertionError:
+        return LossFunctionParameters.WRONG_COORDINATE_COST
 
     if any([lyrics_box.is_overlapping(zone) for zone in forbidden_zones]):
         return LossFunctionParameters.OVERLAPPING_COST
+
+    if not is_box_big_enough(canvas_shape=canvas_shape, lyrics_box=lyrics_box):
+        return LossFunctionParameters.SMALL_BOX_COST
 
     # # include the following:
     # # distance from all person-boxes - w1
@@ -77,77 +85,64 @@ def get_loss(
         return sqrt(variance(all_distances)) + 1 / lyrics_box.area
 
 
-def get_constraints(
-    canvas_height: int, canvas_width: int
-) -> Tuple[NonlinearConstraint, ...]:
-    positive_width_constraint = lambda x: x[2] - x[0]
-    positive_height_constraint = lambda x: x[3] - x[1]
+def get_bottom_box(conf: Config) -> Tuple[int, int, int, int]:
+    x = conf.img_width // 2
+    y = int(conf.img_height * 0.90)
+    x1 = x - conf.img_width // 4
+    y1 = y - int(0.10 * conf.img_height)
+    x3 = x + conf.img_width // 4
+    y3 = y
 
-    # the next 2 constraints emulate the behaviour of `is_box_big_enough` function
-    min_box_width_constraint = lambda x: (x[2] - x[0])
-    min_box_height_constraint = lambda x: (x[3] - x[1])
-
-    # this is to signal the solver that every tried-solution (i.e. `x`) in a population
-    # and for every iteration (`generation` in case of DE) should be very close to an integer
-    # currently it is not being used as it slows down the opti
-    # integer_coords_constraint = lambda x: sum(abs(np.round(x) - x))
-
-    nlc1 = NonlinearConstraint(positive_width_constraint, 1, canvas_width)
-    nlc2 = NonlinearConstraint(positive_height_constraint, 1, canvas_height)
-    nlc3 = NonlinearConstraint(
-        min_box_width_constraint, 0.25 * canvas_width, canvas_width
-    )
-    nlc4 = NonlinearConstraint(
-        min_box_height_constraint, 0.10 * canvas_height, canvas_height
-    )
-    # nlc5 = NonlinearConstraint(integer_coords_constraint, -1e-6, 1e-6)
-
-    return nlc1, nlc2, nlc3, nlc4  # , nlc5
+    return x1, y1, x3, y3
 
 
 def get_optimal_boxes(row, conf: Config) -> Dict[str, Union[int, float]]:
 
     # if forbidden zone is an invalid zone...return centre of image
-    if not (row["x1"] == row["y1"] == row["x3"] == row["y3"] == -1):
+    if row["x1"] == row["y1"] == row["x3"] == row["y3"] == -1:
+        x1 = int(0.20 * conf.img_width)
+        y1 = int(0.20 * conf.img_height)
+        x3 = int(0.80 * conf.img_width)
+        y3 = int(0.80 * conf.img_height)
+    else:
         persons = (
             Box(
                 first_diagonal_coords=Point(coords=(row["x1"], row["y1"])),
                 second_diagonal_coords=Point(coords=(row["x3"], row["y3"])),
             ),
         )
-
-        limits = (
-            (0, conf.img_width),
-            (0, conf.img_height),
-            (0, conf.img_width),
-            (0, conf.img_height),
-        )
-
-        res = differential_evolution(
-            get_loss,
-            bounds=limits,
-            args=((conf.img_height, conf.img_width), persons),
-            popsize=OptimizerParameters.POPULATION_SIZE,
-            constraints=get_constraints(conf.img_height, conf.img_width),
-        )
-
-        if res.success:  # and res.fun < LossFunctionParameters.MAXIMUM_LOSS_THRESHOLD:
-            x1 = int(round(res.x[0]))
-            y1 = int(round(res.x[1]))
-            x3 = int(round(res.x[2]))
-            y3 = int(round(res.x[3]))
+        # if area if forbidden zone is > 70% of image area den return a box a bottom and center
+        if (
+            sum([person.area for person in persons])
+            > 0.70 * conf.img_width * conf.img_height
+        ):
+            x1, y1, x3, y3 = get_bottom_box(conf)
         else:
-            x = conf.img_width // 2
-            y = int(conf.img_height * 0.90)
-            x1 = x - conf.img_width // 4
-            y1 = y - int(0.10 * conf.img_height)
-            x3 = x + conf.img_width // 4
-            y3 = y
-    else:
-        x1 = int(0.20 * conf.img_width)
-        y1 = int(0.20 * conf.img_height)
-        x3 = int(0.80 * conf.img_width)
-        y3 = int(0.80 * conf.img_height)
+            lyrics = Lyrics(
+                text=row["text"], start_time=row["start_time"], end_time=row["end_time"]
+            )
+
+            limits = (
+                (0, conf.img_width),
+                (0, conf.img_height),
+                (0, conf.img_width),
+                (0, conf.img_height),
+            )
+
+            res = differential_evolution(
+                get_loss,
+                bounds=limits,
+                args=((conf.img_height, conf.img_width), persons, lyrics),
+                popsize=OptimizerParameters.POPULATION_SIZE,
+            )
+
+            if res.success and res.fun < LossFunctionParameters.MAXIMUM_LOSS_THRESHOLD:
+                x1 = int(round(res.x[0]))
+                y1 = int(round(res.x[1]))
+                x3 = int(round(res.x[2]))
+                y3 = int(round(res.x[3]))
+            else:
+                x1, y1, x3, y3 = get_bottom_box(conf)
 
     return {
         "x1_opti": x1,
@@ -159,7 +154,27 @@ def get_optimal_boxes(row, conf: Config) -> Dict[str, Union[int, float]]:
     }
 
 
+def get_image_height_and_width(conf: Config) -> Config:
+    # TODO: make it better
+
+    path_to_files = Path.cwd().joinpath(f"data/pre_processor_output/{conf.run_id}")
+
+    for item in path_to_files.iterdir():
+        if item.name.endswith("npy"):
+            with open(str(item), "rb") as f:
+                frame = np.load(f)
+                break
+        else:
+            continue
+
+    conf.img_height, conf.img_width = frame.shape[0], frame.shape[1]
+
+    return conf
+
+
 def optimize(conf: Config) -> bool:
+
+    conf = get_image_height_and_width(conf)
 
     input_file_path = (
         Path.cwd().joinpath(conf.input_data_path).joinpath(f"{conf.run_id}.feather")
@@ -201,7 +216,7 @@ if __name__ == "__main__":
         input_data_path="../data/splitter_output",
         img_width=739,
         img_height=416,
-        run_id="395d46b5-fcfb-4601-b72f-5aebd3a43154",
+        run_id="1ffadc62-6f97-43e1-a51a-029110d0cb84",
     )
 
     optimize(conf=config)
