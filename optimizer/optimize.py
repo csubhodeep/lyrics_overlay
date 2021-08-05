@@ -10,6 +10,7 @@ from typing import Union
 import numpy as np
 import pandas as pd
 from scipy.optimize import differential_evolution
+from scipy.optimize import NonlinearConstraint
 
 from configs.make_config import Config
 from optimizer.lib.defs import Box
@@ -18,13 +19,12 @@ from optimizer.lib.defs import Point
 from optimizer.utils.params import LossFunctionParameters
 from optimizer.utils.params import OptimizerParameters
 from optimizer.utils.utils import get_distance_from_image_edges
-from optimizer.utils.utils import is_box_big_enough
 
 # import matplotlib.pyplot as plt # noqa
 
 
 def get_loss(
-    x, canvas_shape: Tuple[int, int], forbidden_zones: Tuple[Box, ...], text: Lyrics
+    x, canvas_shape: Tuple[int, int], forbidden_zones: Tuple[Box, ...]
 ) -> float:
     """
     Args:
@@ -36,19 +36,13 @@ def get_loss(
     Returns:
 
     """
-    try:
-        lyrics_box = Box(
-            first_diagonal_coords=Point(coords=(x[0], x[1])),
-            second_diagonal_coords=Point(coords=(x[2], x[3])),
-        )
-    except AssertionError:
-        return LossFunctionParameters.WRONG_COORDINATE_COST
+    lyrics_box = Box(
+        first_diagonal_coords=Point(coords=(x[0], x[1])),
+        second_diagonal_coords=Point(coords=(x[2], x[3])),
+    )
 
     if any([lyrics_box.is_overlapping(zone) for zone in forbidden_zones]):
         return LossFunctionParameters.OVERLAPPING_COST
-
-    if not is_box_big_enough(canvas_shape=canvas_shape, lyrics_box=lyrics_box):
-        return LossFunctionParameters.SMALL_BOX_COST
 
     # # include the following:
     # # distance from all person-boxes - w1
@@ -96,6 +90,34 @@ def get_bottom_box(conf: Config) -> Tuple[int, int, int, int]:
     return x1, y1, x3, y3
 
 
+def get_constraints(
+    canvas_height: int, canvas_width: int
+) -> Tuple[NonlinearConstraint, ...]:
+    positive_width_constraint = lambda x: x[2] - x[0]
+    positive_height_constraint = lambda x: x[3] - x[1]
+
+    # the next 2 constraints emulate the behaviour of `is_box_big_enough` function
+    min_box_width_constraint = lambda x: (x[2] - x[0])
+    min_box_height_constraint = lambda x: (x[3] - x[1])
+
+    # this is to signal the solver that every tried-solution (i.e. `x`) in a population
+    # and for every iteration (`generation` in case of DE) should be very close to an integer
+    # currently it is not being used as it slows down the opti
+    # integer_coords_constraint = lambda x: sum(abs(np.round(x) - x))
+
+    nlc1 = NonlinearConstraint(positive_width_constraint, 1, canvas_width)
+    nlc2 = NonlinearConstraint(positive_height_constraint, 1, canvas_height)
+    nlc3 = NonlinearConstraint(
+        min_box_width_constraint, 0.25 * canvas_width, canvas_width
+    )
+    nlc4 = NonlinearConstraint(
+        min_box_height_constraint, 0.10 * canvas_height, canvas_height
+    )
+    # nlc5 = NonlinearConstraint(integer_coords_constraint, -1e-6, 1e-6)
+
+    return nlc1, nlc2, nlc3, nlc4  # , nlc5
+
+
 def get_optimal_boxes(row, conf: Config) -> Dict[str, Union[int, float]]:
 
     # if forbidden zone is an invalid zone...return centre of image
@@ -134,6 +156,7 @@ def get_optimal_boxes(row, conf: Config) -> Dict[str, Union[int, float]]:
                 bounds=limits,
                 args=((conf.img_height, conf.img_width), persons, lyrics),
                 popsize=OptimizerParameters.POPULATION_SIZE,
+                constraints=get_constraints(conf.img_height, conf.img_width),
             )
 
             if res.success and res.fun < LossFunctionParameters.MAXIMUM_LOSS_THRESHOLD:
