@@ -97,14 +97,14 @@ def get_overlap_with_mask(image: np.ndarray, lyrics_box: Box, padding: int):
 
 def get_norm_distance_from_image_edges(
     canvas_shape: Tuple[int, int], box: Box
-) -> List[int]:
+) -> List[float]:
 
     canvas_diag_length = sqrt(canvas_shape[0] ** 2 + canvas_shape[1] ** 2)
 
-    distance_edge_1 = int(box.vertex_1.x / canvas_diag_length)
-    distance_edge_2 = int((canvas_shape[1] - box.vertex_3.x) / canvas_diag_length)
-    distance_edge_3 = int(box.vertex_1.y / canvas_diag_length)
-    distance_edge_4 = int((canvas_shape[0] - box.vertex_3.y) / canvas_diag_length)
+    distance_edge_1 = box.vertex_1.x / canvas_diag_length
+    distance_edge_2 = (canvas_shape[1] - box.vertex_3.x) / canvas_diag_length
+    distance_edge_3 = box.vertex_1.y / canvas_diag_length
+    distance_edge_4 = (canvas_shape[0] - box.vertex_3.y) / canvas_diag_length
 
     return [distance_edge_1, distance_edge_2, distance_edge_3, distance_edge_4]
 

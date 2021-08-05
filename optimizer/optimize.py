@@ -33,7 +33,8 @@ def get_loss(
 
     total_overlapping_area = sum(
         [
-            get_overlapping_area(lyrics_box, zone) / (canvas_shape[0] * canvas_shape[1])
+            get_overlapping_area(lyrics_box, zone) ** 2
+            / (canvas_shape[0] * canvas_shape[1])
             for zone in forbidden_zones
         ]
     )
@@ -68,11 +69,11 @@ def get_loss(
     else:
         raise Exception("Optimizer can only run with 1 forbidden zone in this version.")
 
-    all_norm_distances = (
-        tuple(norm_distance_edges)
-        + norm_distance_persons
-        + tuple([LossFunctionParameters.DISTANCE_BIAS])
-    )
+    all_norm_distances = tuple(norm_distance_edges) + norm_distance_persons
+
+    # inorder to use the `max` function below one has to add the bias 'before'
+    dist_bias = 0.05 * min(canvas_shape)
+    all_norm_distances_ = [ele + dist_bias for ele in all_norm_distances]
 
     # norm_lyrics_box_area = lyrics_box.area / (canvas_shape[0] * canvas_shape[1])
 
@@ -81,7 +82,7 @@ def get_loss(
         * sqrt(variance(all_norm_distances))
         # + LossFunctionParameters.BOX_AREA_WEIGHTAGE * (1 / sqrt(norm_lyrics_box_area))
         + LossFunctionParameters.OVERLAP_WEIGHTAGE * sqrt(total_overlapping_area)
-        + LossFunctionParameters.MIN_DISTANCE_WEIGHTAGE * max(all_norm_distances)
+        + LossFunctionParameters.MIN_DISTANCE_WEIGHTAGE * max(all_norm_distances_)
     )
 
 
