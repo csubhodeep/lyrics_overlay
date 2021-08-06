@@ -217,7 +217,7 @@ def add_variation(
     x1, y1, x3, y3, canvas_shape: Tuple[int, int]
 ) -> Tuple[int, int, int, int]:
 
-    if is_box_big_enough_to_be_made_smaller_for_variation(x1, y1, x3, y3, canvas_shape) and round(
+    if is_box_big_enough_to_be_made_smaller_for_variation(x1, y1, x3, y3, canvas_shape) and int(
         round(random.random())
     ):
         print("Variation hua")
