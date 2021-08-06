@@ -9,6 +9,7 @@ from typing import Union
 
 import numpy as np
 import pandas as pd
+from scipy.optimize import Bounds
 from scipy.optimize import differential_evolution
 from scipy.optimize import NonlinearConstraint
 
@@ -43,7 +44,7 @@ def get_loss(
     # # include the following:
     # # distance from all person-boxes - w1
 
-    # # iterate over all the edges of all person-boxes and find the distances of them from the lyrics-box
+    # iterate over all the edges of all person-boxes and find the distances of them from the lyrics-box
     if len(forbidden_zones):
         norm_distance_persons = tuple(
             [
@@ -55,20 +56,21 @@ def get_loss(
     else:
         norm_distance_persons = tuple([])
 
-    # # distance from all 4 edges - w2
+    # distance from all 4 edges
     norm_distance_edges = get_norm_distance_from_image_edges(canvas_shape, lyrics_box)
-    # we get distance from 3 edges of the image. and we believe that obviously the best box might be close to
+    # we get distance from 4 edges of the image. and we believe that obviously the best box might be close to
     # one of the edge. so lets not optimize for all 4 edges. only optimize for 3 edges. (infact we are ingnoring 1 out
-    # 2 side edges )
-    # if len(forbidden_zones) == 1:
-    #     dist_of_f_zone_from_left_edge = forbidden_zones[0].vertex_1.x - 0
-    #     dist_of_f_zone_from_right_edge = canvas_shape[1] - forbidden_zones[0].vertex_3.x
-    #     if dist_of_f_zone_from_left_edge < dist_of_f_zone_from_right_edge:
-    #         norm_distance_edges.pop(0)
-    #     else:
-    #         norm_distance_edges.pop(1)
-    # else:
-    #     raise Exception("Optimizer can only run with 1 forbidden zone in this version.")
+    # 4 side edges )
+    # TODO: remove the below block when we have > 1 f-zones in the frame
+    if len(forbidden_zones) == 1:
+        dist_of_f_zone_from_left_edge = forbidden_zones[0].vertex_1.x - 0
+        dist_of_f_zone_from_right_edge = canvas_shape[1] - forbidden_zones[0].vertex_3.x
+        if dist_of_f_zone_from_left_edge < dist_of_f_zone_from_right_edge:
+            norm_distance_edges.pop(0)
+        else:
+            norm_distance_edges.pop(1)
+    else:
+        raise Exception("Optimizer can only run with 1 forbidden zone in this version.")
 
     all_norm_distances = tuple(norm_distance_edges) + norm_distance_persons
 
@@ -142,11 +144,19 @@ def get_optimal_boxes(row, conf: Config) -> Dict[str, Union[int, float]]:
             x1, y1, x3, y3 = get_bottom_box(conf)
         else:
 
-            limits = (
-                (0, conf.img_width),
-                (0, conf.img_height),
-                (0, conf.img_width),
-                (0, conf.img_height),
+            limits = Bounds(
+                (
+                    0.05 * conf.img_width,
+                    0.05 * conf.img_height,
+                    0.05 * conf.img_width,
+                    0.05 * conf.img_height,
+                ),
+                (
+                    0.95 * conf.img_width,
+                    0.95 * conf.img_height,
+                    0.95 * conf.img_width,
+                    0.95 * conf.img_height,
+                ),
             )
 
             res = differential_evolution(
@@ -156,7 +166,7 @@ def get_optimal_boxes(row, conf: Config) -> Dict[str, Union[int, float]]:
                 popsize=OptimizerParameters.POPULATION_SIZE,
                 constraints=get_constraints(conf.img_height, conf.img_width),
             )
-
+            print(res.fun, row["text"])
             if (
                 res.success
             ) and res.fun < LossFunctionParameters.MAXIMUM_LOSS_THRESHOLD:

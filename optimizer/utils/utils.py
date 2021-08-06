@@ -101,12 +101,17 @@ def get_norm_distance_from_image_edges(
 
     canvas_diag_length = sqrt(canvas_shape[0] ** 2 + canvas_shape[1] ** 2)
 
-    distance_edge_1 = box.vertex_1.x / canvas_diag_length
-    distance_edge_2 = (canvas_shape[1] - box.vertex_3.x) / canvas_diag_length
-    distance_edge_3 = box.vertex_1.y / canvas_diag_length
-    distance_edge_4 = (canvas_shape[0] - box.vertex_3.y) / canvas_diag_length
+    distance_edge_left = box.vertex_1.x / canvas_diag_length
+    distance_edge_right = (canvas_shape[1] - box.vertex_3.x) / canvas_diag_length
+    distance_edge_top = box.vertex_1.y / canvas_diag_length
+    distance_edge_bottom = (canvas_shape[0] - box.vertex_3.y) / canvas_diag_length
 
-    return [distance_edge_1, distance_edge_2, distance_edge_3, distance_edge_4]
+    return [
+        distance_edge_left,
+        distance_edge_right,
+        distance_edge_top,
+        distance_edge_bottom,
+    ]
 
 
 def get_combined_box(boxes: Tuple[Box, ...]) -> Box:
