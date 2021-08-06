@@ -208,7 +208,7 @@ def get_bottom_box(conf: Config) -> Tuple[int, int, int, int]:
     return x1, y1, x3, y3
 
 
-def is_box_small_enough(x1, y1, x3, y3, canvas_shape: Tuple[int, int]) -> bool:
+def is_box_big_enough_to_be_made_smaller_for_variation(x1, y1, x3, y3, canvas_shape: Tuple[int, int]) -> bool:
 
     return (x3 - x1) * (y3 - y1) / (canvas_shape[0] * canvas_shape[1]) > 0.35
 
@@ -217,9 +217,10 @@ def add_variation(
     x1, y1, x3, y3, canvas_shape: Tuple[int, int]
 ) -> Tuple[int, int, int, int]:
 
-    if is_box_small_enough(x1, y1, x3, y3, canvas_shape) and int(
+    if is_box_big_enough_to_be_made_smaller_for_variation(x1, y1, x3, y3, canvas_shape) and round(
         round(random.random())
     ):
+        print("Variation hua")
         x1_ = x1 + 0.1 * (x3 - x1)
         x3_ = x3 - 0.1 * (x3 - x1)
         y1_ = y1 + 0.1 * (y3 - y1)
