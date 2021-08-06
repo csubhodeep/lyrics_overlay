@@ -18,6 +18,8 @@ from optimizer.lib.defs import Box
 from optimizer.lib.defs import Point
 from optimizer.utils.params import LossFunctionParameters
 from optimizer.utils.params import OptimizerParameters
+from optimizer.utils.utils import add_variation
+from optimizer.utils.utils import get_bottom_box
 from optimizer.utils.utils import get_norm_distance_from_image_edges
 from optimizer.utils.utils import get_overlapping_area
 
@@ -85,17 +87,6 @@ def get_loss(
         + LossFunctionParameters.OVERLAP_WEIGHTAGE * sqrt(total_overlapping_area)
         + LossFunctionParameters.MIN_DISTANCE_WEIGHTAGE / min_norm_distance_persons
     )
-
-
-def get_bottom_box(conf: Config) -> Tuple[int, int, int, int]:
-    x = conf.img_width // 2
-    y = int(conf.img_height * 0.90)
-    x1 = x - conf.img_width // 4
-    y1 = y - int(0.10 * conf.img_height)
-    x3 = x + conf.img_width // 4
-    y3 = y
-
-    return x1, y1, x3, y3
 
 
 def get_constraints(
@@ -173,6 +164,9 @@ def get_optimal_boxes(row, conf: Config) -> Dict[str, Union[int, float]]:
                 y1 = int(round(res.x[1]))
                 x3 = int(round(res.x[2]))
                 y3 = int(round(res.x[3]))
+                x1, y1, x3, y3 = add_variation(
+                    x1, y1, x3, y3, canvas_shape=(conf.img_height, conf.img_width)
+                )
             else:
                 x1, y1, x3, y3 = get_bottom_box(conf)
 

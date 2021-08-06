@@ -1,3 +1,4 @@
+import random
 from math import ceil
 from math import sqrt
 from statistics import mean
@@ -6,6 +7,7 @@ from typing import Tuple
 
 import numpy as np
 
+from configs.make_config import Config
 from optimizer.lib.defs import Box
 from optimizer.lib.defs import LineSegment
 from optimizer.lib.defs import Lyrics
@@ -193,3 +195,35 @@ def get_overlapping_area(box_1: Box, box_2: Box) -> int:
         # there are only 2 cases when the above fail -
         # if the two boxes touch each other with a line or a point
         return 0
+
+
+def get_bottom_box(conf: Config) -> Tuple[int, int, int, int]:
+    x = conf.img_width // 2
+    y = int(conf.img_height * 0.90)
+    x1 = x - conf.img_width // 4
+    y1 = y - int(0.10 * conf.img_height)
+    x3 = x + conf.img_width // 4
+    y3 = y
+
+    return x1, y1, x3, y3
+
+
+def is_box_small_enough(x1, y1, x3, y3, canvas_shape: Tuple[int, int]) -> bool:
+
+    return (x3 - x1) * (y3 - y1) / (canvas_shape[0] * canvas_shape[1]) > 0.35
+
+
+def add_variation(
+    x1, y1, x3, y3, canvas_shape: Tuple[int, int]
+) -> Tuple[int, int, int, int]:
+
+    if is_box_small_enough(x1, y1, x3, y3, canvas_shape) and int(
+        round(random.random())
+    ):
+        x1_ = x1 + 0.1 * (x3 - x1)
+        x3_ = x3 - 0.1 * (x3 - x1)
+        y1_ = y1 + 0.1 * (y3 - y1)
+        y3_ = y3 - 0.1 * (y3 - y1)
+        return int(round(x1_)), int(round(y1_)), int(round(x3_)), int(round(y3_))
+    else:
+        return x1, y1, x3, y3
