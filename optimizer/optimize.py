@@ -166,7 +166,6 @@ def get_optimal_boxes(row, conf: Config) -> Dict[str, Union[int, float]]:
                 popsize=OptimizerParameters.POPULATION_SIZE,
                 constraints=get_constraints(conf.img_height, conf.img_width),
             )
-            print(res.fun, row["text"])
             if (
                 res.success
             ) and res.fun < LossFunctionParameters.MAXIMUM_LOSS_THRESHOLD:
