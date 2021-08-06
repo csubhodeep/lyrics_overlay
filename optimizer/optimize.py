@@ -98,7 +98,7 @@ def get_bottom_box(conf: Config) -> Tuple[int, int, int, int]:
 
 
 def get_constraints(
-    canvas_height: int, canvas_width: int, forbidden_zones: Tuple[Box, ...]
+    canvas_height: int, canvas_width: int
 ) -> Tuple[NonlinearConstraint, ...]:
 
     # these constraints emulate the behaviour of `is_box_big_enough` function
@@ -155,7 +155,7 @@ def get_optimal_boxes(row, conf: Config) -> Dict[str, Union[int, float]]:
                 bounds=limits,
                 args=((conf.img_height, conf.img_width), persons),
                 popsize=OptimizerParameters.POPULATION_SIZE,
-                constraints=get_constraints(conf.img_height, conf.img_width, persons),
+                constraints=get_constraints(conf.img_height, conf.img_width),
             )
 
             if (
