@@ -159,12 +159,11 @@ def get_optimal_boxes(row, conf: Config) -> Dict[str, Union[int, float]]:
 
             if (
                 res.success
-            ):  # and res.fun < LossFunctionParameters.MAXIMUM_LOSS_THRESHOLD:
+            ) and res.fun < LossFunctionParameters.MAXIMUM_LOSS_THRESHOLD:
                 x1 = int(round(res.x[0]))
                 y1 = int(round(res.x[1]))
                 x3 = int(round(res.x[2]))
                 y3 = int(round(res.x[3]))
-                print(res.fun, row["text"])
             else:
                 x1, y1, x3, y3 = get_bottom_box(conf)
 

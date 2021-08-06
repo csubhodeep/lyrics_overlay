@@ -14,7 +14,7 @@ class LossFunctionParameters:
     MIN_DISTANCE_WEIGHTAGE: float = 0.4
     UNIFORM_DISTANCE_WEIGHTAGE: float = 0.05
     BOX_AREA_WEIGHTAGE: float = 0.05
-    MAXIMUM_LOSS_THRESHOLD: float = 3
+    MAXIMUM_LOSS_THRESHOLD: float = 200
 
 
 @dataclass
