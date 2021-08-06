@@ -93,7 +93,7 @@ def get_constraints(
     canvas_height: int, canvas_width: int
 ) -> Tuple[NonlinearConstraint, ...]:
 
-    # these constraints emulate the behaviour of `is_box_big_enough` function
+    # these constraints emulate the behaviour of `is_lyrics_box_big_enough_to_be_readable` function
     min_box_width_constraint = lambda x: (x[2] - x[0])
     min_box_height_constraint = lambda x: (x[3] - x[1])
     nlc3 = NonlinearConstraint(

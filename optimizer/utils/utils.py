@@ -75,7 +75,7 @@ def text_fits_box(expected_width: int, expected_height: int, box: Box) -> bool:
     )
 
 
-def is_box_big_enough(canvas_shape: Tuple[int, int], lyrics_box: Box) -> bool:
+def is_lyrics_box_big_enough_to_be_readable(canvas_shape: Tuple[int, int], lyrics_box: Box) -> bool:
 
     # width and height of lyrics-box should be greater than 20% of width & 10% height of the image
     return (
