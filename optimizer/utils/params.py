@@ -11,8 +11,8 @@ class FontLimits:
 @dataclass
 class LossFunctionParameters:
     OVERLAP_WEIGHTAGE: float = 0.5
-    MIN_DISTANCE_WEIGHTAGE: float = 0.44
-    UNIFORM_DISTANCE_WEIGHTAGE: float = 0.01
+    MIN_DISTANCE_WEIGHTAGE: float = 0.4
+    UNIFORM_DISTANCE_WEIGHTAGE: float = 0.05
     BOX_AREA_WEIGHTAGE: float = 0.05
     MAXIMUM_LOSS_THRESHOLD: float = 3
 

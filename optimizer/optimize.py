@@ -31,10 +31,11 @@ def get_loss(
         second_diagonal_coords=Point(coords=(x[2], x[3])),
     )
 
+    canvas_area = canvas_shape[0] * canvas_shape[1]
+
     total_overlapping_area = sum(
         [
-            get_overlapping_area(lyrics_box, zone) ** 2
-            / (canvas_shape[0] * canvas_shape[1])
+            get_overlapping_area(lyrics_box, zone) / canvas_area
             for zone in forbidden_zones
         ]
     )
@@ -59,30 +60,28 @@ def get_loss(
     # we get distance from 3 edges of the image. and we believe that obviously the best box might be close to
     # one of the edge. so lets not optimize for all 4 edges. only optimize for 3 edges. (infact we are ingnoring 1 out
     # 2 side edges )
-    if len(forbidden_zones) == 1:
-        dist_of_f_zone_from_left_edge = forbidden_zones[0].vertex_1.x - 0
-        dist_of_f_zone_from_right_edge = canvas_shape[1] - forbidden_zones[0].vertex_3.x
-        if dist_of_f_zone_from_left_edge < dist_of_f_zone_from_right_edge:
-            norm_distance_edges.pop(0)
-        else:
-            norm_distance_edges.pop(1)
-    else:
-        raise Exception("Optimizer can only run with 1 forbidden zone in this version.")
+    # if len(forbidden_zones) == 1:
+    #     dist_of_f_zone_from_left_edge = forbidden_zones[0].vertex_1.x - 0
+    #     dist_of_f_zone_from_right_edge = canvas_shape[1] - forbidden_zones[0].vertex_3.x
+    #     if dist_of_f_zone_from_left_edge < dist_of_f_zone_from_right_edge:
+    #         norm_distance_edges.pop(0)
+    #     else:
+    #         norm_distance_edges.pop(1)
+    # else:
+    #     raise Exception("Optimizer can only run with 1 forbidden zone in this version.")
 
     all_norm_distances = tuple(norm_distance_edges) + norm_distance_persons
 
-    # inorder to use the `max` function below one has to add the bias 'before'
-    dist_bias = 0.05 * min(canvas_shape)
-    all_norm_distances_ = [ele + dist_bias for ele in all_norm_distances]
+    norm_lyrics_box_area = lyrics_box.area / canvas_area
 
-    # norm_lyrics_box_area = lyrics_box.area / (canvas_shape[0] * canvas_shape[1])
+    min_norm_distance_persons = max(1e-6, min(all_norm_distances))
 
     return (
         LossFunctionParameters.UNIFORM_DISTANCE_WEIGHTAGE
         * sqrt(variance(all_norm_distances))
-        # + LossFunctionParameters.BOX_AREA_WEIGHTAGE * (1 / sqrt(norm_lyrics_box_area))
+        + LossFunctionParameters.BOX_AREA_WEIGHTAGE * (1 / sqrt(norm_lyrics_box_area))
         + LossFunctionParameters.OVERLAP_WEIGHTAGE * sqrt(total_overlapping_area)
-        + LossFunctionParameters.MIN_DISTANCE_WEIGHTAGE * max(all_norm_distances_)
+        + LossFunctionParameters.MIN_DISTANCE_WEIGHTAGE / min_norm_distance_persons
     )
 
 
