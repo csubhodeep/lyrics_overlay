@@ -75,7 +75,7 @@ def text_fits_box(expected_width: int, expected_height: int, box: Box) -> bool:
     )
 
 
-def is_box_big_enough(canvas_shape: Tuple[int, int], lyrics_box: Box) -> bool:
+def is_lyrics_box_big_enough_to_be_readable(canvas_shape: Tuple[int, int], lyrics_box: Box) -> bool:
 
     # width and height of lyrics-box should be greater than 20% of width & 10% height of the image
     return (
@@ -201,14 +201,14 @@ def get_bottom_box(conf: Config) -> Tuple[int, int, int, int]:
     x = conf.img_width // 2
     y = int(conf.img_height * 0.90)
     x1 = x - conf.img_width // 4
-    y1 = y - int(0.10 * conf.img_height)
+    y1 = y - int(0.15 * conf.img_height)
     x3 = x + conf.img_width // 4
     y3 = y
 
     return x1, y1, x3, y3
 
 
-def is_box_small_enough(x1, y1, x3, y3, canvas_shape: Tuple[int, int]) -> bool:
+def is_box_big_enough_to_be_made_smaller_for_variation(x1, y1, x3, y3, canvas_shape: Tuple[int, int]) -> bool:
 
     return (x3 - x1) * (y3 - y1) / (canvas_shape[0] * canvas_shape[1]) > 0.35
 
@@ -217,9 +217,10 @@ def add_variation(
     x1, y1, x3, y3, canvas_shape: Tuple[int, int]
 ) -> Tuple[int, int, int, int]:
 
-    if is_box_small_enough(x1, y1, x3, y3, canvas_shape) and int(
+    if is_box_big_enough_to_be_made_smaller_for_variation(x1, y1, x3, y3, canvas_shape) and int(
         round(random.random())
     ):
+        print("Variation hua")
         x1_ = x1 + 0.1 * (x3 - x1)
         x3_ = x3 - 0.1 * (x3 - x1)
         y1_ = y1 + 0.1 * (y3 - y1)
