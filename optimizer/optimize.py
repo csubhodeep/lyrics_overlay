@@ -78,14 +78,13 @@ def get_loss(
 
     norm_lyrics_box_area = lyrics_box.area / canvas_area
 
-    min_norm_distance_persons = max(1e-6, min(all_norm_distances))
-
     return (
         LossFunctionParameters.UNIFORM_DISTANCE_WEIGHTAGE
         * sqrt(variance(all_norm_distances))
         + LossFunctionParameters.BOX_AREA_WEIGHTAGE * (1 / sqrt(norm_lyrics_box_area))
         + LossFunctionParameters.OVERLAP_WEIGHTAGE * sqrt(total_overlapping_area)
-        + LossFunctionParameters.MIN_DISTANCE_WEIGHTAGE / min_norm_distance_persons
+        + LossFunctionParameters.MIN_DISTANCE_WEIGHTAGE
+        / max(1e-6, min(all_norm_distances))
     )
 
 
