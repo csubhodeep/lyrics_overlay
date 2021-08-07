@@ -24,9 +24,11 @@ den we converted it to :
 h416,w 832     (so width is not 736)
 
 if we got portrait image h1000, w=500
-den we converted it to 
+den we converted it to
 h=832,w=416
 """
+
+
 def resize(
     img_shape: Tuple[int, int], old_img_size: int, coords: Tuple[int, int]
 ) -> Tuple[int, int]:
@@ -132,8 +134,12 @@ def find_font_size_and_pattern(x: int, y: int, w: int, h: int, text: str):
         if length > max_width:
             max_width = length
     max_width += 2
-    best_font_size_based_on_height = int(h / (num_lines + 1))  # we can go smaller than this
-    best_font_size_based_on_width = int(2*w/max_width)  # we can go smaller than this
+    best_font_size_based_on_height = int(
+        h / (num_lines + 1)
+    )  # we can go smaller than this
+    best_font_size_based_on_width = int(
+        2 * w / max_width
+    )  # we can go smaller than this
     best_font_size = min(best_font_size_based_on_height, best_font_size_based_on_width)
 
     return best_font_size, pattern
@@ -262,7 +268,11 @@ def overlay(conf: Config):
                         )
 
                         frame = cv2.rectangle(
-                            frame, start_point_opti, end_point_opti, color_opti, thickness
+                            frame,
+                            start_point_opti,
+                            end_point_opti,
+                            color_opti,
+                            thickness,
                         )
                     ################
                     # New feature
