@@ -1,10 +1,12 @@
 import random
 from math import ceil
 from math import sqrt
+from pathlib import Path
 from statistics import mean
 from typing import List
 from typing import Tuple
 
+import cv2
 import numpy as np
 
 from configs.make_config import Config
@@ -24,12 +26,13 @@ def len_of_text_list(text: Tuple[str, ...]) -> int:
     return length
 
 
-def find_font_size_and_pattern(lyrics_box: Box, lyrics: Lyrics):
+# it takes x,y , w and h of resized text box (resized according to original image)
+def calculate_font_size_and_pattern(lyrics_box: Box, lyrics: Lyrics):
     pattern = int(lyrics_box.width / lyrics_box.height) + 1
     if pattern < 2:
         pattern = 2
-    elif pattern > 5:
-        pattern = 5
+    elif pattern > 7:  # 7 worked best for ed sheeren perfect, o o jaane jaana
+        pattern = 7
     max_width = 0
     num_lines = ceil(len(lyrics.text) / pattern)
     for i in range(0, len(lyrics.text), pattern):
@@ -37,12 +40,51 @@ def find_font_size_and_pattern(lyrics_box: Box, lyrics: Lyrics):
         if length > max_width:
             max_width = length
     max_width += 2
-    font_size_init = int(lyrics_box.height / (num_lines + 1))
-    for size in range(font_size_init, int(font_size_init / 4), -1):
-        if (size / 2) * max_width < lyrics_box.width:
-            return size, pattern
+    best_font_size_based_on_height = int(
+        lyrics_box.height / (num_lines + 1)
+    )  # we can go smaller than this
+    best_font_size_based_on_width = int(
+        2 * lyrics_box.width / max_width
+    )  # we can go smaller than this
+    best_font_size = min(best_font_size_based_on_height, best_font_size_based_on_width)
 
-    return False, False
+    return best_font_size, pattern
+
+
+def get_size_of_original_video(conf: Config) -> Tuple[int, int]:
+    # TODO: make it better
+
+    input_video_file_name = (
+        Path.cwd().joinpath(conf.video_input_path).joinpath(f"{conf.run_id}.mp4")
+    )
+
+    cap = cv2.VideoCapture(str(input_video_file_name))
+
+    while cap.isOpened():
+        ret, frame = cap.read()
+        break
+
+    cap.release()
+    cv2.destroyAllWindows()
+
+    return frame.shape
+
+
+def find_size_pattern(row, conf: Config) -> Tuple[int, int]:
+
+    lyrics = Lyrics(text=row["text"])
+
+    box = Box(
+        first_diagonal_coords=Point(coords=(row["x1_opti"], row["y1_opti"])),
+        second_diagonal_coords=Point(coords=(row["x3_opti"], row["y3_opti"])),
+    )
+
+    box.resize(
+        new_canvas_shape=get_size_of_original_video(conf),
+        old_canvas_shape=(conf.img_height, conf.img_width),
+    )
+
+    return calculate_font_size_and_pattern(box, lyrics)
 
 
 def get_expected_box_dims(lyrics: Lyrics, font_size: int, form: int) -> Tuple[int, int]:

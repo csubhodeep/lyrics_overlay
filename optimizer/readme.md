@@ -29,3 +29,13 @@ of the lyrics box and the font-size for each frame in the input dataset
 start_time|end_time|text|font_type|x1|y1|x3|y3|x1_opti|y1_opti|x3_opti|y3_opti
 --|--|--|--|--|--|--|--|--|--|--|--|
 1100|1300|"i love you !"|""|24|42|56|76|24|42|56|76
+
+# New update
+
+the now relevant output would only be x1_opti & y1_opti
+
+start_time|end_time|x1|y1|x3|y3|x1_opti|y1_opti|x3_opti|y3_opti
+--|--|--|--|--|--|--|--|--|--|--|--|
+1100|1300|24|42|56|76|24|42|56|76
+
+make folder using run-id and save drawn wand images with start-time as filenames
