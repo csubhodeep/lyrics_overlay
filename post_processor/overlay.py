@@ -11,8 +11,9 @@ from PIL import ImageFont
 
 from configs.make_config import Config
 
+import random
 FONT_LIB_PATH = Path(__file__).parent.joinpath("font_lib")
-DEFAULT_FONT_NAME = "yatra_one.ttf"
+#DEFAULT_FONT_NAME = random.choice(["yatra_one.ttf", "chalk_font3.ttf", "Debby.ttf"])
 DEBUG_DRAW = False
 
 
@@ -286,6 +287,7 @@ def overlay(conf: Config):
                     ######################
                     # You may need to convert the color.
                     img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                    DEFAULT_FONT_NAME = random.choice(["yatra_one.ttf", "chalk_font3.ttf", "Debby.ttf"])
                     drawn_pil_img = draw_text_inside_box(
                         image=Image.fromarray(img),
                         x=text_box_x1,
