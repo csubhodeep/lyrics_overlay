@@ -24,12 +24,30 @@ def len_of_text_list(text: Tuple[str, ...]) -> int:
     return length
 
 
+def resize_point(img_shape: Tuple[int, int], old_img_size: int, coords: Point) -> Point:
+
+    if img_shape[1] >= img_shape[0]:  # for landscape frames
+        # unitary method - if image has height = 500 and width = 700
+        # for 500 height, width = 700 therefore, for height = 416, width = (700/500)*416
+        width = int(img_shape[1] * old_img_size / img_shape[0])
+        height = old_img_size
+    else:
+        height = int(img_shape[0] * old_img_size / img_shape[1])
+        width = old_img_size
+
+    x = int((coords.x / width) * img_shape[1])
+    y = int((coords.y / height) * img_shape[0])
+
+    return Point(coords=(x, y))
+
+
+# it takes x,y , w and h of resized text box (resized according to original image)
 def find_font_size_and_pattern(lyrics_box: Box, lyrics: Lyrics):
-    pattern = int(lyrics_box.width / lyrics_box.height) + 1
+    pattern = int(lyrics_box.width / lyrics_box.width) + 1
     if pattern < 2:
         pattern = 2
-    elif pattern > 5:
-        pattern = 5
+    elif pattern > 7:  # 7 worked best for ed sheeren perfect, o o jaane jaana
+        pattern = 7
     max_width = 0
     num_lines = ceil(len(lyrics.text) / pattern)
     for i in range(0, len(lyrics.text), pattern):
@@ -37,12 +55,22 @@ def find_font_size_and_pattern(lyrics_box: Box, lyrics: Lyrics):
         if length > max_width:
             max_width = length
     max_width += 2
-    font_size_init = int(lyrics_box.height / (num_lines + 1))
-    for size in range(font_size_init, int(font_size_init / 4), -1):
-        if (size / 2) * max_width < lyrics_box.width:
-            return size, pattern
+    best_font_size_based_on_height = int(
+        lyrics_box.height / (num_lines + 1)
+    )  # we can go smaller than this
+    best_font_size_based_on_width = int(
+        2 * lyrics_box.height / max_width
+    )  # we can go smaller than this
+    best_font_size = min(best_font_size_based_on_height, best_font_size_based_on_width)
 
-    return False, False
+    return best_font_size, pattern
+
+
+def find_size_pattern(row) -> Tuple[int, int]:
+
+    # lyrics = Lyrics(text=row["text"])
+
+    return 0, 0
 
 
 def get_expected_box_dims(lyrics: Lyrics, font_size: int, form: int) -> Tuple[int, int]:
