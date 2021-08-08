@@ -164,7 +164,12 @@ def get_optimal_boxes(row, conf: Config) -> Dict[str, Union[int, float]]:
                 x3 = int(round(res.x[2]))
                 y3 = int(round(res.x[3]))
                 x1, y1, x3, y3 = add_variation(
-                    x1, y1, x3, y3, canvas_shape=(conf.img_height, conf.img_width)
+                    x1,
+                    y1,
+                    x3,
+                    y3,
+                    canvas_shape=(conf.img_height, conf.img_width),
+                    small_box_probability=0.7,
                 )
             else:
                 x1, y1, x3, y3 = get_bottom_box(conf)

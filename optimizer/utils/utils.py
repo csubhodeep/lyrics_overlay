@@ -218,17 +218,14 @@ def is_box_big_enough_to_be_made_smaller_for_variation(
 
 
 def add_variation(
-    x1,
-    y1,
-    x3,
-    y3,
-    canvas_shape: Tuple[int, int],
-    probability: Tuple[float, float] = (0.5, 0.5),
+    x1, y1, x3, y3, canvas_shape: Tuple[int, int], small_box_probability: float = 0.5
 ) -> Tuple[int, int, int, int]:
 
     if (
         is_box_big_enough_to_be_made_smaller_for_variation(x1, y1, x3, y3, canvas_shape)
-        and random.choices([True, False], weights=probability)[0]
+        and random.choices(
+            [True, False], weights=[small_box_probability, 1 - small_box_probability]
+        )[0]
     ):
         x1_ = x1 + 0.1 * (x3 - x1)
         x3_ = x3 - 0.1 * (x3 - x1)
