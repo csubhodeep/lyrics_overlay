@@ -245,7 +245,7 @@ def get_bottom_box(conf: Config) -> Tuple[int, int, int, int]:
     x = conf.img_width // 2
     y = int(conf.img_height * 0.90)
     x1 = x - conf.img_width // 4
-    y1 = y - int(0.15 * conf.img_height)
+    y1 = y - int(0.30 * conf.img_height)
     x3 = x + conf.img_width // 4
     y3 = y
 

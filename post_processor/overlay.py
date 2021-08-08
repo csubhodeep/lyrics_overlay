@@ -1,3 +1,4 @@
+import random
 from pathlib import Path
 
 import cv2
@@ -10,8 +11,8 @@ from PIL import ImageFont
 from configs.make_config import Config
 
 FONT_LIB_PATH = Path(__file__).parent.joinpath("font_lib")
-DEFAULT_FONT_NAME = "yatra_one.ttf"
-DEBUG_DRAW = False
+# DEFAULT_FONT_NAME = "Black.otf"
+DEBUG_DRAW = True
 
 
 """
@@ -50,27 +51,32 @@ def draw_text_inside_box(
         text_line = " ".join(text.split(" ")[i : i + pattern])
 
         # thin border
-
+        # draw.text(
+        #     (text_x - shadow_width, text_y),
+        #     text_line,
+        #     font=shadow_font,
+        #     fill=shadowcolor,
+        # )
+        # draw.text(
+        #     (text_x + shadow_width, text_y),
+        #     text_line,
+        #     font=shadow_font,
+        #     fill=shadowcolor,
+        # )
+        # draw.text(
+        #     (text_x, text_y - shadow_width),
+        #     text_line,
+        #     font=shadow_font,
+        #     fill=shadowcolor,
+        # )
+        # draw.text(
+        #     (text_x, text_y + shadow_width),
+        #     text_line,
+        #     font=shadow_font,
+        #     fill=shadowcolor,
+        # )
         draw.text(
-            (text_x - shadow_width, text_y),
-            text_line,
-            font=shadow_font,
-            fill=shadowcolor,
-        )
-        draw.text(
-            (text_x + shadow_width, text_y),
-            text_line,
-            font=shadow_font,
-            fill=shadowcolor,
-        )
-        draw.text(
-            (text_x, text_y - shadow_width),
-            text_line,
-            font=shadow_font,
-            fill=shadowcolor,
-        )
-        draw.text(
-            (text_x, text_y + shadow_width),
+            (text_x + shadow_width, text_y + shadow_width),
             text_line,
             font=shadow_font,
             fill=shadowcolor,
@@ -146,6 +152,9 @@ def overlay(conf: Config):
                 ):
                     if not computation_done_for_one_lyrics_line:
                         # TODO: take this hard-coding to config file
+                        DEFAULT_FONT_NAME = random.choice(
+                            ["Playlist_Script.otf", "Black.otf", "yatra_one.ttf"]
+                        )
                         color = (255, 0, 0)
                         color_opti = (0, 255, 0)
                         thickness = 2
@@ -190,6 +199,15 @@ def overlay(conf: Config):
                     ######################
                     # You may need to convert the color.
                     img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                    # #### debug ## text animation
+                    # text_box_x1 = text_box_x1 + random.choice([int(-size/20), int(size/20)])
+                    # text_box_y1 = text_box_y1 + random.choice([int(-size/20), int(size/20)])
+                    # ###
+
+                    # debug minimum font size
+                    # this will sure someday put text outside frame
+                    # but we need to solve this
+                    ########
                     drawn_pil_img = draw_text_inside_box(
                         image=Image.fromarray(img),
                         x1=lyrics_and_boxes_df.loc[lyrics_index, "x1_opti"],
@@ -203,7 +221,6 @@ def overlay(conf: Config):
                             lyrics_index, "pattern"
                         ],  # not using pattern from optimizer
                     )
-
                     frame = cv2.cvtColor(np.asarray(drawn_pil_img), cv2.COLOR_RGB2BGR)
 
                 # Write the frame into the file 'output.avi'

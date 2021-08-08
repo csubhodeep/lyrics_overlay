@@ -5,7 +5,7 @@
   },
   "sample": {
     "min_output_frame_dim": 416,
-    "sampling_fps": 120, // use high sampling like 120 when video doesnt have transitions and 10-20 when video has many transitions (like rap videos)
+    "sampling_fps": 30, // use high sampling like 120 when video doesnt have transitions and 10-20 when video has many transitions (like rap videos)
     "output_data_path": "./data/pre_processor_output"
   },
   "detect_persons": {
