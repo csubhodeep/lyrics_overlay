@@ -24,25 +24,8 @@ def len_of_text_list(text: Tuple[str, ...]) -> int:
     return length
 
 
-def resize_point(img_shape: Tuple[int, int], old_img_size: int, coords: Point) -> Point:
-
-    if img_shape[1] >= img_shape[0]:  # for landscape frames
-        # unitary method - if image has height = 500 and width = 700
-        # for 500 height, width = 700 therefore, for height = 416, width = (700/500)*416
-        width = int(img_shape[1] * old_img_size / img_shape[0])
-        height = old_img_size
-    else:
-        height = int(img_shape[0] * old_img_size / img_shape[1])
-        width = old_img_size
-
-    x = int((coords.x / width) * img_shape[1])
-    y = int((coords.y / height) * img_shape[0])
-
-    return Point(coords=(x, y))
-
-
 # it takes x,y , w and h of resized text box (resized according to original image)
-def find_font_size_and_pattern(lyrics_box: Box, lyrics: Lyrics):
+def calculate_font_size_and_pattern(lyrics_box: Box, lyrics: Lyrics):
     pattern = int(lyrics_box.width / lyrics_box.width) + 1
     if pattern < 2:
         pattern = 2
@@ -66,11 +49,16 @@ def find_font_size_and_pattern(lyrics_box: Box, lyrics: Lyrics):
     return best_font_size, pattern
 
 
-def find_size_pattern(row) -> Tuple[int, int]:
+def find_size_pattern(row, conf: Config) -> Tuple[int, int]:
 
-    # lyrics = Lyrics(text=row["text"])
+    lyrics = Lyrics(text=row["text"])
 
-    return 0, 0
+    box = Box(
+        first_diagonal_coords=Point(coords=(row["x1_opti"], row["y1_opti"])),
+        second_diagonal_coords=Point(coords=(row["x3_opti"], row["y3_opti"])),
+    )
+
+    return calculate_font_size_and_pattern(box, lyrics)
 
 
 def get_expected_box_dims(lyrics: Lyrics, font_size: int, form: int) -> Tuple[int, int]:
