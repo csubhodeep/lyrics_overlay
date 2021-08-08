@@ -1,10 +1,12 @@
 import random
 from math import ceil
 from math import sqrt
+from pathlib import Path
 from statistics import mean
 from typing import List
 from typing import Tuple
 
+import cv2
 import numpy as np
 
 from configs.make_config import Config
@@ -49,6 +51,25 @@ def calculate_font_size_and_pattern(lyrics_box: Box, lyrics: Lyrics):
     return best_font_size, pattern
 
 
+def get_size_of_original_video(conf: Config) -> Tuple[int, int]:
+    # TODO: make it better
+
+    input_video_file_name = (
+        Path.cwd().joinpath(conf.video_input_path).joinpath(f"{conf.run_id}.mp4")
+    )
+
+    cap = cv2.VideoCapture(str(input_video_file_name))
+
+    while cap.isOpened():
+        ret, frame = cap.read()
+        break
+
+    cap.release()
+    cv2.destroyAllWindows()
+
+    return frame.shape
+
+
 def find_size_pattern(row, conf: Config) -> Tuple[int, int]:
 
     lyrics = Lyrics(text=row["text"])
@@ -58,8 +79,10 @@ def find_size_pattern(row, conf: Config) -> Tuple[int, int]:
         second_diagonal_coords=Point(coords=(row["x3_opti"], row["y3_opti"])),
     )
 
-    # FIXME: get original frame size of the video here
-    # box.resize(new_canvas_shape=frame.shape, old_canvas_shape=(conf.img_height, conf.img_width))
+    box.resize(
+        new_canvas_shape=get_size_of_original_video(conf),
+        old_canvas_shape=(conf.img_height, conf.img_width),
+    )
 
     return calculate_font_size_and_pattern(box, lyrics)
 

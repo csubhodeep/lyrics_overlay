@@ -22,6 +22,7 @@
     "lyrics_input_path": "./data/pre_processor_output"
   },
   "optimization": {
+    "video_input_path": "./data/input",
     "output_data_path": "./data/optimizer_output"
   },
   "overlay": {
