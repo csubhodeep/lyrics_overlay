@@ -29,8 +29,8 @@ def fetch_data(conf: Config) -> bool:
     lyrics_name = "perfect.csv"
     # video_name = "gul.mp4"
     # lyrics_name = "gul.csv"
-    # video_name = "fancy_like_360p.mp4"
-    # lyrics_name = "fancy_like.csv"
+    video_name = "fancy_like_360p.mp4"
+    lyrics_name = "fancy_like.csv"
     input_file_path_video = (
         Path.cwd().joinpath(conf.input_data_path).joinpath(video_name)
     )
