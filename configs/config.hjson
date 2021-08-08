@@ -12,8 +12,6 @@
     "conf_thresh": 0.8,
     "nms_thresh": 0.4,
     "img_size": 416,
-    "img_height": 10,
-    "img_width": 10,
     "config_path": "./person_box_detector/config/yolov3.cfg",
     "weights_path": "./person_box_detector/config/yolov3.weights",
     "class_path": "./person_box_detector/config/coco.names",
@@ -24,8 +22,6 @@
     "lyrics_input_path": "./data/pre_processor_output"
   },
   "optimization": {
-    "img_height": 10,
-    "img_width": 10,
     "output_data_path": "./data/optimizer_output"
   },
   "overlay": {
