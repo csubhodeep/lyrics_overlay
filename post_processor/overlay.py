@@ -151,6 +151,7 @@ def overlay(conf: Config):
                     <= lyrics_and_boxes_df.loc[lyrics_index, "end_time"]
                 ):
                     if not computation_done_for_one_lyrics_line:
+                        # read WAND image from disk
                         # TODO: take this hard-coding to config file
                         DEFAULT_FONT_NAME = random.choice(
                             ["Playlist_Script.otf", "Black.otf", "yatra_one.ttf"]
