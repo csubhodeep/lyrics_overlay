@@ -19,7 +19,6 @@ from optimizer.lib.defs import Point
 from optimizer.utils.params import LossFunctionParameters
 from optimizer.utils.params import OptimizerParameters
 from optimizer.utils.utils import add_variation
-from optimizer.utils.utils import find_size_pattern
 from optimizer.utils.utils import get_bottom_box
 from optimizer.utils.utils import get_norm_distance_from_image_edges
 from optimizer.utils.utils import get_overlapping_area
@@ -234,10 +233,6 @@ def optimize(conf: Config) -> bool:
     df_input[["x1_opti", "y1_opti", "x3_opti", "y3_opti"]] = df_input[
         ["x1_opti", "y1_opti", "x3_opti", "y3_opti"]
     ].astype(int)
-
-    df_input[["font_size", "pattern"]] = df_input.apply(
-        find_size_pattern, axis=1, args=(conf,), result_type="expand"
-    )
 
     df_input.to_feather(output_file_path)
 
