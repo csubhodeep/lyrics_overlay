@@ -1,11 +1,16 @@
+import math
+from pathlib import Path
+from typing import Dict
+from typing import List
+from typing import Tuple
+from typing import Union
+
 import cv2
 import mediapipe as mp
-from pathlib import Path
-import pandas as pd
-from configs.make_config import Config
 import numpy as np
-from typing import Dict, List, Tuple, Union
-import math
+import pandas as pd
+
+from configs.make_config import Config
 
 PRESENCE_THRESHOLD = 0.5
 RGB_CHANNELS = 3
@@ -13,17 +18,21 @@ RED_COLOR = (0, 0, 255)
 VISIBILITY_THRESHOLD = 0.5
 
 
-def _normalized_to_pixel_coordinates(normalized_x: float, normalized_y: float, image_width: int,
-                                     image_height: int) -> Union[None, Tuple[int, int]]:
+def _normalized_to_pixel_coordinates(
+    normalized_x: float, normalized_y: float, image_width: int, image_height: int
+) -> Union[None, Tuple[int, int]]:
     """Converts normalized value pair to pixel coordinates."""
 
     # Checks if the float value is between 0 and 1.
     def is_valid_normalized_value(value: float) -> bool:
-        return (value > 0 or math.isclose(0, value)) and (value < 1 or
-                                                          math.isclose(1, value))
+        return (value > 0 or math.isclose(0, value)) and (
+            value < 1 or math.isclose(1, value)
+        )
 
-    if not (is_valid_normalized_value(normalized_x) and
-            is_valid_normalized_value(normalized_y)):
+    if not (
+        is_valid_normalized_value(normalized_x)
+        and is_valid_normalized_value(normalized_y)
+    ):
         # TODO: Draw coordinates even if it's outside of the image bounds.
         return None
     x_px = min(math.floor(normalized_x * image_width), image_width - 1)
@@ -36,13 +45,14 @@ def person_bounding_box(frame, normalized_body_keypoints_1person):
     image_rows, image_cols, _ = frame.shape
     idx_to_coordinates = {}
     for idx, landmark in enumerate(normalized_body_keypoints_1person.landmark):
-        if ((landmark.HasField('visibility') and
-             landmark.visibility < VISIBILITY_THRESHOLD) or
-                (landmark.HasField('presence') and
-                 landmark.presence < PRESENCE_THRESHOLD)):
+        if (
+            landmark.HasField("visibility")
+            and landmark.visibility < VISIBILITY_THRESHOLD
+        ) or (landmark.HasField("presence") and landmark.presence < PRESENCE_THRESHOLD):
             continue
-        landmark_px = _normalized_to_pixel_coordinates(landmark.x, landmark.y,
-                                                       image_cols, image_rows)
+        landmark_px = _normalized_to_pixel_coordinates(
+            landmark.x, landmark.y, image_cols, image_rows
+        )
         if landmark_px:
             idx_to_coordinates[idx] = landmark_px
     x_min = image_cols
@@ -61,18 +71,18 @@ def person_bounding_box(frame, normalized_body_keypoints_1person):
 
     # padding for safety # this could come based on bodykeypoints
     if x_max > 0:  # valid box
-        padding = .20*(x_max - x_min)  # 10% of width of bounding box
+        padding = 0.20 * (x_max - x_min)  # 10% of width of bounding box
 
-    person = {"x1": max(x_min-padding, 0),
-              "y1": max(y_min-padding, 0),
-              "x3": min(x_max+padding, image_cols),
-              "y3": min(y_max+padding, image_rows)}
+    person = {
+        "x1": max(x_min - padding, 0),
+        "y1": max(y_min - padding, 0),
+        "x3": min(x_max + padding, image_cols),
+        "y3": min(y_max + padding, image_rows),
+    }
     return person
 
 
-def get_persons(
-    frame_info: Tuple[np.ndarray, Path], model,
-) -> List[Dict[str, float]]:
+def get_persons(frame_info: Tuple[np.ndarray, Path], model) -> List[Dict[str, float]]:
 
     frame = cv2.cvtColor(frame_info[0], cv2.COLOR_BGR2RGB)
 
@@ -80,10 +90,7 @@ def get_persons(
     if results.pose_landmarks is not None:
         person = person_bounding_box(frame, results.pose_landmarks)
     else:
-        person = {"x1": -1,
-                  "y1": -1,
-                  "x3": -1,
-                  "y3": -1}
+        person = {"x1": -1, "y1": -1, "x3": -1, "y3": -1}
     person["frame"] = float(frame_info[1].name.rstrip(".npy"))
     return [person]
 
@@ -94,9 +101,7 @@ def detect_persons(conf: Config) -> bool:
         Path.cwd().joinpath(conf.output_data_path).joinpath(f"{conf.run_id}.feather")
     )
     mp_pose = mp.solutions.pose
-    model = mp_pose.Pose(
-        min_detection_confidence=0.5,
-        min_tracking_confidence=0.5)
+    model = mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5)
     result_df = pd.DataFrame()
 
     persons = []
@@ -105,7 +110,7 @@ def detect_persons(conf: Config) -> bool:
             frame = np.load(f)
         persons.extend(
             get_persons(frame_info=(frame, item), model=model)
-             # this should be dict of x1 y1 x3 y3 frame
+            # this should be dict of x1 y1 x3 y3 frame
         )
 
     for person in persons:

@@ -1,0 +1,4 @@
+-r requirements.txt
+matplotlib
+pip-tools
+pre-commit

@@ -91,8 +91,9 @@ def split(conf: Config) -> bool:
         for df in list_of_split_dfs:
             x1, y1, x3, y3 = do_union(df)
             row = {
-                "start_time": df["frame"].min(),
-                "end_time": df["frame"].max(),
+                # incase we plan to cut the video further we will need to use frame start and end times
+                "start_time": row["start_time"],  # df["frame"].min(),
+                "end_time": row["end_time"],  # df["frame"].max(),
                 "text": row["text"],
                 "font_type": row["font_type"],
                 "x1": x1,

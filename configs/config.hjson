@@ -5,15 +5,15 @@
   },
   "sample": {
     "min_output_frame_dim": 416,
-    "sampling_fps": 5,
+    "sampling_fps": 120, // use high sampling like 120 when video doesnt have transitions and 10-20 when video has many transitions (like rap videos)
     "output_data_path": "./data/pre_processor_output"
   },
   "detect_persons": {
     "conf_thresh": 0.8,
     "nms_thresh": 0.4,
     "img_size": 416,
-    "img_height": 416,
-    "img_width": 739,
+    "img_height": 10,
+    "img_width": 10,
     "config_path": "./person_box_detector/config/yolov3.cfg",
     "weights_path": "./person_box_detector/config/yolov3.weights",
     "class_path": "./person_box_detector/config/coco.names",
@@ -24,8 +24,8 @@
     "lyrics_input_path": "./data/pre_processor_output"
   },
   "optimization": {
-    "img_height": 416,
-    "img_width": 739,
+    "img_height": 10,
+    "img_width": 10,
     "output_data_path": "./data/optimizer_output"
   },
   "overlay": {

@@ -1,11 +1,9 @@
-import random
 from pathlib import Path
 from typing import Dict
 from typing import List
 from typing import Tuple
 
 import cv2
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import torch
@@ -62,7 +60,8 @@ def detect_image(
 def post_process_detection(
     detections, classes, pilimg: Image, conf: Config
 ) -> List[Dict[str, float]]:
-
+    image_height = pilimg.size[1]
+    image_width = pilimg.size[0]
     list_of_persons = []
     img = np.array(pilimg)
     pad_x = max(img.shape[0] - img.shape[1], 0) * (conf.img_size / max(img.shape))
@@ -80,10 +79,10 @@ def post_process_detection(
             y3 = y1 + box_h
             list_of_persons.append(
                 {
-                    "x1": np.clip(x1, 0, conf.img_width - 1),
-                    "y1": np.clip(y1, 0, conf.img_height - 1),
-                    "x3": np.clip(x3, 0, conf.img_width - 1),
-                    "y3": np.clip(y3, 0, conf.img_height - 1),
+                    "x1": np.clip(x1, 0, image_width - 1),
+                    "y1": np.clip(y1, 0, image_height - 1),
+                    "x3": np.clip(x3, 0, image_width - 1),
+                    "y3": np.clip(y3, 0, image_height - 1),
                 }
             )
 
@@ -107,7 +106,15 @@ def get_persons(
 
         return persons
     else:
-        return [{"x1": -1, "y1": -1, "x3": -1, "y3": -1, "frame": float(frame_info[1].name.rstrip(".npy"))}]
+        return [
+            {
+                "x1": -1,
+                "y1": -1,
+                "x3": -1,
+                "y3": -1,
+                "frame": float(frame_info[1].name.rstrip(".npy")),
+            }
+        ]
 
 
 def detect_persons(conf: Config) -> bool:
@@ -148,7 +155,7 @@ if __name__ == "__main__":
     config = Config(
         input_data_path="../data/pre_processor_output",
         output_data_path="../data/person_box_detector_output",
-        run_id="999c0dfd-3017-4359-a902-3960489f8b48",
+        run_id="bffaf4d5-bdd3-4563-8af1-f90d8b1601aa",
         conf_thresh=0.8,
         nms_thresh=0.4,
         img_size=416,

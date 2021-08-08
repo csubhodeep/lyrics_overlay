@@ -5,7 +5,7 @@ from typing import Union
 
 import hjson
 
-from pipeline.lib.decorators import make_immutable
+# from pipeline.lib.decorators import make_immutable
 
 
 class Config:
@@ -35,7 +35,7 @@ class Config:
         for k, v in kwargs.items():
             self.__setattr__(k, v)
 
-    @make_immutable(allowed_settable_attributes=())
+    # @make_immutable(allowed_settable_attributes=())
     def __setattr__(self, key, value):
         """This function ensures immutability of every instance of this class"""
         self.__dict__[key] = value

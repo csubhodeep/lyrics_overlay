@@ -1,10 +1,13 @@
+import random
 from math import ceil
+from math import sqrt
 from statistics import mean
 from typing import List
 from typing import Tuple
 
 import numpy as np
 
+from configs.make_config import Config
 from optimizer.lib.defs import Box
 from optimizer.lib.defs import LineSegment
 from optimizer.lib.defs import Lyrics
@@ -72,7 +75,9 @@ def text_fits_box(expected_width: int, expected_height: int, box: Box) -> bool:
     )
 
 
-def is_box_big_enough(canvas_shape: Tuple[int, int], lyrics_box: Box) -> bool:
+def is_lyrics_box_big_enough_to_be_readable(
+    canvas_shape: Tuple[int, int], lyrics_box: Box
+) -> bool:
 
     # width and height of lyrics-box should be greater than 20% of width & 10% height of the image
     return (
@@ -94,13 +99,23 @@ def get_overlap_with_mask(image: np.ndarray, lyrics_box: Box, padding: int):
     return score
 
 
-def get_distance_from_image_edges(canvas_shape: Tuple[int, int], box: Box) -> List[int]:
-    distance_edge_1 = box.vertex_1.x
-    distance_edge_2 = canvas_shape[1] - box.vertex_3.x
-    distance_edge_3 = box.vertex_1.y
-    distance_edge_4 = canvas_shape[0] - box.vertex_3.y
+def get_norm_distance_from_image_edges(
+    canvas_shape: Tuple[int, int], box: Box
+) -> List[float]:
 
-    return [distance_edge_1, distance_edge_2, distance_edge_3, distance_edge_4]
+    canvas_diag_length = sqrt(canvas_shape[0] ** 2 + canvas_shape[1] ** 2)
+
+    distance_edge_left = box.vertex_1.x / canvas_diag_length
+    distance_edge_right = (canvas_shape[1] - box.vertex_3.x) / canvas_diag_length
+    distance_edge_top = box.vertex_1.y / canvas_diag_length
+    distance_edge_bottom = (canvas_shape[0] - box.vertex_3.y) / canvas_diag_length
+
+    return [
+        distance_edge_left,
+        distance_edge_right,
+        distance_edge_top,
+        distance_edge_bottom,
+    ]
 
 
 def get_combined_box(boxes: Tuple[Box, ...]) -> Box:
@@ -160,3 +175,62 @@ def get_preferred_centre(boxes: Tuple[Box, ...], image: np.ndarray) -> Point:
         print("do something else")
 
     return preferred_centre
+
+
+def get_overlapping_area(box_1: Box, box_2: Box) -> int:
+
+    if not box_1.is_overlapping(box_2):
+        return 0
+
+    # make overlap box
+    x1 = max(box_1.vertex_1.x, box_2.vertex_1.x)
+    y1 = max(box_1.vertex_1.y, box_2.vertex_1.y)
+    x3 = min(box_1.vertex_3.x, box_2.vertex_3.x)
+    y3 = min(box_1.vertex_3.y, box_2.vertex_3.y)
+
+    try:
+        return Box(
+            first_diagonal_coords=Point((x1, y1)),
+            second_diagonal_coords=Point((x3, y3)),
+        ).area
+    except AssertionError:
+        # there are only 2 cases when the above fail -
+        # if the two boxes touch each other with a line or a point
+        return 0
+
+
+def get_bottom_box(conf: Config) -> Tuple[int, int, int, int]:
+    x = conf.img_width // 2
+    y = int(conf.img_height * 0.90)
+    x1 = x - conf.img_width // 4
+    y1 = y - int(0.15 * conf.img_height)
+    x3 = x + conf.img_width // 4
+    y3 = y
+
+    return x1, y1, x3, y3
+
+
+def is_box_big_enough_to_be_made_smaller_for_variation(
+    x1, y1, x3, y3, canvas_shape: Tuple[int, int]
+) -> bool:
+
+    return (x3 - x1) * (y3 - y1) / (canvas_shape[0] * canvas_shape[1]) > 0.35
+
+
+def add_variation(
+    x1, y1, x3, y3, canvas_shape: Tuple[int, int], small_box_probability: float = 0.5
+) -> Tuple[int, int, int, int]:
+
+    if (
+        is_box_big_enough_to_be_made_smaller_for_variation(x1, y1, x3, y3, canvas_shape)
+        and random.choices(
+            [True, False], weights=[small_box_probability, 1 - small_box_probability]
+        )[0]
+    ):
+        x1_ = x1 + 0.1 * (x3 - x1)
+        x3_ = x3 - 0.1 * (x3 - x1)
+        y1_ = y1 + 0.1 * (y3 - y1)
+        y3_ = y3 - 0.1 * (y3 - y1)
+        return int(round(x1_)), int(round(y1_)), int(round(x3_)), int(round(y3_))
+    else:
+        return x1, y1, x3, y3

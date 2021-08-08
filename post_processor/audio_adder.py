@@ -32,7 +32,7 @@ if __name__ == "__main__":
         input_data_path="../data/overlayer_output",
         output_data_path="../data/final_output",
         video_input_path="../data/input",
-        run_id="1e8e31c5-fa0d-482b-8e40-7c1c1eff769d"
+        run_id="1e8e31c5-fa0d-482b-8e40-7c1c1eff769d",
     )
 
     add_audio(conf=config)
