@@ -14,7 +14,7 @@ from configs.make_config import Config
 import random
 FONT_LIB_PATH = Path(__file__).parent.joinpath("font_lib")
 #DEFAULT_FONT_NAME = "Black.otf"
-DEBUG_DRAW = False
+DEBUG_DRAW = True
 
 
 """
@@ -81,7 +81,7 @@ def draw_text_inside_box(
     # draw.rectangle(((x, y), (x+w, y+h)), fill="black") #only debug purpose
     text_x = int(x + font_size / 2)
     text_y = int(y + font_size / 4)
-    shadow_width = int(font_size/10)
+    shadow_width = int(font_size/15)
     shadowcolor = (0, 0, 0, 50)
     shadow_font = ImageFont.truetype(str(font_path), font_size)
     for i in range(0, len(text), pattern):
@@ -214,8 +214,8 @@ def overlay(conf: Config):
                     <= lyrics_and_boxes_df.loc[lyrics_index, "end_time"]
                 ):
                     if not computation_done_for_one_lyrics_line:
-                        #DEFAULT_FONT_NAME = random.choice(["Playlist_Script.otf", "Black.otf", "yatra_one.ttf"])
-                        DEFAULT_FONT_NAME = "Playlist_Script.otf"
+                        DEFAULT_FONT_NAME = random.choice(["Playlist_Script.otf", "Black.otf", "yatra_one.ttf"])
+                        # DEFAULT_FONT_NAME = "Playlist_Script.otf"
                         first_diag_coord = (
                             lyrics_and_boxes_df.loc[lyrics_index, "x1"],
                             lyrics_and_boxes_df.loc[lyrics_index, "y1"],
