@@ -58,6 +58,9 @@ def find_size_pattern(row, conf: Config) -> Tuple[int, int]:
         second_diagonal_coords=Point(coords=(row["x3_opti"], row["y3_opti"])),
     )
 
+    # FIXME: get original frame size of the video here
+    # box.resize(new_canvas_shape=frame.shape, old_canvas_shape=(conf.img_height, conf.img_width))
+
     return calculate_font_size_and_pattern(box, lyrics)
 
 
