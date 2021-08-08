@@ -26,7 +26,7 @@ def len_of_text_list(text: Tuple[str, ...]) -> int:
 
 # it takes x,y , w and h of resized text box (resized according to original image)
 def calculate_font_size_and_pattern(lyrics_box: Box, lyrics: Lyrics):
-    pattern = int(lyrics_box.width / lyrics_box.width) + 1
+    pattern = int(lyrics_box.width / lyrics_box.height) + 1
     if pattern < 2:
         pattern = 2
     elif pattern > 7:  # 7 worked best for ed sheeren perfect, o o jaane jaana
@@ -42,7 +42,7 @@ def calculate_font_size_and_pattern(lyrics_box: Box, lyrics: Lyrics):
         lyrics_box.height / (num_lines + 1)
     )  # we can go smaller than this
     best_font_size_based_on_width = int(
-        2 * lyrics_box.height / max_width
+        2 * lyrics_box.width / max_width
     )  # we can go smaller than this
     best_font_size = min(best_font_size_based_on_height, best_font_size_based_on_width)
 
