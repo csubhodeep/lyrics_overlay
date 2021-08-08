@@ -171,6 +171,8 @@ urllib3==1.26.6
     #   requests
 virtualenv==20.7.0
     # via pre-commit
+wand==0.6.6
+    # via -r requirements/mac/requirements.txt
 wheel==0.36.2
     # via
     #   -r requirements/mac/requirements.txt

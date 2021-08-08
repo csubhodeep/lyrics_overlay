@@ -8,3 +8,4 @@ pyarrow
 scipy
 --find-links https://download.pytorch.org/whl/torch_stable.html
 torchvision==0.8.2+cpu
+wand

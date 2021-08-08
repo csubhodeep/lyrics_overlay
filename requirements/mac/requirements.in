@@ -7,3 +7,4 @@ pandas
 pyarrow
 scipy
 torchvision
+wand
