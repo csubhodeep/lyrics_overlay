@@ -81,34 +81,39 @@ def draw_text_inside_box(
     # draw.rectangle(((x, y), (x+w, y+h)), fill="black") #only debug purpose
     text_x = int(x + font_size / 2)
     text_y = int(y + font_size / 4)
-    shadow_width = 3
-    shadowcolor = (128, 128, 128, 50)
-    shadow_font = ImageFont.truetype(str(font_path), font_size + int(shadow_width / 2))
+    shadow_width = int(font_size/10)
+    shadowcolor = (0, 0, 0, 50)
+    shadow_font = ImageFont.truetype(str(font_path), font_size)
     for i in range(0, len(text), pattern):
-        text_line = " ".join(text.split(" ")[i : i + pattern])
+        text_line = " ".join(text.split(" ")[i: i + pattern])
 
         # thin border
-
+        # draw.text(
+        #     (text_x - shadow_width, text_y),
+        #     text_line,
+        #     font=shadow_font,
+        #     fill=shadowcolor,
+        # )
+        # draw.text(
+        #     (text_x + shadow_width, text_y),
+        #     text_line,
+        #     font=shadow_font,
+        #     fill=shadowcolor,
+        # )
+        # draw.text(
+        #     (text_x, text_y - shadow_width),
+        #     text_line,
+        #     font=shadow_font,
+        #     fill=shadowcolor,
+        # )
+        # draw.text(
+        #     (text_x, text_y + shadow_width),
+        #     text_line,
+        #     font=shadow_font,
+        #     fill=shadowcolor,
+        # )
         draw.text(
-            (text_x - shadow_width, text_y),
-            text_line,
-            font=shadow_font,
-            fill=shadowcolor,
-        )
-        draw.text(
-            (text_x + shadow_width, text_y),
-            text_line,
-            font=shadow_font,
-            fill=shadowcolor,
-        )
-        draw.text(
-            (text_x, text_y - shadow_width),
-            text_line,
-            font=shadow_font,
-            fill=shadowcolor,
-        )
-        draw.text(
-            (text_x, text_y + shadow_width),
+            (text_x + shadow_width, text_y + shadow_width),
             text_line,
             font=shadow_font,
             fill=shadowcolor,
@@ -209,6 +214,8 @@ def overlay(conf: Config):
                     <= lyrics_and_boxes_df.loc[lyrics_index, "end_time"]
                 ):
                     if not computation_done_for_one_lyrics_line:
+                        DEFAULT_FONT_NAME = random.choice(["yatra_one.ttf", "chalk_font3.ttf", "Debby.ttf"])
+                        DEFAULT_FONT_NAME = random.choice(["Debby.ttf"])
                         first_diag_coord = (
                             lyrics_and_boxes_df.loc[lyrics_index, "x1"],
                             lyrics_and_boxes_df.loc[lyrics_index, "y1"],
@@ -253,7 +260,7 @@ def overlay(conf: Config):
                         text_box_y1 = start_point_opti[1]
                         text_box_width = abs(start_point_opti[0] - end_point_opti[0])
                         text_box_height = abs(start_point_opti[1] - end_point_opti[1])
-                        lyrics_text = lyrics_and_boxes_df.loc[lyrics_index, "text"]
+                        lyrics_text = lyrics_and_boxes_df.loc[lyrics_index, "text"].replace("-", " ")
                         # calculate font size and pattern here from resize box
                         size, pattern = find_font_size_and_pattern(
                             text_box_x1,
@@ -287,7 +294,18 @@ def overlay(conf: Config):
                     ######################
                     # You may need to convert the color.
                     img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                    DEFAULT_FONT_NAME = random.choice(["yatra_one.ttf", "chalk_font3.ttf", "Debby.ttf"])
+                    # #### debug ## text animation
+                    # text_box_x1 = text_box_x1 + random.choice([int(-size/20), int(size/20)])
+                    # text_box_y1 = text_box_y1 + random.choice([int(-size/20), int(size/20)])
+                    # ###
+
+                    ## debug minimum font size
+                    # this will sure someday put text outside frame
+                    # but we need to solve this
+                    if size < 0.05*frame.shape[0]:
+                        size = int(0.05*frame.shape[0])
+                        print("Font size increased for line: ", lyrics_text)
+                    ########
                     drawn_pil_img = draw_text_inside_box(
                         image=Image.fromarray(img),
                         x=text_box_x1,
