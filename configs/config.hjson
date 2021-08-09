@@ -23,7 +23,8 @@
   },
   "optimization": {
     "video_input_path": "./data/input",
-    "output_data_path": "./data/optimizer_output"
+    "output_data_path": "./data/optimizer_output",
+    "small_box_probability": 0.7
   },
   "overlay": {
     "img_size": 416,

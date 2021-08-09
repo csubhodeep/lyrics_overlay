@@ -173,7 +173,7 @@ def get_optimal_boxes(row, conf: Config) -> Dict[str, Union[int, float]]:
                     x3,
                     y3,
                     canvas_shape=(conf.img_height, conf.img_width),
-                    small_box_probability=0.7,
+                    small_box_probability=conf.small_box_probability,
                 )
             else:
                 x1, y1, x3, y3 = get_bottom_box(conf)
