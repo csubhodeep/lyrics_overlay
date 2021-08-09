@@ -22,6 +22,11 @@ den we converted it to
 h=832,w=416
 """
 
+# TODO: take this hard-coding to config file
+COLOR_HUMAN_BOX = (255, 0, 0)
+COLOR_TEXT_BOX = (0, 255, 0)
+BOX_EDGE_THICKNESS = 2
+
 
 def overlay(conf: Config):
     """This function does the following:
@@ -87,12 +92,16 @@ def overlay(conf: Config):
                     <= lyrics_and_boxes_df.loc[lyrics_index, "end_time"]
                 ):
                     if not computation_done_for_one_lyrics_line:
-                        # TODO: take this hard-coding to config file
 
-                        color = (255, 0, 0)
-                        color_opti = (0, 255, 0)
-                        thickness = 2
+                        transparent_image_with_text = image.Image(
+                            filename=str(
+                                wand_folder_path.joinpath(
+                                    f"{lyrics_and_boxes_df.loc[lyrics_index, 'start_time']}.png"
+                                )
+                            )
+                        )
                         computation_done_for_one_lyrics_line = True
+                    # TODO : Wrap this in function if it will reduce space below
                     if DEBUG_DRAW:
                         frame = cv2.rectangle(
                             frame,
@@ -104,8 +113,8 @@ def overlay(conf: Config):
                                 lyrics_and_boxes_df.loc[lyrics_index, "x3"],
                                 lyrics_and_boxes_df.loc[lyrics_index, "y3"],
                             ),
-                            color,
-                            thickness,
+                            COLOR_HUMAN_BOX,
+                            BOX_EDGE_THICKNESS,
                         )
 
                         frame = cv2.rectangle(
@@ -118,18 +127,14 @@ def overlay(conf: Config):
                                 lyrics_and_boxes_df.loc[lyrics_index, "x3_opti"],
                                 lyrics_and_boxes_df.loc[lyrics_index, "y3_opti"],
                             ),
-                            color_opti,
-                            thickness,
+                            COLOR_TEXT_BOX,
+                            BOX_EDGE_THICKNESS,
                         )
+
                     img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                     wand_background_image = image.Image.from_array(img)
-                    transparent_image_with_text = image.Image(
-                        filename=str(
-                            wand_folder_path.joinpath(
-                                f"{lyrics_and_boxes_df.loc[lyrics_index, 'start_time']}.png"
-                            )
-                        )
-                    )
+                    # BOTTLENECK ######################
+                    # This takes around .1 second which is very slow
                     wand_background_image.composite(
                         transparent_image_with_text,
                         left=lyrics_and_boxes_df.loc[lyrics_index, "x1_opti"],
@@ -138,6 +143,7 @@ def overlay(conf: Config):
                     frame = cv2.cvtColor(
                         np.asarray(wand_background_image), cv2.COLOR_RGB2BGR
                     )
+                    ################################
 
                 # Write the frame into the file 'output.avi'
                 if frame_ts > lyrics_and_boxes_df.loc[lyrics_index, "end_time"]:
@@ -170,7 +176,7 @@ if __name__ == "__main__":
         input_data_path="../data/optimizer_output",
         video_input_path="../data/input",
         img_size=416,
-        run_id="350ade69-d2c0-4453-9178-ffa4d7887630",
+        run_id="e299765c-f5d1-412c-bc17-c1cae7a2a9f8",
     )
 
     overlay(conf=config)
