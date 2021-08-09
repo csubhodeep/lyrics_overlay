@@ -135,8 +135,9 @@ def overlay(conf: Config):
                     if DEBUG:
                         frame = draw_boxes(frame, lyrics_and_boxes_df, lyrics_index)
 
-                    img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                    wand_background_image = Image.from_array(img)
+                    wand_background_image = Image.from_array(
+                        cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                    )
                     # BOTTLENECK ######################
                     # This takes around .1 second which is very slow
                     wand_background_image.composite(
