@@ -9,6 +9,7 @@ if we got portrait image h1000, w=500
 den we converted it to
 h=832,w=416
 """
+import os
 from pathlib import Path
 
 import cv2
@@ -23,7 +24,43 @@ from configs.make_config import Config
 COLOR_HUMAN_BOX = (255, 0, 0)
 COLOR_TEXT_BOX = (0, 255, 0)
 BOX_EDGE_THICKNESS = 2
-DEBUG_DRAW = False
+
+if os.getenv("ENVIRONMENT") == "test":
+    DEBUG = True
+else:
+    DEBUG = False
+
+
+def draw_boxes(frame, lyrics_and_boxes_df: pd.DataFrame, lyrics_index: pd.Index):
+    frame = cv2.rectangle(
+        frame,
+        (
+            lyrics_and_boxes_df.loc[lyrics_index, "x1"],
+            lyrics_and_boxes_df.loc[lyrics_index, "y1"],
+        ),
+        (
+            lyrics_and_boxes_df.loc[lyrics_index, "x3"],
+            lyrics_and_boxes_df.loc[lyrics_index, "y3"],
+        ),
+        COLOR_HUMAN_BOX,
+        BOX_EDGE_THICKNESS,
+    )
+
+    frame = cv2.rectangle(
+        frame,
+        (
+            lyrics_and_boxes_df.loc[lyrics_index, "x1_opti"],
+            lyrics_and_boxes_df.loc[lyrics_index, "y1_opti"],
+        ),
+        (
+            lyrics_and_boxes_df.loc[lyrics_index, "x3_opti"],
+            lyrics_and_boxes_df.loc[lyrics_index, "y3_opti"],
+        ),
+        COLOR_TEXT_BOX,
+        BOX_EDGE_THICKNESS,
+    )
+
+    return frame
 
 
 def overlay(conf: Config):
@@ -32,11 +69,6 @@ def overlay(conf: Config):
     2- if frame is in current lyrics-time-range den draw rectangle
     3- if frame has already crossed lyrics-time-range. den lyrics index + = 1
     4- write frame
-
-    Args:
-        conf:
-
-    Returns:
 
     """
     file_name = conf.run_id
@@ -62,7 +94,7 @@ def overlay(conf: Config):
 
     # Check if camera opened successfully
     if not cap.isOpened():
-        print("Unable to read camera feed")
+        raise Exception("Unable to read camera feed")
 
     # Default resolutions of the frame are obtained.The default resolutions are system dependent.
     # We convert the resolutions from float to integer.
@@ -99,35 +131,9 @@ def overlay(conf: Config):
                             )
                         )
                         computation_done_for_one_lyrics_line = True
-                    # TODO : Wrap this in function if it will reduce space below
-                    if DEBUG_DRAW:
-                        frame = cv2.rectangle(
-                            frame,
-                            (
-                                lyrics_and_boxes_df.loc[lyrics_index, "x1"],
-                                lyrics_and_boxes_df.loc[lyrics_index, "y1"],
-                            ),
-                            (
-                                lyrics_and_boxes_df.loc[lyrics_index, "x3"],
-                                lyrics_and_boxes_df.loc[lyrics_index, "y3"],
-                            ),
-                            COLOR_HUMAN_BOX,
-                            BOX_EDGE_THICKNESS,
-                        )
 
-                        frame = cv2.rectangle(
-                            frame,
-                            (
-                                lyrics_and_boxes_df.loc[lyrics_index, "x1_opti"],
-                                lyrics_and_boxes_df.loc[lyrics_index, "y1_opti"],
-                            ),
-                            (
-                                lyrics_and_boxes_df.loc[lyrics_index, "x3_opti"],
-                                lyrics_and_boxes_df.loc[lyrics_index, "y3_opti"],
-                            ),
-                            COLOR_TEXT_BOX,
-                            BOX_EDGE_THICKNESS,
-                        )
+                    if DEBUG:
+                        frame = draw_boxes(frame, lyrics_and_boxes_df, lyrics_index)
 
                     img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                     wand_background_image = Image.from_array(img)
@@ -138,20 +144,17 @@ def overlay(conf: Config):
                         left=lyrics_and_boxes_df.loc[lyrics_index, "x1_opti"],
                         top=lyrics_and_boxes_df.loc[lyrics_index, "y1_opti"],
                     )
+                    ################################
                     frame = cv2.cvtColor(
                         np.asarray(wand_background_image), cv2.COLOR_RGB2BGR
                     )
-                    ################################
 
-                # Write the frame into the file 'output.avi'
                 if frame_ts > lyrics_and_boxes_df.loc[lyrics_index, "end_time"]:
                     lyrics_index += 1
                     computation_done_for_one_lyrics_line = False
 
+            # Write the frame into the file '*.avi'
             out.write(frame)
-
-            # Display the resulting frame
-            # cv2.imshow('frame',frame)
 
         # Break the loop
         else:
