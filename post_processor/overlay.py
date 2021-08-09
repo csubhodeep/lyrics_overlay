@@ -31,7 +31,7 @@ else:
     DEBUG = False
 
 
-def draw_boxes(frame, lyrics_and_boxes_df: pd.DataFrame, lyrics_index: pd.Index):
+def draw_boxes(frame, lyrics_and_boxes_df: pd.DataFrame, lyrics_index: int):
     frame = cv2.rectangle(
         frame,
         (
