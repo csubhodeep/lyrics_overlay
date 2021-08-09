@@ -27,17 +27,8 @@ class Point:
 
     def resize(self, new_img_shape: Tuple[int, int], old_img_shape: Tuple[int, int]):
 
-        if new_img_shape[1] >= new_img_shape[0]:  # for landscape frames
-            # unitary method - if image has height = 500 and width = 700
-            # for 500 height, width = 700 therefore, for height = 416, width = (700/500)*416
-            width = int(new_img_shape[1] * old_img_shape[0] / new_img_shape[0])
-            height = old_img_shape[0]
-        else:
-            height = int(new_img_shape[0] * old_img_shape[0] / new_img_shape[1])
-            width = old_img_shape[0]
-
-        self._x = int((self.x / width) * new_img_shape[1])
-        self._y = int((self.y / height) * new_img_shape[0])
+        self._x = int((self.x / old_img_shape[1]) * new_img_shape[1])
+        self._y = int((self.y / old_img_shape[0]) * new_img_shape[0])
 
 
 class LineSegment:
