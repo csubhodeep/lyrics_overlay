@@ -3,7 +3,7 @@ from pathlib import Path
 import cv2
 import numpy as np
 import pandas as pd
-from wand import image
+from wand.image import Image
 
 from configs.make_config import Config
 
@@ -93,7 +93,7 @@ def overlay(conf: Config):
                 ):
                     if not computation_done_for_one_lyrics_line:
 
-                        transparent_image_with_text = image.Image(
+                        transparent_image_with_text = Image(
                             filename=str(
                                 wand_folder_path.joinpath(
                                     f"{lyrics_and_boxes_df.loc[lyrics_index, 'start_time']}.png"
@@ -132,7 +132,7 @@ def overlay(conf: Config):
                         )
 
                     img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                    wand_background_image = image.Image.from_array(img)
+                    wand_background_image = Image.from_array(img)
                     # BOTTLENECK ######################
                     # This takes around .1 second which is very slow
                     wand_background_image.composite(
