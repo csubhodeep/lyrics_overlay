@@ -194,7 +194,7 @@ class Box:
     def resize(
         self, new_canvas_shape: Tuple[int, int], old_canvas_shape: Tuple[int, int]
     ):
-        for vtx in self.vertices:
+        for vtx in [self._first_diagonal_coords, self._second_diagonal_coords]:
             vtx.resize(new_img_shape=new_canvas_shape, old_img_shape=old_canvas_shape)
 
 

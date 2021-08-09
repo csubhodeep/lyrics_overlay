@@ -1,18 +1,13 @@
-import random
 from pathlib import Path
 
 import cv2
 import numpy as np
 import pandas as pd
-from PIL import Image
-from PIL import ImageDraw
-from PIL import ImageFont
+from wand import image
 
 from configs.make_config import Config
 
-FONT_LIB_PATH = Path(__file__).parent.joinpath("font_lib")
-# DEFAULT_FONT_NAME = "Black.otf"
-DEBUG_DRAW = True
+DEBUG_DRAW = False
 
 
 """
@@ -26,67 +21,6 @@ if we got portrait image h1000, w=500
 den we converted it to
 h=832,w=416
 """
-
-
-def draw_text_inside_box(
-    image: Image,
-    x1: int,
-    y1: int,
-    text: str,
-    pattern: int,
-    font_size: int,
-    font_path: Path,
-) -> Image:
-    image_rgba = image.convert("RGBA")
-    text_canvas = Image.new("RGBA", image.size, (255, 255, 255, 0))
-    draw = ImageDraw.Draw(text_canvas)
-    font = ImageFont.truetype(str(font_path), font_size)
-    # draw.rectangle(((x, y), (x+w, y+h)), fill="black") #only debug purpose
-    text_x = int(x1 + font_size / 2)
-    text_y = int(y1 + font_size / 4)
-    shadow_width = 3
-    shadowcolor = (128, 128, 128, 50)
-    shadow_font = ImageFont.truetype(str(font_path), font_size + int(shadow_width / 2))
-    for i in range(0, len(text), pattern):
-        text_line = " ".join(text.split(" ")[i : i + pattern])
-
-        # thin border
-        # draw.text(
-        #     (text_x - shadow_width, text_y),
-        #     text_line,
-        #     font=shadow_font,
-        #     fill=shadowcolor,
-        # )
-        # draw.text(
-        #     (text_x + shadow_width, text_y),
-        #     text_line,
-        #     font=shadow_font,
-        #     fill=shadowcolor,
-        # )
-        # draw.text(
-        #     (text_x, text_y - shadow_width),
-        #     text_line,
-        #     font=shadow_font,
-        #     fill=shadowcolor,
-        # )
-        # draw.text(
-        #     (text_x, text_y + shadow_width),
-        #     text_line,
-        #     font=shadow_font,
-        #     fill=shadowcolor,
-        # )
-        draw.text(
-            (text_x + shadow_width, text_y + shadow_width),
-            text_line,
-            font=shadow_font,
-            fill=shadowcolor,
-        )
-        # main text
-        draw.text((text_x, text_y), text_line, font=font)
-
-        text_y = text_y + font_size
-    combined_image = Image.alpha_composite(image_rgba, text_canvas)
-    return combined_image
 
 
 def overlay(conf: Config):
@@ -109,6 +43,8 @@ def overlay(conf: Config):
     lyrics_and_boxes_df = pd.read_feather(lyrics_boxes_file).sort_values(
         by="start_time"
     )
+
+    wand_folder_path = conf.input_data_path.joinpath(f"{conf.run_id}")
 
     input_video_file_name = (
         Path.cwd().joinpath(conf.video_input_path).joinpath(f"{file_name}.mp4")
@@ -151,11 +87,8 @@ def overlay(conf: Config):
                     <= lyrics_and_boxes_df.loc[lyrics_index, "end_time"]
                 ):
                     if not computation_done_for_one_lyrics_line:
-                        # read WAND image from disk
                         # TODO: take this hard-coding to config file
-                        DEFAULT_FONT_NAME = random.choice(
-                            ["Playlist_Script.otf", "Black.otf", "yatra_one.ttf"]
-                        )
+
                         color = (255, 0, 0)
                         color_opti = (0, 255, 0)
                         thickness = 2
@@ -188,41 +121,23 @@ def overlay(conf: Config):
                             color_opti,
                             thickness,
                         )
-                    ################
-                    # New feature
-                    # what if user provides a fix box for lyrics
-                    # the following box is for GUL video
-                    #####################
-                    # text_box_x1 = 130
-                    # text_box_y1 = 270
-                    # text_box_width = 240
-                    # text_box_height = 120
-                    ######################
-                    # You may need to convert the color.
                     img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                    # #### debug ## text animation
-                    # text_box_x1 = text_box_x1 + random.choice([int(-size/20), int(size/20)])
-                    # text_box_y1 = text_box_y1 + random.choice([int(-size/20), int(size/20)])
-                    # ###
-
-                    # debug minimum font size
-                    # this will sure someday put text outside frame
-                    # but we need to solve this
-                    ########
-                    drawn_pil_img = draw_text_inside_box(
-                        image=Image.fromarray(img),
-                        x1=lyrics_and_boxes_df.loc[lyrics_index, "x1_opti"],
-                        y1=lyrics_and_boxes_df.loc[lyrics_index, "y1_opti"],
-                        text=lyrics_and_boxes_df.loc[lyrics_index, "text"],
-                        font_path=FONT_LIB_PATH.joinpath(DEFAULT_FONT_NAME),
-                        font_size=lyrics_and_boxes_df.loc[
-                            lyrics_index, "font_size"
-                        ],  # not using size from optimizer
-                        pattern=lyrics_and_boxes_df.loc[
-                            lyrics_index, "pattern"
-                        ],  # not using pattern from optimizer
+                    wand_background_image = image.Image.from_array(img)
+                    transparent_image_with_text = image.Image(
+                        filename=str(
+                            wand_folder_path.joinpath(
+                                f"{lyrics_and_boxes_df.loc[lyrics_index, 'start_time']}.png"
+                            )
+                        )
                     )
-                    frame = cv2.cvtColor(np.asarray(drawn_pil_img), cv2.COLOR_RGB2BGR)
+                    wand_background_image.composite(
+                        transparent_image_with_text,
+                        left=lyrics_and_boxes_df.loc[lyrics_index, "x1_opti"],
+                        top=lyrics_and_boxes_df.loc[lyrics_index, "y1_opti"],
+                    )
+                    frame = cv2.cvtColor(
+                        np.asarray(wand_background_image), cv2.COLOR_RGB2BGR
+                    )
 
                 # Write the frame into the file 'output.avi'
                 if frame_ts > lyrics_and_boxes_df.loc[lyrics_index, "end_time"]:
@@ -255,7 +170,7 @@ if __name__ == "__main__":
         input_data_path="../data/optimizer_output",
         video_input_path="../data/input",
         img_size=416,
-        run_id="a36f77aa-ae02-40de-9fe1-ea6daa9522be",
+        run_id="350ade69-d2c0-4453-9178-ffa4d7887630",
     )
 
     overlay(conf=config)

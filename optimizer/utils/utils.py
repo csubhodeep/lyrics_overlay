@@ -1,18 +1,16 @@
 import random
-from math import ceil
 from math import sqrt
 from pathlib import Path
-from statistics import mean
 from typing import List
 from typing import Tuple
 
 import cv2
-import numpy as np
+from wand.drawing import Drawing
+from wand.font import Font
+from wand.image import Image
 
 from configs.make_config import Config
 from optimizer.lib.defs import Box
-from optimizer.lib.defs import LineSegment
-from optimizer.lib.defs import Lyrics
 from optimizer.lib.defs import Point
 
 
@@ -24,31 +22,6 @@ def len_of_text_list(text: Tuple[str, ...]) -> int:
         length += 1  # added for a space between word
     length += text_pad  # adding text pad for right side
     return length
-
-
-# it takes x,y , w and h of resized text box (resized according to original image)
-def calculate_font_size_and_pattern(lyrics_box: Box, lyrics: Lyrics):
-    pattern = int(lyrics_box.width / lyrics_box.height) + 1
-    if pattern < 2:
-        pattern = 2
-    elif pattern > 7:  # 7 worked best for ed sheeren perfect, o o jaane jaana
-        pattern = 7
-    max_width = 0
-    num_lines = ceil(len(lyrics.text) / pattern)
-    for i in range(0, len(lyrics.text), pattern):
-        length = len(" ".join(lyrics.text[i : i + pattern]))
-        if length > max_width:
-            max_width = length
-    max_width += 2
-    best_font_size_based_on_height = int(
-        lyrics_box.height / (num_lines + 1)
-    )  # we can go smaller than this
-    best_font_size_based_on_width = int(
-        2 * lyrics_box.width / max_width
-    )  # we can go smaller than this
-    best_font_size = min(best_font_size_based_on_height, best_font_size_based_on_width)
-
-    return best_font_size, pattern
 
 
 def get_size_of_original_video(conf: Config) -> Tuple[int, int]:
@@ -70,53 +43,6 @@ def get_size_of_original_video(conf: Config) -> Tuple[int, int]:
     return frame.shape
 
 
-def find_size_pattern(row, conf: Config) -> Tuple[int, int]:
-
-    lyrics = Lyrics(text=row["text"])
-
-    box = Box(
-        first_diagonal_coords=Point(coords=(row["x1_opti"], row["y1_opti"])),
-        second_diagonal_coords=Point(coords=(row["x3_opti"], row["y3_opti"])),
-    )
-
-    box.resize(
-        new_canvas_shape=get_size_of_original_video(conf),
-        old_canvas_shape=(conf.img_height, conf.img_width),
-    )
-
-    return calculate_font_size_and_pattern(box, lyrics)
-
-
-def get_expected_box_dims(lyrics: Lyrics, font_size: int, form: int) -> Tuple[int, int]:
-
-    n_words = len(lyrics.text)
-    lengths_of_lines = []
-    if n_words > form:
-        for i in range(0, n_words - form, form):
-            if i + form < n_words:
-                last_index = i + form
-            else:
-                last_index = n_words - 1
-            lengths_of_lines.append(len_of_text_list(lyrics.text[i:last_index]))
-    else:
-        lengths_of_lines.append(len_of_text_list(lyrics.text))
-
-    # max length will never be zero
-    expected_width = int(max(lengths_of_lines) * font_size / 2)
-    expected_height = round(n_words / form) * font_size
-
-    return expected_width, expected_height
-
-
-def text_fits_box(expected_width: int, expected_height: int, box: Box) -> bool:
-
-    return (
-        box.width > expected_width
-        and box.height > expected_height
-        and box.width / box.height > 1
-    )
-
-
 def is_lyrics_box_big_enough_to_be_readable(
     canvas_shape: Tuple[int, int], lyrics_box: Box
 ) -> bool:
@@ -126,19 +52,6 @@ def is_lyrics_box_big_enough_to_be_readable(
         lyrics_box.width > 0.20 * canvas_shape[1]  # width
         and lyrics_box.height > 0.10 * canvas_shape[0]  # height
     )
-
-
-def get_overlap_with_mask(image: np.ndarray, lyrics_box: Box, padding: int):
-    box_array = np.ones(shape=[lyrics_box.height + padding, lyrics_box.width + padding])
-
-    cropped_image_array = image[
-        lyrics_box.vertex_1.y - padding // 2 : lyrics_box.vertex_3.y + padding // 2,
-        lyrics_box.vertex_1.x - padding // 2 : lyrics_box.vertex_3.x + padding // 2,
-    ]
-
-    score = (box_array * cropped_image_array).sum()
-
-    return score
 
 
 def get_norm_distance_from_image_edges(
@@ -174,49 +87,6 @@ def get_combined_box(boxes: Tuple[Box, ...]) -> Box:
     )
 
     return new_box
-
-
-def get_nearness_to_preferred_centre(centre_1: Point, centre_2: Point) -> float:
-    line_seg = LineSegment(centre_1, centre_2)
-
-    return line_seg.length
-
-
-def get_preferred_centre(boxes: Tuple[Box, ...], image: np.ndarray) -> Point:
-
-    # check the spread of boxes
-    combi_box = get_combined_box(boxes)
-
-    total_area_of_all_boxes = sum([box.area for box in boxes])
-
-    available_area_in_between_boxes = combi_box.area - total_area_of_all_boxes
-
-    # if all boxes together occupy > 50% of the image area and more than 50% of the area in between boxes is available
-    if (
-        combi_box.area / (image.shape[0] * image.shape[1]) > 0.5
-        and available_area_in_between_boxes / combi_box.area > 0.5
-    ):
-        # search for an optimal location within the boxes
-        list_of_centres = [box.centre for box in boxes]
-
-        naive_centre_x = mean([centre.x for centre in list_of_centres])
-        naive_centre_y = mean([centre.y for centre in list_of_centres])
-
-        naive_centre = Point(coords=(naive_centre_x, naive_centre_y))
-
-        # if the naive centre is inside any box
-        if any([box.is_enclosing(naive_centre) for box in boxes]):
-            # TODO: develop a better logic here !
-            # then return the centre of the imaage as the preferred centre
-            preferred_centre = Point(coords=(image.shape[0] // 2, image.shape[1] // 2))
-        else:
-            preferred_centre = naive_centre
-    else:
-        # search for an optimal location in the area of the image where there are no boxes
-
-        print("do something else")
-
-    return preferred_centre
 
 
 def get_overlapping_area(box_1: Box, box_2: Box) -> int:
@@ -276,3 +146,58 @@ def add_variation(
         return int(round(x1_)), int(round(y1_)), int(round(x3_)), int(round(y3_))
     else:
         return x1, y1, x3, y3
+
+
+def restore_scale_to_original_resolution(
+    row, conf: Config
+) -> Tuple[int, int, int, int]:
+    lyrics_box = Box(
+        first_diagonal_coords=Point(coords=(row["x1_opti"], row["y1_opti"])),
+        second_diagonal_coords=Point(coords=(row["x3_opti"], row["y3_opti"])),
+    )
+
+    lyrics_box.resize(
+        new_canvas_shape=get_size_of_original_video(conf),
+        old_canvas_shape=(conf.img_height, conf.img_width),
+    )
+
+    return (
+        lyrics_box.vertex_1.x,
+        lyrics_box.vertex_1.y,
+        lyrics_box.vertex_3.x,
+        lyrics_box.vertex_3.y,
+    )
+
+
+def draw_text_inside_box(row, conf: Config, font_path: Path) -> None:
+
+    lyrics_box = Box(
+        first_diagonal_coords=Point(coords=(row["x1_opti"], row["y1_opti"])),
+        second_diagonal_coords=Point(coords=(row["x3_opti"], row["y3_opti"])),
+    )
+
+    left, top, width, height = 0, 0, lyrics_box.width, lyrics_box.height
+    transparent_canvas = Image(width=width, height=height, pseudo="xc:transparent")
+    with Drawing() as context:
+        context.fill_color = "transparent"
+        context.rectangle(left=left, top=top, width=width, height=height)
+        font = Font(str(font_path), color="white")
+        context(transparent_canvas)
+        transparent_canvas.caption(
+            row["text"],
+            left=left,
+            top=top,
+            width=width,
+            height=height,
+            font=font,
+            gravity="center",
+        )
+
+    output_folder_path = (
+        Path.cwd().joinpath(conf.output_data_path).joinpath(conf.run_id)
+    )
+    output_folder_path.mkdir(exist_ok=True)
+
+    transparent_canvas.save(
+        filename=str(output_folder_path.joinpath(f"{row['start_time']}.png"))
+    )
