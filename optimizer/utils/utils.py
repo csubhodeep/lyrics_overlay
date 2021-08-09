@@ -149,24 +149,31 @@ def add_variation(
 
 
 def restore_scale_to_original_resolution(
-    row, conf: Config
+    row, conf: Config, for_opti: bool = False
 ) -> Tuple[int, int, int, int]:
-    lyrics_box = Box(
-        first_diagonal_coords=Point(coords=(row["x1_opti"], row["y1_opti"])),
-        second_diagonal_coords=Point(coords=(row["x3_opti"], row["y3_opti"])),
+
+    if for_opti:
+        x1 = "x1_opti"
+        y1 = "y1_opti"
+        x3 = "x3_opti"
+        y3 = "y3_opti"
+    else:
+        x1 = "x1"
+        y1 = "y1"
+        x3 = "x3"
+        y3 = "y3"
+
+    box = Box(
+        first_diagonal_coords=Point(coords=(row[x1], row[y1])),
+        second_diagonal_coords=Point(coords=(row[x3], row[y3])),
     )
 
-    lyrics_box.resize(
-        new_canvas_shape=get_size_of_original_video(conf),
+    box.resize(
+        new_canvas_shape=conf.org_canvas_shape,
         old_canvas_shape=(conf.img_height, conf.img_width),
     )
 
-    return (
-        lyrics_box.vertex_1.x,
-        lyrics_box.vertex_1.y,
-        lyrics_box.vertex_3.x,
-        lyrics_box.vertex_3.y,
-    )
+    return (box.vertex_1.x, box.vertex_1.y, box.vertex_3.x, box.vertex_3.y)
 
 
 def draw_text_inside_box(row, conf: Config, font_path: Path) -> None:

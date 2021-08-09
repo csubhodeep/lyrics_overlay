@@ -1,15 +1,3 @@
-from pathlib import Path
-
-import cv2
-import numpy as np
-import pandas as pd
-from wand.image import Image
-
-from configs.make_config import Config
-
-DEBUG_DRAW = False
-
-
 """
 VERY IMPORTANT
 if we got landscape image:
@@ -21,11 +9,21 @@ if we got portrait image h1000, w=500
 den we converted it to
 h=832,w=416
 """
+from pathlib import Path
+
+import cv2
+import numpy as np
+import pandas as pd
+from wand.image import Image
+
+from configs.make_config import Config
+
 
 # TODO: take this hard-coding to config file
 COLOR_HUMAN_BOX = (255, 0, 0)
 COLOR_TEXT_BOX = (0, 255, 0)
 BOX_EDGE_THICKNESS = 2
+DEBUG_DRAW = False
 
 
 def overlay(conf: Config):

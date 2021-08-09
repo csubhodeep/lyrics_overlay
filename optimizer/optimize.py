@@ -23,6 +23,7 @@ from optimizer.utils.utils import draw_text_inside_box
 from optimizer.utils.utils import get_bottom_box
 from optimizer.utils.utils import get_norm_distance_from_image_edges
 from optimizer.utils.utils import get_overlapping_area
+from optimizer.utils.utils import get_size_of_original_video
 from optimizer.utils.utils import restore_scale_to_original_resolution
 
 # import matplotlib.pyplot as plt # noqa
@@ -212,6 +213,8 @@ def optimize(conf: Config) -> bool:
 
     conf = get_image_height_and_width(conf)
 
+    conf.org_canvas_shape = get_size_of_original_video(conf)
+
     input_file_path = (
         Path.cwd().joinpath(conf.input_data_path).joinpath(f"{conf.run_id}.feather")
     )
@@ -232,6 +235,13 @@ def optimize(conf: Config) -> bool:
     df_input = df_input.merge(df_opti, on=["start_time", "end_time"])
 
     df_input[["x1_opti", "y1_opti", "x3_opti", "y3_opti"]] = df_input.apply(
+        restore_scale_to_original_resolution,
+        axis=1,
+        args=(conf, True),
+        result_type="expand",
+    )
+
+    df_input[["x1", "y1", "x3", "y3"]] = df_input.apply(
         restore_scale_to_original_resolution, axis=1, args=(conf,), result_type="expand"
     )
 
