@@ -142,15 +142,15 @@ def get_optimal_boxes(row, conf: Config) -> Dict[str, Union[int, float]]:
             limits = Bounds(
                 (
                     0.05 * conf.img_width,
-                    0.05 * conf.img_height,
+                    0.10 * conf.img_height,
                     0.05 * conf.img_width,
-                    0.05 * conf.img_height,
+                    0.10 * conf.img_height,
                 ),
                 (
                     0.95 * conf.img_width,
-                    0.95 * conf.img_height,
+                    0.90 * conf.img_height,
                     0.95 * conf.img_width,
-                    0.95 * conf.img_height,
+                    0.90 * conf.img_height,
                 ),
             )
 
