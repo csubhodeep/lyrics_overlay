@@ -93,5 +93,7 @@ typing-extensions==3.10.0.0
     # via torch
 urllib3==1.26.6
     # via requests
+wand==0.6.6
+    # via -r requirements/mac/requirements.in
 wheel==0.36.2
     # via mediapipe

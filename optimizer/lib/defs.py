@@ -25,6 +25,11 @@ class Point:
     def y(self) -> int:
         return self._y
 
+    def resize(self, new_img_shape: Tuple[int, int], old_img_shape: Tuple[int, int]):
+
+        self._x = int((self.x / old_img_shape[1]) * new_img_shape[1])
+        self._y = int((self.y / old_img_shape[0]) * new_img_shape[0])
+
 
 class LineSegment:
     def __init__(self, first_coord: Point, second_coord: Point):
@@ -76,12 +81,6 @@ class Box:
         self._first_diagonal_coords = first_diagonal_coords
         self._second_diagonal_coords = second_diagonal_coords
 
-    @make_immutable(
-        allowed_settable_attributes=(
-            "_first_diagonal_coords",
-            "_second_diagonal_coords",
-        )
-    )
     def __setattr__(self, key, value):
         self.__dict__[key] = value
 
@@ -182,6 +181,12 @@ class Box:
             self.vertex_1.y : self.vertex_3.y, self.vertex_1.x : self.vertex_3.x
         ] = -1
         return overlaid_image
+
+    def resize(
+        self, new_canvas_shape: Tuple[int, int], old_canvas_shape: Tuple[int, int]
+    ):
+        for vtx in [self._first_diagonal_coords, self._second_diagonal_coords]:
+            vtx.resize(new_img_shape=new_canvas_shape, old_img_shape=old_canvas_shape)
 
 
 class Lyrics:

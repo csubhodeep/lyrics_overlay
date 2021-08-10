@@ -89,9 +89,24 @@ def post_process_detection(
     return list_of_persons
 
 
+def get_only_biggest_person(persons: List[Dict[str, float]]) -> List[Dict[str, float]]:
+
+    area = lambda x: (x["x3"] - x["x1"]) * (x["y3"] - x["y1"])
+
+    biggest_person = persons[0]
+
+    for person in persons[1:]:
+        if area(person) > area(biggest_person):
+            biggest_person = person
+
+    return [biggest_person]
+
+
 def get_persons(
     frame_info: Tuple[np.ndarray, Path], conf: Config, model: Darknet, classes
 ) -> List[Dict[str, float]]:
+
+    frame_ts = float(frame_info[1].name.rstrip(".npy"))
 
     frame = cv2.cvtColor(frame_info[0], cv2.COLOR_BGR2RGB)
     pilimg = Image.fromarray(frame)
@@ -101,20 +116,15 @@ def get_persons(
     if detections is not None:
         persons = post_process_detection(detections, classes, pilimg, conf)
 
+        # ideally the below function should only return one person instead of a List
+        persons = get_only_biggest_person(persons)
+
         for person in persons:
-            person["frame"] = float(frame_info[1].name.rstrip(".npy"))
+            person["frame"] = frame_ts
 
         return persons
     else:
-        return [
-            {
-                "x1": -1,
-                "y1": -1,
-                "x3": -1,
-                "y3": -1,
-                "frame": float(frame_info[1].name.rstrip(".npy")),
-            }
-        ]
+        return [{"x1": -1, "y1": -1, "x3": -1, "y3": -1, "frame": frame_ts}]
 
 
 def detect_persons(conf: Config) -> bool:

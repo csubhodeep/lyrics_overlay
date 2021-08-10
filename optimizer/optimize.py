@@ -19,11 +19,16 @@ from optimizer.lib.defs import Point
 from optimizer.utils.params import LossFunctionParameters
 from optimizer.utils.params import OptimizerParameters
 from optimizer.utils.utils import add_variation
+from optimizer.utils.utils import draw_text_inside_box
 from optimizer.utils.utils import get_bottom_box
 from optimizer.utils.utils import get_norm_distance_from_image_edges
 from optimizer.utils.utils import get_overlapping_area
+from optimizer.utils.utils import get_size_of_original_video
+from optimizer.utils.utils import restore_scale_to_original_resolution
 
 # import matplotlib.pyplot as plt # noqa
+
+FONT_LIB_PATH = Path(__file__).parent.joinpath("../post_processor/font_lib/Black.otf")
 
 
 def get_loss(
@@ -137,15 +142,15 @@ def get_optimal_boxes(row, conf: Config) -> Dict[str, Union[int, float]]:
             limits = Bounds(
                 (
                     0.05 * conf.img_width,
-                    0.05 * conf.img_height,
+                    0.10 * conf.img_height,
                     0.05 * conf.img_width,
-                    0.05 * conf.img_height,
+                    0.10 * conf.img_height,
                 ),
                 (
                     0.95 * conf.img_width,
-                    0.95 * conf.img_height,
+                    0.90 * conf.img_height,
                     0.95 * conf.img_width,
-                    0.95 * conf.img_height,
+                    0.90 * conf.img_height,
                 ),
             )
 
@@ -169,7 +174,7 @@ def get_optimal_boxes(row, conf: Config) -> Dict[str, Union[int, float]]:
                     x3,
                     y3,
                     canvas_shape=(conf.img_height, conf.img_width),
-                    small_box_probability=0.7,
+                    small_box_probability=conf.small_box_probability,
                 )
             else:
                 x1, y1, x3, y3 = get_bottom_box(conf)
@@ -187,7 +192,9 @@ def get_optimal_boxes(row, conf: Config) -> Dict[str, Union[int, float]]:
 def get_image_height_and_width(conf: Config) -> Config:
     # TODO: make it better
 
-    path_to_files = Path.cwd().joinpath(f"data/pre_processor_output/{conf.run_id}")
+    path_to_files = Path(__file__).parent.joinpath(
+        f"../data/pre_processor_output/{conf.run_id}"
+    )
 
     for item in path_to_files.iterdir():
         if item.name.endswith("npy"):
@@ -205,6 +212,8 @@ def get_image_height_and_width(conf: Config) -> Config:
 def optimize(conf: Config) -> bool:
 
     conf = get_image_height_and_width(conf)
+
+    conf.org_canvas_shape = get_size_of_original_video(conf)
 
     input_file_path = (
         Path.cwd().joinpath(conf.input_data_path).joinpath(f"{conf.run_id}.feather")
@@ -225,6 +234,17 @@ def optimize(conf: Config) -> bool:
     df_opti = pd.DataFrame(res)
     df_input = df_input.merge(df_opti, on=["start_time", "end_time"])
 
+    df_input[["x1_opti", "y1_opti", "x3_opti", "y3_opti"]] = df_input.apply(
+        restore_scale_to_original_resolution,
+        axis=1,
+        args=(conf, True),
+        result_type="expand",
+    )
+
+    df_input[["x1", "y1", "x3", "y3"]] = df_input.apply(
+        restore_scale_to_original_resolution, axis=1, args=(conf,), result_type="expand"
+    )
+
     # NORMAL pandas apply() - takes 33s kept here only for debugging/testing
     # df_input[["x1_opti", "y1_opti", "x3_opti", "y3_opti"]] = df_input.apply(
     #     get_optimal_boxes, axis=1, args=(conf,), result_type="expand"
@@ -233,6 +253,8 @@ def optimize(conf: Config) -> bool:
     df_input[["x1_opti", "y1_opti", "x3_opti", "y3_opti"]] = df_input[
         ["x1_opti", "y1_opti", "x3_opti", "y3_opti"]
     ].astype(int)
+
+    df_input.apply(draw_text_inside_box, axis=1, args=(conf, FONT_LIB_PATH))
 
     df_input.to_feather(output_file_path)
 
@@ -244,9 +266,10 @@ if __name__ == "__main__":
     config = Config(
         output_data_path="../data/optimizer_output",
         input_data_path="../data/splitter_output",
+        video_input_path="../data/input",
         img_width=739,
         img_height=416,
-        run_id="edcafb91-74b1-4966-9e30-a7e2dd4cc53c",
+        run_id="350ade69-d2c0-4453-9178-ffa4d7887630",
     )
 
     optimize(conf=config)
