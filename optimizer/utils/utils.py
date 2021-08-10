@@ -1,3 +1,4 @@
+import os
 import random
 from math import sqrt
 from pathlib import Path
@@ -5,13 +6,17 @@ from typing import List
 from typing import Tuple
 
 import cv2
-from wand.drawing import Drawing
 from wand.font import Font
 from wand.image import Image
 
 from configs.make_config import Config
 from optimizer.lib.defs import Box
 from optimizer.lib.defs import Point
+
+if os.getenv("ENVIRONMENT") == "test":
+    DEBUG = True
+else:
+    DEBUG = False
 
 
 def len_of_text_list(text: Tuple[str, ...]) -> int:
@@ -183,22 +188,43 @@ def draw_text_inside_box(row, conf: Config, font_path: Path) -> None:
         second_diagonal_coords=Point(coords=(row["x3_opti"], row["y3_opti"])),
     )
 
+    if DEBUG:
+        font_name = random.choice(["Playlist_Script.otf", "Black.otf", "yatra_one.ttf"])
+    else:
+        font_name = conf.font_name
+
+    transparent_canvas = Image(
+        width=lyrics_box.width, height=lyrics_box.height, pseudo="xc:transparent"
+    )
     left, top, width, height = 0, 0, lyrics_box.width, lyrics_box.height
-    transparent_canvas = Image(width=width, height=height, pseudo="xc:transparent")
-    with Drawing() as context:
-        context.fill_color = "transparent"
-        context.rectangle(left=left, top=top, width=width, height=height)
-        font = Font(str(font_path), color="white")
-        context(transparent_canvas)
-        transparent_canvas.caption(
-            row["text"],
-            left=left,
-            top=top,
-            width=width,
-            height=height,
-            font=font,
-            gravity="center",
-        )
+    font = Font(str(font_path.joinpath(font_name)), color="black")
+    transparent_canvas.caption(
+        row["text"],
+        left=left,
+        top=top,
+        width=width,
+        height=height,
+        font=font,
+        gravity="center",
+    )
+    x_shadow_offset = min(int(0.005 * lyrics_box.width), 2)
+    y_shadow_offset = min(int(0.005 * lyrics_box.height), 2)
+    left, top, width, height = (
+        x_shadow_offset,
+        y_shadow_offset,
+        lyrics_box.width,
+        lyrics_box.height,
+    )
+    font = Font(str(font_path.joinpath(font_name)), color="white")
+    transparent_canvas.caption(
+        row["text"],
+        left=left,
+        top=top,
+        width=width,
+        height=height,
+        font=font,
+        gravity="center",
+    )
 
     output_folder_path = (
         Path.cwd().joinpath(conf.output_data_path).joinpath(conf.run_id)

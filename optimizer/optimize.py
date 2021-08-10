@@ -28,7 +28,7 @@ from optimizer.utils.utils import restore_scale_to_original_resolution
 
 # import matplotlib.pyplot as plt # noqa
 
-FONT_LIB_PATH = Path(__file__).parent.joinpath("../post_processor/font_lib/Black.otf")
+FONT_LIB_PATH = Path(__file__).parent.joinpath("../post_processor/font_lib")
 
 
 def get_loss(
