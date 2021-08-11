@@ -168,6 +168,9 @@ def restore_scale_to_original_resolution(
         x3 = "x3"
         y3 = "y3"
 
+    if row[x1] == row[y1] == row[x3] == row[y3] == -1:
+        return 0, 0, 0, 0
+
     box = Box(
         first_diagonal_coords=Point(coords=(row[x1], row[y1])),
         second_diagonal_coords=Point(coords=(row[x3], row[y3])),
