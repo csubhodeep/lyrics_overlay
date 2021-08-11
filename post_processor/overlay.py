@@ -10,7 +10,10 @@ den we converted it to
 h=832,w=416
 """
 import os
+import time
 from pathlib import Path
+from queue import Queue
+from threading import Thread
 
 import cv2
 import numpy as np
@@ -18,7 +21,6 @@ import pandas as pd
 from wand.image import Image
 
 from configs.make_config import Config
-
 
 # TODO: take this hard-coding to config file
 COLOR_HUMAN_BOX = (255, 0, 0)
@@ -29,6 +31,9 @@ if os.getenv("ENVIRONMENT") == "test":
     DEBUG = True
 else:
     DEBUG = False
+
+q1: Queue = Queue()
+q2: Queue = Queue()
 
 
 def draw_boxes(frame, lyrics_and_boxes_df: pd.DataFrame, lyrics_index: int):
@@ -61,6 +66,77 @@ def draw_boxes(frame, lyrics_and_boxes_df: pd.DataFrame, lyrics_index: int):
     )
 
     return frame
+
+
+def write(out):
+    while not (q2.empty() and q1.empty()):
+        out.write(q2.get())
+        q2.task_done()
+    out.release()
+
+
+def compose(frame, lyrics_and_boxes_df, lyrics_index, transparent_image_with_text):
+    if DEBUG:
+        frame = draw_boxes(frame, lyrics_and_boxes_df, lyrics_index)
+
+    wand_background_image = Image.from_array(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+    # BOTTLENECK ######################
+    # This takes around .1 second which is very slow
+    wand_background_image.composite(
+        transparent_image_with_text,
+        left=lyrics_and_boxes_df.loc[lyrics_index, "x1_opti"],
+        top=lyrics_and_boxes_df.loc[lyrics_index, "y1_opti"],
+    )
+    ################################
+    return cv2.cvtColor(np.asarray(wand_background_image), cv2.COLOR_RGB2BGR)
+
+
+def overlay_lyrics(lyrics_and_boxes_df, wand_folder_path):
+    lyrics_index = 0
+    computation_done_for_one_lyrics_line = False
+    while not q1.empty():
+        frame, frame_ts = q1.get()
+        if lyrics_index < len(lyrics_and_boxes_df):
+            if (
+                lyrics_and_boxes_df.loc[lyrics_index, "start_time"]
+                <= frame_ts
+                <= lyrics_and_boxes_df.loc[lyrics_index, "end_time"]
+            ):
+                if not computation_done_for_one_lyrics_line:
+                    transparent_image_with_text = Image(
+                        filename=str(
+                            wand_folder_path.joinpath(
+                                f"{lyrics_and_boxes_df.loc[lyrics_index, 'start_time']}.png"
+                            )
+                        )
+                    )
+                    computation_done_for_one_lyrics_line = True
+
+                frame = compose(
+                    frame,
+                    lyrics_and_boxes_df,
+                    lyrics_index,
+                    transparent_image_with_text,
+                )
+
+            if frame_ts > lyrics_and_boxes_df.loc[lyrics_index, "end_time"]:
+                lyrics_index += 1
+                computation_done_for_one_lyrics_line = False
+
+        q2.put(frame)
+        q1.task_done()
+
+
+def read(cap):
+    flg = cap.isOpened()
+    while flg:
+        ret, frame = cap.read()
+        if ret:
+            frame_ts = cap.get(cv2.CAP_PROP_POS_MSEC)
+            q1.put(item=(frame, frame_ts))
+        flg = not q1.empty()
+
+    cap.release()
 
 
 def overlay(conf: Config):
@@ -105,61 +181,20 @@ def overlay(conf: Config):
         cap.get(cv2.CAP_PROP_FPS),
         (int(cap.get(3)), int(cap.get(4))),
     )
-    lyrics_index = 0
-    computation_done_for_one_lyrics_line = False
-    while cap.isOpened():
-        ret, frame = cap.read()
-        if ret:
-            frame_ts = cap.get(cv2.CAP_PROP_POS_MSEC)
-            if lyrics_index < len(lyrics_and_boxes_df):
-                if (
-                    lyrics_and_boxes_df.loc[lyrics_index, "start_time"]
-                    <= frame_ts
-                    <= lyrics_and_boxes_df.loc[lyrics_index, "end_time"]
-                ):
-                    if not computation_done_for_one_lyrics_line:
+    th_read = Thread(target=read, args=(cap,), daemon=True)
+    th_overlay = Thread(
+        target=overlay_lyrics, args=(lyrics_and_boxes_df, wand_folder_path), daemon=True
+    )
+    th_write = Thread(target=write, args=(out,))
 
-                        transparent_image_with_text = Image(
-                            filename=str(
-                                wand_folder_path.joinpath(
-                                    f"{lyrics_and_boxes_df.loc[lyrics_index, 'start_time']}.png"
-                                )
-                            )
-                        )
-                        computation_done_for_one_lyrics_line = True
+    th_read.start()
+    time.sleep(0.5)
+    th_overlay.start()
+    th_write.start()
 
-                    if DEBUG:
-                        frame = draw_boxes(frame, lyrics_and_boxes_df, lyrics_index)
-
-                    wand_background_image = Image.from_array(
-                        cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                    )
-                    # BOTTLENECK ######################
-                    # This takes around .1 second which is very slow
-                    wand_background_image.composite(
-                        transparent_image_with_text,
-                        left=lyrics_and_boxes_df.loc[lyrics_index, "x1_opti"],
-                        top=lyrics_and_boxes_df.loc[lyrics_index, "y1_opti"],
-                    )
-                    ################################
-                    frame = cv2.cvtColor(
-                        np.asarray(wand_background_image), cv2.COLOR_RGB2BGR
-                    )
-
-                if frame_ts > lyrics_and_boxes_df.loc[lyrics_index, "end_time"]:
-                    lyrics_index += 1
-                    computation_done_for_one_lyrics_line = False
-
-            # Write the frame into the file '*.avi'
-            out.write(frame)
-
-        # Break the loop
-        else:
-            break
-
-    # When everything done, release the video capture and video write objects
-    cap.release()
-    out.release()
+    th_read.join()
+    th_overlay.join()
+    th_write.join()
 
     # Closes all the frames
     cv2.destroyAllWindows()
