@@ -98,16 +98,12 @@ def overlay(conf: Config):
 
     # Default resolutions of the frame are obtained.The default resolutions are system dependent.
     # We convert the resolutions from float to integer.
-    frame_width = int(cap.get(3))
-    frame_height = int(cap.get(4))
-    fps = cap.get(cv2.CAP_PROP_FPS)
-
-    # Define the codec and create VideoWriter object.The output is stored in 'outpy.avi' file.
+    # Define the codec and create VideoWriter object.The output is stored in a '.avi' file.
     out = cv2.VideoWriter(
         str(output_video_file),
         cv2.VideoWriter_fourcc("M", "J", "P", "G"),
-        fps,
-        (frame_width, frame_height),
+        cap.get(cv2.CAP_PROP_FPS),
+        (int(cap.get(3)), int(cap.get(4))),
     )
     lyrics_index = 0
     computation_done_for_one_lyrics_line = False
