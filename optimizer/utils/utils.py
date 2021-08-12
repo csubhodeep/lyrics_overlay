@@ -210,8 +210,8 @@ def draw_text_inside_box(row, conf: Config, font_path: Path) -> None:
         font=font,
         gravity="center",
     )
-    x_shadow_offset = min(int(0.005 * lyrics_box.width), 2)
-    y_shadow_offset = min(int(0.005 * lyrics_box.height), 2)
+    x_shadow_offset = min(int(0.008 * lyrics_box.width), 2)
+    y_shadow_offset = min(int(0.008 * lyrics_box.height), 2)
     left, top, width, height = (
         x_shadow_offset,
         y_shadow_offset,

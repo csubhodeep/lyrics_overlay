@@ -92,7 +92,6 @@ def post_process_detection(
 def get_only_biggest_person(persons: List[Dict[str, float]]) -> List[Dict[str, float]]:
 
     area = lambda x: (x["x3"] - x["x1"]) * (x["y3"] - x["y1"])
-
     biggest_person = persons[0]
 
     for person in persons[1:]:
@@ -117,7 +116,8 @@ def get_persons(
         persons = post_process_detection(detections, classes, pilimg, conf)
 
         # ideally the below function should only return one person instead of a List
-        persons = get_only_biggest_person(persons)
+        if len(persons) > 0:
+            persons = get_only_biggest_person(persons)
 
         for person in persons:
             person["frame"] = frame_ts
