@@ -25,16 +25,21 @@ def fetch_data(conf: Config) -> bool:
 
     video_name = "oh_oh_jaane_jaana.mp4"
     lyrics_name = "oh_oh_jaane_jaana_lyrics.csv"
-    video_name = "perfect.mov"
-    lyrics_name = "perfect.csv"
+    # video_name = "perfect.mov"
+    # lyrics_name = "perfect.csv"
     # video_name = "gul.mp4"
     # lyrics_name = "gul.csv"
-    video_name = "fancy_like_360p.mp4"
-    lyrics_name = "fancy_like.csv"
+    # video_name = "fancy_like.mp4"
+    # lyrics_name = "fancy_like.csv"
+    # video_name = "na_jaane_main.mp4"
+    # lyrics_name = "na_jaane_main.csv"
     input_file_path_video = (
-        Path.cwd().joinpath(conf.input_data_path).joinpath(video_name)
+        Path.cwd()
+        .joinpath(conf.input_data_path)
+        .joinpath("test_cases")
+        .joinpath(video_name)
     )
-    input_file_path_lyrics = Path.cwd().joinpath(lyrics_name)
+    input_file_path_lyrics = Path.cwd().joinpath("test_cases").joinpath(lyrics_name)
 
     download_data(src=input_file_path_lyrics, dest=output_file_path_lyrics)
     download_data(src=input_file_path_video, dest=output_file_path_video)
