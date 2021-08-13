@@ -11,9 +11,15 @@ h=832,w=416
 """
 import os
 import time
+from collections import UserList
+from functools import partial
+from multiprocessing import Pool
 from pathlib import Path
 from queue import Queue
 from threading import Thread
+from typing import Any
+from typing import Tuple
+from typing import Union
 
 import cv2
 import numpy as np
@@ -21,6 +27,7 @@ import pandas as pd
 from wand.image import Image
 
 from configs.make_config import Config
+
 
 # TODO: take this hard-coding to config file
 COLOR_HUMAN_BOX = (255, 0, 0)
@@ -33,7 +40,25 @@ else:
     DEBUG = False
 
 q1: Queue = Queue()
-q2: Queue = Queue()
+# q2: PriorityQueue = PriorityQueue()
+
+
+class CustomQueue(UserList):
+    def put(self, item: Tuple[Union[int, float], Any]):
+        self.data.append(item)
+        self.data.sort(key=lambda x: x[0])
+
+    def get(self):
+        return self.data.pop(0)
+
+    def empty(self) -> bool:
+        return len(self.data) == 0
+
+    def task_done(self):
+        ...
+
+
+q2 = CustomQueue()
 
 
 def draw_boxes(frame, lyrics_and_boxes_df: pd.DataFrame, lyrics_index: int):
@@ -70,12 +95,15 @@ def draw_boxes(frame, lyrics_and_boxes_df: pd.DataFrame, lyrics_index: int):
 
 def write(out):
     while not (q2.empty() and q1.empty()):
-        out.write(q2.get())
-        q2.task_done()
+        if len(q2):
+            out.write(q2.get()[1])
+            q2.task_done()
     out.release()
 
 
-def compose(frame, lyrics_and_boxes_df, lyrics_index, transparent_image_with_text):
+def compose(
+    frame, lyrics_and_boxes_df, lyrics_index, transparent_image_with_text, frame_ts
+):
     if DEBUG:
         frame = draw_boxes(frame, lyrics_and_boxes_df, lyrics_index)
 
@@ -88,12 +116,57 @@ def compose(frame, lyrics_and_boxes_df, lyrics_index, transparent_image_with_tex
         top=lyrics_and_boxes_df.loc[lyrics_index, "y1_opti"],
     )
     ################################
-    return cv2.cvtColor(np.asarray(wand_background_image), cv2.COLOR_RGB2BGR)
+    return frame_ts, cv2.cvtColor(np.asarray(wand_background_image), cv2.COLOR_RGB2BGR)
+
+
+def compose2(job, lyrics_and_boxes_df, lyrics_index, wand_folder_path):
+    frame = job["frame"]
+
+    if DEBUG:
+        frame = draw_boxes(frame, lyrics_and_boxes_df, lyrics_index)
+
+    transparent_image_with_text = Image(
+        filename=str(
+            wand_folder_path.joinpath(
+                f"{lyrics_and_boxes_df.loc[lyrics_index, 'start_time']}.png"
+            )
+        )
+    )
+
+    wand_background_image = Image.from_array(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+    # BOTTLENECK ######################
+    # This takes around .1 second which is very slow
+    wand_background_image.composite(
+        transparent_image_with_text,
+        left=lyrics_and_boxes_df.loc[lyrics_index, "x1_opti"],
+        top=lyrics_and_boxes_df.loc[lyrics_index, "y1_opti"],
+    )
+    ################################
+    return (
+        job["frame_ts"],
+        cv2.cvtColor(np.asarray(wand_background_image), cv2.COLOR_RGB2BGR),
+    )
+
+
+def parallel_compose(batch, lyrics_and_boxes_df, lyrics_index, wand_folder_path):
+    with Pool() as p:
+        results = p.map(
+            partial(
+                compose2,
+                lyrics_and_boxes_df=lyrics_and_boxes_df,
+                lyrics_index=lyrics_index,
+                wand_folder_path=wand_folder_path,
+            ),
+            batch,
+        )
+
+    return results
 
 
 def overlay_lyrics(lyrics_and_boxes_df, wand_folder_path):
     lyrics_index = 0
     computation_done_for_one_lyrics_line = False
+    batch = []
     while not q1.empty():
         frame, frame_ts = q1.get()
         if lyrics_index < len(lyrics_and_boxes_df):
@@ -103,27 +176,34 @@ def overlay_lyrics(lyrics_and_boxes_df, wand_folder_path):
                 <= lyrics_and_boxes_df.loc[lyrics_index, "end_time"]
             ):
                 if not computation_done_for_one_lyrics_line:
-                    transparent_image_with_text = Image(
+                    transparent_image_with_text = Image(  # noqa
                         filename=str(
                             wand_folder_path.joinpath(
                                 f"{lyrics_and_boxes_df.loc[lyrics_index, 'start_time']}.png"
                             )
                         )
                     )
+
                     computation_done_for_one_lyrics_line = True
 
-                frame = compose(
-                    frame,
-                    lyrics_and_boxes_df,
-                    lyrics_index,
-                    transparent_image_with_text,
+                batch.append({"frame_ts": frame_ts, "frame": frame})
+
+            elif frame_ts > lyrics_and_boxes_df.loc[lyrics_index, "end_time"]:
+                results = parallel_compose(
+                    batch, lyrics_and_boxes_df, lyrics_index, wand_folder_path
                 )
 
-            if frame_ts > lyrics_and_boxes_df.loc[lyrics_index, "end_time"]:
+                print(lyrics_index)
+                for res in results:
+                    q2.put((res[0], res[1]))
+
                 lyrics_index += 1
                 computation_done_for_one_lyrics_line = False
-
-        q2.put(frame)
+                batch = []
+            else:
+                q2.put((frame_ts, frame))
+        else:
+            q2.put((frame_ts, frame))
         q1.task_done()
 
 
@@ -183,12 +263,13 @@ def overlay(conf: Config):
     )
     th_read = Thread(target=read, args=(cap,), daemon=True)
     th_overlay = Thread(
-        target=overlay_lyrics, args=(lyrics_and_boxes_df, wand_folder_path), daemon=True
+        target=overlay_lyrics, args=(lyrics_and_boxes_df, wand_folder_path)
     )
     th_write = Thread(target=write, args=(out,))
 
     th_read.start()
     time.sleep(0.5)
+    # overlay_lyrics(lyrics_and_boxes_df, wand_folder_path)
     th_overlay.start()
     th_write.start()
 
@@ -209,7 +290,7 @@ if __name__ == "__main__":
         input_data_path="../data/optimizer_output",
         video_input_path="../data/input",
         img_size=416,
-        run_id="e299765c-f5d1-412c-bc17-c1cae7a2a9f8",
+        run_id="fdac852c-94b4-4ab5-bccb-566cd90c7e64",
     )
 
     overlay(conf=config)
