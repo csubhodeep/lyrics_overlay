@@ -25,7 +25,7 @@
     "video_input_path": "./data/input",
     "output_data_path": "./data/optimizer_output",
     "small_box_probability": 0.7,
-    "font_name": "Playlist_Script.otf"
+    "font_name": "Frenchpress.otf"
   },
   "overlay": {
     "img_size": 416,
