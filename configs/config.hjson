@@ -1,5 +1,6 @@
 {
   "fetch_data": {
+    "filename": "perfect.mov"
     "input_data_path": "./", // this would ideally be a remote location where the FE uploads the data to
     "output_data_path": "./data/input"
   },
