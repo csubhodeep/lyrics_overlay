@@ -228,7 +228,7 @@ class Pipeline(UserList):
         """This function ensures 'lazy' execution of the pipeline"""
         # make the collection of jobs immutable before executing each job
         self.data = tuple(self.data)
-        print("Starting the following pipeline: ")
+        print(f"Starting pipeline - {self.run_id}: ")
         print(self)
         start_time = time.time()
         for job in self:
