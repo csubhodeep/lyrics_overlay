@@ -51,7 +51,7 @@ if __name__ == "__main__":
     parser = ArgumentParser()
 
     parser.add_argument(
-        "--config_file_path", type=str, default="./configs/config.hjson", required=False
+        "--config_file_path", type=str, default="./configs/config.hjson"
     )
 
     args = parser.parse_args()
@@ -62,7 +62,8 @@ if __name__ == "__main__":
         3. Put the above Job objects in any kind of iterable or collection (like List or Tuple) following a particular order.
         4. Make a Pipeline object using the list of Jobs created in Step - 3"""
 
-    clear_files()
+    if not DEBUG:
+        clear_files()
 
     # Step-1: get all details from config file
     dict_of_configs = get_config(path_to_config=args.config_file_path)

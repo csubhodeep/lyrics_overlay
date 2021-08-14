@@ -11,15 +11,12 @@ h=832,w=416
 """
 import os
 import time
-from collections import UserList
 from functools import partial
+from math import ceil
 from multiprocessing import Pool
 from pathlib import Path
 from queue import Queue
 from threading import Thread
-from typing import Any
-from typing import Tuple
-from typing import Union
 
 import cv2
 import numpy as np
@@ -40,25 +37,28 @@ else:
     DEBUG = False
 
 q1: Queue = Queue()
-# q2: PriorityQueue = PriorityQueue()
+q2: Queue = Queue()
 
-
-class CustomQueue(UserList):
-    def put(self, item: Tuple[Union[int, float], Any]):
-        self.data.append(item)
-        self.data.sort(key=lambda x: x[0])
-
-    def get(self):
-        return self.data.pop(0)
-
-    def empty(self) -> bool:
-        return len(self.data) == 0
-
-    def task_done(self):
-        ...
-
-
-q2 = CustomQueue()
+# from collections import UserList
+# from typing import Any
+# from typing import Tuple
+# from typing import Union
+# class CustomQueue(UserList):
+#     def put(self, item: Tuple[Union[int, float], Any]):
+#         self.data.append(item)
+#         self.data.sort(key=lambda x: x[0])
+#
+#     def get(self):
+#         return self.data.pop(0)
+#
+#     def empty(self) -> bool:
+#         return len(self.data) == 0
+#
+#     def task_done(self):
+#         ...
+#
+#
+# q2 = CustomQueue()
 
 
 def draw_boxes(frame, lyrics_and_boxes_df: pd.DataFrame, lyrics_index: int):
@@ -94,16 +94,14 @@ def draw_boxes(frame, lyrics_and_boxes_df: pd.DataFrame, lyrics_index: int):
 
 
 def write(out):
+    # FIXME: don't know what would happen q1 and q2 both are empty - could happen if only the overlay is taking time to process the last frame
     while not (q2.empty() and q1.empty()):
-        if len(q2):
-            out.write(q2.get()[1])
-            q2.task_done()
+        out.write(q2.get()[1])
+        q2.task_done()
     out.release()
 
 
-def compose(
-    frame, lyrics_and_boxes_df, lyrics_index, transparent_image_with_text, frame_ts
-):
+def compose(frame, lyrics_and_boxes_df, lyrics_index, transparent_image_with_text):
     if DEBUG:
         frame = draw_boxes(frame, lyrics_and_boxes_df, lyrics_index)
 
@@ -116,22 +114,18 @@ def compose(
         top=lyrics_and_boxes_df.loc[lyrics_index, "y1_opti"],
     )
     ################################
-    return frame_ts, cv2.cvtColor(np.asarray(wand_background_image), cv2.COLOR_RGB2BGR)
+    return cv2.cvtColor(np.asarray(wand_background_image), cv2.COLOR_RGB2BGR)
 
 
-def compose2(job, lyrics_and_boxes_df, lyrics_index, wand_folder_path):
+def compose2(job, lyrics_and_boxes_df, lyrics_index, transparent_image_with_text_blob):
     frame = job["frame"]
 
-    if DEBUG:
+    if False:
         frame = draw_boxes(frame, lyrics_and_boxes_df, lyrics_index)
 
-    transparent_image_with_text = Image(
-        filename=str(
-            wand_folder_path.joinpath(
-                f"{lyrics_and_boxes_df.loc[lyrics_index, 'start_time']}.png"
-            )
-        )
-    )
+    print("here1", job["frame_ts"])
+    transparent_image_with_text = Image(blob=transparent_image_with_text_blob)
+    print("here2", job["frame_ts"])
 
     wand_background_image = Image.from_array(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
     # BOTTLENECK ######################
@@ -148,22 +142,33 @@ def compose2(job, lyrics_and_boxes_df, lyrics_index, wand_folder_path):
     )
 
 
-def parallel_compose(batch, lyrics_and_boxes_df, lyrics_index, wand_folder_path):
-    with Pool() as p:
-        results = p.map(
-            partial(
-                compose2,
-                lyrics_and_boxes_df=lyrics_and_boxes_df,
-                lyrics_index=lyrics_index,
-                wand_folder_path=wand_folder_path,
-            ),
-            batch,
-        )
+def parallel_compose(
+    jobs, lyrics_and_boxes_df, lyrics_index, transparent_image_with_text_blob
+):
+    batch_size = 7
 
-    return results
+    all_results = []
+
+    n_batches = int(ceil(len(jobs) / batch_size))
+
+    for i in range(n_batches):
+        batch = jobs[i : i + batch_size]
+        with Pool() as p:
+            results = p.map(
+                partial(
+                    compose2,
+                    lyrics_and_boxes_df=lyrics_and_boxes_df,
+                    lyrics_index=lyrics_index,
+                    transparent_image_with_text_blob=transparent_image_with_text_blob,
+                ),
+                batch,
+            )
+        all_results.extend(list(results))
+
+    return all_results
 
 
-def overlay_lyrics(lyrics_and_boxes_df, wand_folder_path):
+def overlay_lyrics2(lyrics_and_boxes_df, wand_folder_path):
     lyrics_index = 0
     computation_done_for_one_lyrics_line = False
     batch = []
@@ -176,21 +181,24 @@ def overlay_lyrics(lyrics_and_boxes_df, wand_folder_path):
                 <= lyrics_and_boxes_df.loc[lyrics_index, "end_time"]
             ):
                 if not computation_done_for_one_lyrics_line:
-                    transparent_image_with_text = Image(  # noqa
+                    transparent_image_with_text_blob = Image(
                         filename=str(
                             wand_folder_path.joinpath(
                                 f"{lyrics_and_boxes_df.loc[lyrics_index, 'start_time']}.png"
                             )
                         )
-                    )
+                    ).make_blob()
 
                     computation_done_for_one_lyrics_line = True
 
                 batch.append({"frame_ts": frame_ts, "frame": frame})
-
             elif frame_ts > lyrics_and_boxes_df.loc[lyrics_index, "end_time"]:
+                print(len(batch))
                 results = parallel_compose(
-                    batch, lyrics_and_boxes_df, lyrics_index, wand_folder_path
+                    batch,
+                    lyrics_and_boxes_df,
+                    lyrics_index,
+                    transparent_image_with_text_blob,
                 )
 
                 print(lyrics_index)
@@ -204,6 +212,42 @@ def overlay_lyrics(lyrics_and_boxes_df, wand_folder_path):
                 q2.put((frame_ts, frame))
         else:
             q2.put((frame_ts, frame))
+        q1.task_done()
+
+
+def overlay_lyrics(lyrics_and_boxes_df, wand_folder_path):
+    lyrics_index = 0
+    computation_done_for_one_lyrics_line = False
+    while not q1.empty():
+        frame, frame_ts = q1.get()
+        if lyrics_index < len(lyrics_and_boxes_df):
+            if (
+                lyrics_and_boxes_df.loc[lyrics_index, "start_time"]
+                <= frame_ts
+                <= lyrics_and_boxes_df.loc[lyrics_index, "end_time"]
+            ):
+                if not computation_done_for_one_lyrics_line:
+                    transparent_image_with_text = Image(
+                        filename=str(
+                            wand_folder_path.joinpath(
+                                f"{lyrics_and_boxes_df.loc[lyrics_index, 'start_time']}.png"
+                            )
+                        )
+                    )
+
+                    computation_done_for_one_lyrics_line = True
+
+                frame = compose(
+                    frame,
+                    lyrics_and_boxes_df,
+                    lyrics_index,
+                    transparent_image_with_text,
+                )
+            elif frame_ts > lyrics_and_boxes_df.loc[lyrics_index, "end_time"]:
+                lyrics_index += 1
+                computation_done_for_one_lyrics_line = False
+
+        q2.put((frame_ts, frame))
         q1.task_done()
 
 
@@ -269,7 +313,6 @@ def overlay(conf: Config):
 
     th_read.start()
     time.sleep(0.5)
-    # overlay_lyrics(lyrics_and_boxes_df, wand_folder_path)
     th_overlay.start()
     th_write.start()
 
@@ -293,4 +336,6 @@ if __name__ == "__main__":
         run_id="fdac852c-94b4-4ab5-bccb-566cd90c7e64",
     )
 
+    ts = time.time()
     overlay(conf=config)
+    print(time.time() - ts)
