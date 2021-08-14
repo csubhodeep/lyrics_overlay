@@ -336,6 +336,4 @@ if __name__ == "__main__":
         run_id="fdac852c-94b4-4ab5-bccb-566cd90c7e64",
     )
 
-    ts = time.time()
     overlay(conf=config)
-    print(time.time() - ts)
