@@ -221,7 +221,7 @@ def overlay(conf: Config):
         cap.get(cv2.CAP_PROP_FPS),
         (int(cap.get(3)), int(cap.get(4))),
     )
-    th_read = Thread(target=read, args=(cap,), daemon=True)
+    th_read = Thread(target=read, args=(cap,))
     th_overlay = Thread(
         target=overlay_lyrics, args=(lyrics_and_boxes_df, wand_folder_path)
     )
