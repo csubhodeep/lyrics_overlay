@@ -141,20 +141,19 @@ def overlay_lyrics(lyrics_and_boxes_df, wand_folder_path):
 
                     computation_done_for_one_lyrics_line = True
 
-                q2.put(
-                    compose(
-                        frame=frame,
-                        x1_opti=lyrics_and_boxes_df.loc[lyrics_index, "x1_opti"],
-                        y1_opti=lyrics_and_boxes_df.loc[lyrics_index, "y1_opti"],
-                        x1=lyrics_and_boxes_df.loc[lyrics_index, "x1"],
-                        y1=lyrics_and_boxes_df.loc[lyrics_index, "y1"],
-                        x3_opti=lyrics_and_boxes_df.loc[lyrics_index, "x3_opti"],
-                        y3_opti=lyrics_and_boxes_df.loc[lyrics_index, "y3_opti"],
-                        x3=lyrics_and_boxes_df.loc[lyrics_index, "x3"],
-                        y3=lyrics_and_boxes_df.loc[lyrics_index, "y3"],
-                        transparent_image_with_text=transparent_image_with_text,
-                    )
+                frame = compose(
+                    frame=frame,
+                    x1_opti=lyrics_and_boxes_df.loc[lyrics_index, "x1_opti"],
+                    y1_opti=lyrics_and_boxes_df.loc[lyrics_index, "y1_opti"],
+                    x1=lyrics_and_boxes_df.loc[lyrics_index, "x1"],
+                    y1=lyrics_and_boxes_df.loc[lyrics_index, "y1"],
+                    x3_opti=lyrics_and_boxes_df.loc[lyrics_index, "x3_opti"],
+                    y3_opti=lyrics_and_boxes_df.loc[lyrics_index, "y3_opti"],
+                    x3=lyrics_and_boxes_df.loc[lyrics_index, "x3"],
+                    y3=lyrics_and_boxes_df.loc[lyrics_index, "y3"],
+                    transparent_image_with_text=transparent_image_with_text,
                 )
+
             elif frame_ts > lyrics_and_boxes_df.loc[lyrics_index, "end_time"]:
                 # using multiprocessing to process a batch of frames for each line of lyrics
                 # leads to more time consumption (almost double) due to the need of sorting
@@ -162,10 +161,8 @@ def overlay_lyrics(lyrics_and_boxes_df, wand_folder_path):
 
                 lyrics_index += 1
                 computation_done_for_one_lyrics_line = False
-            else:
-                q2.put(frame)
-        else:
-            q2.put(frame)
+
+        q2.put(frame)
         q1.task_done()
 
 
