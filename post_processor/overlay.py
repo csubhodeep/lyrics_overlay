@@ -11,9 +11,6 @@ h=832,w=416
 """
 import os
 import time
-from functools import partial
-from math import ceil
-from multiprocessing import Pool
 from pathlib import Path
 from queue import Queue
 from threading import Thread
@@ -21,7 +18,6 @@ from threading import Thread
 import cv2
 import numpy as np
 import pandas as pd
-from wand.image import Image
 
 from configs.make_config import Config
 
@@ -39,53 +35,16 @@ else:
 q1: Queue = Queue()
 q2: Queue = Queue()
 
-# from collections import UserList
-# from typing import Any
-# from typing import Tuple
-# from typing import Union
-# class CustomQueue(UserList):
-#     def put(self, item: Tuple[Union[int, float], Any]):
-#         self.data.append(item)
-#         self.data.sort(key=lambda x: x[0])
-#
-#     def get(self):
-#         return self.data.pop(0)
-#
-#     def empty(self) -> bool:
-#         return len(self.data) == 0
-#
-#     def task_done(self):
-#         ...
-#
-#
-# q2 = CustomQueue()
 
-
-def draw_boxes(frame, lyrics_and_boxes_df: pd.DataFrame, lyrics_index: int):
+def draw_boxes(frame, x1, y1, x3, y3, x1_opti, y1_opti, x3_opti, y3_opti):
     frame = cv2.rectangle(
-        frame,
-        (
-            lyrics_and_boxes_df.loc[lyrics_index, "x1"],
-            lyrics_and_boxes_df.loc[lyrics_index, "y1"],
-        ),
-        (
-            lyrics_and_boxes_df.loc[lyrics_index, "x3"],
-            lyrics_and_boxes_df.loc[lyrics_index, "y3"],
-        ),
-        COLOR_HUMAN_BOX,
-        BOX_EDGE_THICKNESS,
+        frame, (x1, y1), (x3, y3), COLOR_HUMAN_BOX, BOX_EDGE_THICKNESS
     )
 
     frame = cv2.rectangle(
         frame,
-        (
-            lyrics_and_boxes_df.loc[lyrics_index, "x1_opti"],
-            lyrics_and_boxes_df.loc[lyrics_index, "y1_opti"],
-        ),
-        (
-            lyrics_and_boxes_df.loc[lyrics_index, "x3_opti"],
-            lyrics_and_boxes_df.loc[lyrics_index, "y3_opti"],
-        ),
+        (x1_opti, y1_opti),
+        (x3_opti, y3_opti),
         COLOR_TEXT_BOX,
         BOX_EDGE_THICKNESS,
     )
@@ -96,123 +55,67 @@ def draw_boxes(frame, lyrics_and_boxes_df: pd.DataFrame, lyrics_index: int):
 def write(out):
     # FIXME: don't know what would happen q1 and q2 both are empty - could happen if only the overlay is taking time to process the last frame
     while not (q2.empty() and q1.empty()):
-        out.write(q2.get()[1])
+        out.write(q2.get())
         q2.task_done()
     out.release()
 
 
-def compose(frame, lyrics_and_boxes_df, lyrics_index, transparent_image_with_text):
-    if DEBUG:
-        frame = draw_boxes(frame, lyrics_and_boxes_df, lyrics_index)
+def overlay_transparent(background, x, y, overlay):
+    background_width = background.shape[1]
+    background_height = background.shape[0]
 
-    wand_background_image = Image.from_array(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
-    # BOTTLENECK ######################
-    # This takes around .1 second which is very slow
-    wand_background_image.composite(
-        transparent_image_with_text,
-        left=lyrics_and_boxes_df.loc[lyrics_index, "x1_opti"],
-        top=lyrics_and_boxes_df.loc[lyrics_index, "y1_opti"],
-    )
-    ################################
-    return cv2.cvtColor(np.asarray(wand_background_image), cv2.COLOR_RGB2BGR)
+    if x >= background_width or y >= background_height:
+        return background
 
+    h, w = overlay.shape[0], overlay.shape[1]
 
-def compose2(job, lyrics_and_boxes_df, lyrics_index, transparent_image_with_text_blob):
-    frame = job["frame"]
+    if x + w > background_width:
+        w = background_width - x
+        overlay = overlay[:, :w]
 
-    if False:
-        frame = draw_boxes(frame, lyrics_and_boxes_df, lyrics_index)
+    if y + h > background_height:
+        h = background_height - y
+        overlay = overlay[:h]
 
-    print("here1", job["frame_ts"])
-    transparent_image_with_text = Image(blob=transparent_image_with_text_blob)
-    print("here2", job["frame_ts"])
+    if overlay.shape[2] < 4:
+        overlay = np.concatenate(
+            [
+                overlay,
+                np.ones((overlay.shape[0], overlay.shape[1], 1), dtype=overlay.dtype)
+                * 255,
+            ],
+            axis=2,
+        )
 
-    wand_background_image = Image.from_array(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
-    # BOTTLENECK ######################
-    # This takes around .1 second which is very slow
-    wand_background_image.composite(
-        transparent_image_with_text,
-        left=lyrics_and_boxes_df.loc[lyrics_index, "x1_opti"],
-        top=lyrics_and_boxes_df.loc[lyrics_index, "y1_opti"],
-    )
-    ################################
-    return (
-        job["frame_ts"],
-        cv2.cvtColor(np.asarray(wand_background_image), cv2.COLOR_RGB2BGR),
-    )
+    overlay_image = overlay[..., :3]
+    mask = overlay[..., 3:] / np.max(overlay[..., 3:])
+
+    background[y : y + h, x : x + w] = (1.0 - mask) * background[
+        y : y + h, x : x + w
+    ] + mask * overlay_image
+
+    return background
 
 
-def parallel_compose(
-    jobs, lyrics_and_boxes_df, lyrics_index, transparent_image_with_text_blob
+def compose(
+    frame,
+    transparent_image_with_text,
+    x1_opti,
+    y1_opti,
+    x3_opti,
+    y3_opti,
+    x1,
+    y1,
+    x3,
+    y3,
 ):
-    batch_size = 7
 
-    all_results = []
+    if DEBUG:
+        frame = draw_boxes(frame, x1, y1, x3, y3, x1_opti, y1_opti, x3_opti, y3_opti)
 
-    n_batches = int(ceil(len(jobs) / batch_size))
-
-    for i in range(n_batches):
-        batch = jobs[i : i + batch_size]
-        with Pool() as p:
-            results = p.map(
-                partial(
-                    compose2,
-                    lyrics_and_boxes_df=lyrics_and_boxes_df,
-                    lyrics_index=lyrics_index,
-                    transparent_image_with_text_blob=transparent_image_with_text_blob,
-                ),
-                batch,
-            )
-        all_results.extend(list(results))
-
-    return all_results
-
-
-def overlay_lyrics2(lyrics_and_boxes_df, wand_folder_path):
-    lyrics_index = 0
-    computation_done_for_one_lyrics_line = False
-    batch = []
-    while not q1.empty():
-        frame, frame_ts = q1.get()
-        if lyrics_index < len(lyrics_and_boxes_df):
-            if (
-                lyrics_and_boxes_df.loc[lyrics_index, "start_time"]
-                <= frame_ts
-                <= lyrics_and_boxes_df.loc[lyrics_index, "end_time"]
-            ):
-                if not computation_done_for_one_lyrics_line:
-                    transparent_image_with_text_blob = Image(
-                        filename=str(
-                            wand_folder_path.joinpath(
-                                f"{lyrics_and_boxes_df.loc[lyrics_index, 'start_time']}.png"
-                            )
-                        )
-                    ).make_blob()
-
-                    computation_done_for_one_lyrics_line = True
-
-                batch.append({"frame_ts": frame_ts, "frame": frame})
-            elif frame_ts > lyrics_and_boxes_df.loc[lyrics_index, "end_time"]:
-                print(len(batch))
-                results = parallel_compose(
-                    batch,
-                    lyrics_and_boxes_df,
-                    lyrics_index,
-                    transparent_image_with_text_blob,
-                )
-
-                print(lyrics_index)
-                for res in results:
-                    q2.put((res[0], res[1]))
-
-                lyrics_index += 1
-                computation_done_for_one_lyrics_line = False
-                batch = []
-            else:
-                q2.put((frame_ts, frame))
-        else:
-            q2.put((frame_ts, frame))
-        q1.task_done()
+    return overlay_transparent(
+        background=frame, x=x1_opti, y=y1_opti, overlay=transparent_image_with_text
+    )
 
 
 def overlay_lyrics(lyrics_and_boxes_df, wand_folder_path):
@@ -227,27 +130,42 @@ def overlay_lyrics(lyrics_and_boxes_df, wand_folder_path):
                 <= lyrics_and_boxes_df.loc[lyrics_index, "end_time"]
             ):
                 if not computation_done_for_one_lyrics_line:
-                    transparent_image_with_text = Image(
+                    transparent_image_with_text = cv2.imread(
                         filename=str(
                             wand_folder_path.joinpath(
                                 f"{lyrics_and_boxes_df.loc[lyrics_index, 'start_time']}.png"
                             )
-                        )
+                        ),
+                        flags=cv2.IMREAD_UNCHANGED,
                     )
 
                     computation_done_for_one_lyrics_line = True
 
-                frame = compose(
-                    frame,
-                    lyrics_and_boxes_df,
-                    lyrics_index,
-                    transparent_image_with_text,
+                q2.put(
+                    compose(
+                        frame=frame,
+                        x1_opti=lyrics_and_boxes_df.loc[lyrics_index, "x1_opti"],
+                        y1_opti=lyrics_and_boxes_df.loc[lyrics_index, "y1_opti"],
+                        x1=lyrics_and_boxes_df.loc[lyrics_index, "x1"],
+                        y1=lyrics_and_boxes_df.loc[lyrics_index, "y1"],
+                        x3_opti=lyrics_and_boxes_df.loc[lyrics_index, "x3_opti"],
+                        y3_opti=lyrics_and_boxes_df.loc[lyrics_index, "y3_opti"],
+                        x3=lyrics_and_boxes_df.loc[lyrics_index, "x3"],
+                        y3=lyrics_and_boxes_df.loc[lyrics_index, "y3"],
+                        transparent_image_with_text=transparent_image_with_text,
+                    )
                 )
             elif frame_ts > lyrics_and_boxes_df.loc[lyrics_index, "end_time"]:
+                # using multiprocessing to process a batch of frames for each line of lyrics
+                # leads to more time consumption (almost double) due to the need of sorting
+                # the results according to their timestamps
+
                 lyrics_index += 1
                 computation_done_for_one_lyrics_line = False
-
-        q2.put((frame_ts, frame))
+            else:
+                q2.put(frame)
+        else:
+            q2.put(frame)
         q1.task_done()
 
 
@@ -256,8 +174,9 @@ def read(cap):
     while flg:
         ret, frame = cap.read()
         if ret:
-            frame_ts = cap.get(cv2.CAP_PROP_POS_MSEC)
-            q1.put(item=(frame, frame_ts))
+            q1.put(item=(frame, cap.get(cv2.CAP_PROP_POS_MSEC)))
+        # a weird hack to close this Thread once the next thread has consumed all the tasks
+        # produced by this thread
         flg = not q1.empty()
 
     cap.release()
@@ -333,7 +252,7 @@ if __name__ == "__main__":
         input_data_path="../data/optimizer_output",
         video_input_path="../data/input",
         img_size=416,
-        run_id="fdac852c-94b4-4ab5-bccb-566cd90c7e64",
+        run_id="75e1e27a-630b-4db2-bbc2-82cf9b5c5ee5",
     )
 
     overlay(conf=config)
