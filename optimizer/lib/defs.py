@@ -127,8 +127,8 @@ class Box:
         return Point(coords=(x_centre, y_centre))
 
     @cached_property
-    def diagonal_length(self) -> float:
-        return LineSegment(first_coord=self.vertex_1, second_coord=self.vertex_3).length
+    def diagonal(self) -> LineSegment:
+        return LineSegment(first_coord=self.vertex_1, second_coord=self.vertex_3)
 
     @cached_property
     def aspect_ratio(self) -> Union[float, int]:

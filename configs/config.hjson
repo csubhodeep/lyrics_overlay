@@ -16,7 +16,8 @@
     "config_path": "./person_box_detector/config/yolov3.cfg",
     "weights_path": "./person_box_detector/config/yolov3.weights",
     "class_path": "./person_box_detector/config/coco.names",
-    "output_data_path": "./data/person_box_detector_output"
+    "output_data_path": "./data/person_box_detector_output",
+    "batch_size": 64
   },
   "split": {
     "output_data_path": "./data/splitter_output",

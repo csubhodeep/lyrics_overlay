@@ -193,7 +193,7 @@ def get_image_height_and_width(conf: Config) -> Config:
     # TODO: make it better
 
     path_to_files = Path(__file__).parent.joinpath(
-        f"../data/pre_processor_output/{conf.run_id}"
+        f"../data/pre_processor_output/{conf.run_id}/frames"
     )
 
     for item in path_to_files.iterdir():

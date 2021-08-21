@@ -42,7 +42,12 @@ def clear_files():
                 stuff.unlink(missing_ok=True)
             if stuff.is_dir():
                 for ele in stuff.iterdir():
-                    ele.unlink(missing_ok=True)
+                    if ele.is_dir():
+                        for i in ele.iterdir():
+                            i.unlink(missing_ok=True)
+                        ele.rmdir()
+                    else:
+                        ele.unlink(missing_ok=True)
                 stuff.rmdir()
 
 
