@@ -70,9 +70,12 @@ def sample(conf: Config) -> bool:
     )
 
     output_folder_path = (
-        Path.cwd().joinpath(conf.output_data_path).joinpath(conf.run_id)
+        Path.cwd()
+        .joinpath(conf.output_data_path)
+        .joinpath(conf.run_id)
+        .joinpath("frames")
     )
-    output_folder_path.mkdir(exist_ok=True)
+    output_folder_path.mkdir(exist_ok=True, parents=True)
 
     raw_lyrics_df = pd.read_csv(input_lyrics_path)
 
