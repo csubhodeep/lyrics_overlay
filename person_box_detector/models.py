@@ -1,7 +1,7 @@
 from __future__ import division
 
 from collections import defaultdict
-
+import os
 import numpy as np
 import torch
 import torch.nn as nn
@@ -280,7 +280,12 @@ class Darknet(nn.Module):
         """Parses and loads the weights stored in 'weights_path'"""
 
         # Open the weights file
-        fp = open(weights_path, "rb")
+        try:
+            fp = open(weights_path, "rb")
+        except FileNotFoundError:
+            os.system("wget https://pjreddie.com/media/files/yolov3.weights")
+            os.system("mv yolov3.weights ./person_box_detector/config/yolov3.weights")
+            fp = open(weights_path, "rb")
         header = np.fromfile(
             fp, dtype=np.int32, count=5
         )  # First five are header values

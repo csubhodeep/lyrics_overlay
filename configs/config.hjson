@@ -1,5 +1,6 @@
 {
   "fetch_data": {
+    "filename": "perfect.mov"
     "input_data_path": "./", // this would ideally be a remote location where the FE uploads the data to
     "output_data_path": "./data/input"
   },
@@ -15,7 +16,8 @@
     "config_path": "./person_box_detector/config/yolov3.cfg",
     "weights_path": "./person_box_detector/config/yolov3.weights",
     "class_path": "./person_box_detector/config/coco.names",
-    "output_data_path": "./data/person_box_detector_output"
+    "output_data_path": "./data/person_box_detector_output",
+    "batch_size": 64
   },
   "split": {
     "output_data_path": "./data/splitter_output",
@@ -24,7 +26,8 @@
   "optimization": {
     "video_input_path": "./data/input",
     "output_data_path": "./data/optimizer_output",
-    "small_box_probability": 0.7
+    "small_box_probability": 0.7,
+    "font_name": "Frenchpress.otf"
   },
   "overlay": {
     "img_size": 416,

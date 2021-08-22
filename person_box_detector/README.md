@@ -1,7 +1,7 @@
 # PyTorch Object Detection and Tracking
 Object detection in images, and tracking across video frames
 
-1. download the weights file using the script in config folder 'download_weights.sh'
+1. yolov3 will be automatically downloaded when u run the main.py
 2. install the things that are required to run the project. (torch, cv2, PIL, numba etc)
 3. put a video in the data folder
 4. run the inference.py after providing the path of ur video inside the code.

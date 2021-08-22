@@ -28,7 +28,7 @@ from optimizer.utils.utils import restore_scale_to_original_resolution
 
 # import matplotlib.pyplot as plt # noqa
 
-FONT_LIB_PATH = Path(__file__).parent.joinpath("../post_processor/font_lib/Black.otf")
+FONT_LIB_PATH = Path(__file__).parent.joinpath("../post_processor/font_lib")
 
 
 def get_loss(
@@ -193,7 +193,7 @@ def get_image_height_and_width(conf: Config) -> Config:
     # TODO: make it better
 
     path_to_files = Path(__file__).parent.joinpath(
-        f"../data/pre_processor_output/{conf.run_id}"
+        f"../data/pre_processor_output/{conf.run_id}/frames"
     )
 
     for item in path_to_files.iterdir():
@@ -267,9 +267,9 @@ if __name__ == "__main__":
         output_data_path="../data/optimizer_output",
         input_data_path="../data/splitter_output",
         video_input_path="../data/input",
-        img_width=739,
-        img_height=416,
-        run_id="350ade69-d2c0-4453-9178-ffa4d7887630",
+        small_box_probability=0.7,
+        font_name="key_lime.ttf",
+        run_id="c778c384-952e-498c-9561-75a2b1bc967a",
     )
 
     optimize(conf=config)

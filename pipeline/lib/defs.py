@@ -47,8 +47,13 @@ class Job:
         for item in path.iterdir():
             if item.is_dir() and item.name == run_id:
                 for ele in item.iterdir():
-                    if ele.name not in exclude_files:
-                        ele.unlink(missing_ok=True)
+                    if not ele.is_dir():
+                        if ele.name not in exclude_files:
+                            ele.unlink(missing_ok=True)
+                    else:
+                        for i in ele.iterdir():
+                            i.unlink(missing_ok=True)
+                        ele.rmdir()
                 item.rmdir()
             else:
                 if item.name not in exclude_files and item.name.startswith(run_id):
@@ -228,14 +233,14 @@ class Pipeline(UserList):
         """This function ensures 'lazy' execution of the pipeline"""
         # make the collection of jobs immutable before executing each job
         self.data = tuple(self.data)
-        print("Starting the following pipeline: ")
+        print(f"Starting pipeline - {self.run_id}: ")
         print(self)
         start_time = time.time()
         for job in self:
             res = job()
-            print(f"This job took: {job.time_exec}")
             if not res:
                 raise Exception(f"Step - {job.name} failed")
+            print(f"This job took: {job.time_exec}")
         print("=================================")
         print(
             f"Pipeline completed successfully in {str(timedelta(seconds=time.time()-start_time))} !"

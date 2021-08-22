@@ -1,7 +1,7 @@
+from functools import partial
 from pathlib import Path
 from typing import Dict
 from typing import List
-from typing import Tuple
 
 import cv2
 import numpy as np
@@ -9,6 +9,8 @@ import pandas as pd
 import torch
 from PIL import Image
 from torch.autograd import Variable
+from torch.utils.data import DataLoader
+from torchvision import datasets
 from torchvision.transforms import Compose
 from torchvision.transforms import Pad
 from torchvision.transforms import Resize
@@ -24,14 +26,35 @@ from person_box_detector.utils.utils import non_max_suppression
 Tensor = torch.FloatTensor
 
 
-def detect_image(
-    img: Image, img_size: int, model: Darknet, conf_thresh: float, nms_thresh: float
-):
+def npy_loader(path):
+    numpy_image = np.load(path)
+    frame = cv2.cvtColor(numpy_image, cv2.COLOR_BGR2RGB)
+    pilimg = Image.fromarray(frame)
+    return pilimg
+
+
+class ImageFolderWithPaths(datasets.DatasetFolder):
+    """Custom dataset that includes image file paths. Extends
+    torchvision.datasets.ImageFolder
+    """
+
+    # override the __getitem__ method. this is the method that dataloader calls
+    def __getitem__(self, index):
+        # this is what ImageFolder normally returns
+        original_tuple = super(ImageFolderWithPaths, self).__getitem__(index)
+        # the image file path
+        path = self.samples[index][0]
+        # make a new tuple that includes original and the path
+        tuple_with_path = original_tuple + (path,)
+        return tuple_with_path
+
+
+def get_transformer(img: Image, img_size: int) -> Variable:
     # scale and pad image
     ratio = min(img_size / img.size[0], img_size / img.size[1])
     imw = round(img.size[0] * ratio)
     imh = round(img.size[1] * ratio)
-    img_transforms = Compose(
+    img_transform = Compose(
         [
             Resize((imh, imw)),
             Pad(
@@ -47,14 +70,7 @@ def detect_image(
         ]
     )
     # convert image to Tensor
-    image_tensor = img_transforms(img).float()
-    image_tensor = image_tensor.unsqueeze_(0)
-    input_img = Variable(image_tensor.type(Tensor))
-    # run inference on the model and get detections
-    with torch.no_grad():
-        detections = model(input_img)
-        detections = non_max_suppression(detections, 80, conf_thresh, nms_thresh)
-    return detections[0]
+    return Variable(img_transform(img).float().type(Tensor))
 
 
 def post_process_detection(
@@ -91,40 +107,7 @@ def post_process_detection(
 
 def get_only_biggest_person(persons: List[Dict[str, float]]) -> List[Dict[str, float]]:
 
-    area = lambda x: (x["x3"] - x["x1"]) * (x["y3"] - x["y1"])
-
-    biggest_person = persons[0]
-
-    for person in persons[1:]:
-        if area(person) > area(biggest_person):
-            biggest_person = person
-
-    return [biggest_person]
-
-
-def get_persons(
-    frame_info: Tuple[np.ndarray, Path], conf: Config, model: Darknet, classes
-) -> List[Dict[str, float]]:
-
-    frame_ts = float(frame_info[1].name.rstrip(".npy"))
-
-    frame = cv2.cvtColor(frame_info[0], cv2.COLOR_BGR2RGB)
-    pilimg = Image.fromarray(frame)
-    detections = detect_image(
-        pilimg, conf.img_size, model, conf.conf_thresh, conf.nms_thresh
-    )
-    if detections is not None:
-        persons = post_process_detection(detections, classes, pilimg, conf)
-
-        # ideally the below function should only return one person instead of a List
-        persons = get_only_biggest_person(persons)
-
-        for person in persons:
-            person["frame"] = frame_ts
-
-        return persons
-    else:
-        return [{"x1": -1, "y1": -1, "x3": -1, "y3": -1, "frame": frame_ts}]
+    return [max(persons, key=lambda x: (x["x3"] - x["x1"]) * (x["y3"] - x["y1"]))]
 
 
 def detect_persons(conf: Config) -> bool:
@@ -143,18 +126,38 @@ def detect_persons(conf: Config) -> bool:
 
     result_df = pd.DataFrame()
 
-    persons = []
-    for item in input_frames_path.iterdir():
-        with open(str(item), "rb") as f:
-            frame = np.load(f)
-        persons.extend(
-            get_persons(
-                frame_info=(frame, item), conf=conf, model=model, classes=classes
+    for inputs, labels, paths in DataLoader(
+        ImageFolderWithPaths(
+            str(input_frames_path),
+            transform=partial(get_transformer, img_size=conf.img_size),
+            loader=npy_loader,
+            extensions=(".npy",),
+        ),
+        batch_size=conf.batch_size,
+    ):
+        with torch.no_grad():
+            outputs = non_max_suppression(
+                model(inputs), 80, conf.conf_thresh, conf.nms_thresh
             )
-        )
+        for detections, path in zip(outputs, paths):
+            frame_ts = float(Path(path).name.rstrip(".npy"))
+            if detections is not None:
+                persons = post_process_detection(
+                    detections, classes, npy_loader(path), conf
+                )
 
-    for person in persons:
-        result_df = result_df.append(person, ignore_index=True)
+                # ideally the below function should only return one person instead of a List
+                if len(persons) > 0:
+                    persons = get_only_biggest_person(persons)
+
+                for person in persons:
+                    person["frame"] = frame_ts
+                    result_df = result_df.append(person, ignore_index=True)
+            else:
+                result_df = result_df.append(
+                    {"x1": -1, "y1": -1, "x3": -1, "y3": -1, "frame": frame_ts},
+                    ignore_index=True,
+                )
 
     result_df.to_feather(output_file_path)
 
@@ -165,7 +168,7 @@ if __name__ == "__main__":
     config = Config(
         input_data_path="../data/pre_processor_output",
         output_data_path="../data/person_box_detector_output",
-        run_id="bffaf4d5-bdd3-4563-8af1-f90d8b1601aa",
+        run_id="ad5d61b0-1923-43eb-86ef-43b6c6f58001",
         conf_thresh=0.8,
         nms_thresh=0.4,
         img_size=416,
@@ -174,6 +177,7 @@ if __name__ == "__main__":
         config_path="../person_box_detector/config/yolov3.cfg",
         weights_path="../person_box_detector/config/yolov3.weights",
         class_path="../person_box_detector/config/coco.names",
+        batch_size=128,
     )
 
     detect_persons(conf=config)

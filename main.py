@@ -1,4 +1,5 @@
 import os
+from argparse import ArgumentParser
 from pathlib import Path
 
 from configs.make_config import get_config
@@ -41,11 +42,24 @@ def clear_files():
                 stuff.unlink(missing_ok=True)
             if stuff.is_dir():
                 for ele in stuff.iterdir():
-                    ele.unlink(missing_ok=True)
+                    if ele.is_dir():
+                        for i in ele.iterdir():
+                            i.unlink(missing_ok=True)
+                        ele.rmdir()
+                    else:
+                        ele.unlink(missing_ok=True)
                 stuff.rmdir()
 
 
 if __name__ == "__main__":
+
+    parser = ArgumentParser()
+
+    parser.add_argument(
+        "--config_file_path", type=str, default="./configs/config.hjson"
+    )
+
+    args = parser.parse_args()
 
     """The basic procedure to compose a pipeline is done by doing the following steps:
         1. Read the config from the file under - './configs/*.hjson' - make a dict of Config objects
@@ -53,10 +67,11 @@ if __name__ == "__main__":
         3. Put the above Job objects in any kind of iterable or collection (like List or Tuple) following a particular order.
         4. Make a Pipeline object using the list of Jobs created in Step - 3"""
 
-    clear_files()
+    if not DEBUG:
+        clear_files()
 
     # Step-1: get all details from config file
-    dict_of_configs = get_config(path_to_config="./configs/config.hjson")
+    dict_of_configs = get_config(path_to_config=args.config_file_path)
 
     # Step-2: declare jobs
     fetch_data_step = Job(func=fetch_data, conf=dict_of_configs["fetch_data"])
