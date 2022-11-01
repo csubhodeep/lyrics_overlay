@@ -49,20 +49,18 @@ def get_size_of_original_video(conf: Config) -> Tuple[int, int]:
 
 
 def is_lyrics_box_big_enough_to_be_readable(
-    canvas_shape: Tuple[int, int], lyrics_box: Box
+        canvas_shape: Tuple[int, int], lyrics_box: Box
 ) -> bool:
-
     # width and height of lyrics-box should be greater than 20% of width & 10% height of the image
     return (
-        lyrics_box.width > 0.20 * canvas_shape[1]  # width
-        and lyrics_box.height > 0.10 * canvas_shape[0]  # height
+            lyrics_box.width > 0.20 * canvas_shape[1]  # width
+            and lyrics_box.height > 0.10 * canvas_shape[0]  # height
     )
 
 
 def get_norm_distance_from_image_edges(
-    canvas_shape: Tuple[int, int], box: Box
+        canvas_shape: Tuple[int, int], box: Box
 ) -> List[float]:
-
     canvas_diag_length = sqrt(canvas_shape[0] ** 2 + canvas_shape[1] ** 2)
 
     distance_edge_left = box.vertex_1.x / canvas_diag_length
@@ -79,7 +77,6 @@ def get_norm_distance_from_image_edges(
 
 
 def get_combined_box(boxes: Tuple[Box, ...]) -> Box:
-
     min_x = min([box.vertex_1.x for box in boxes])
     min_y = min([box.vertex_1.y for box in boxes])
 
@@ -95,7 +92,6 @@ def get_combined_box(boxes: Tuple[Box, ...]) -> Box:
 
 
 def get_overlapping_area(box_1: Box, box_2: Box) -> int:
-
     if not box_1.is_overlapping(box_2):
         return 0
 
@@ -123,26 +119,30 @@ def get_bottom_box(conf: Config) -> Tuple[int, int, int, int]:
     y1 = y - int(0.30 * conf.img_height)
     x3 = x + conf.img_width // 4
     y3 = y
-
+    #print(x1, y1, x3, y3)
+    #####
+    # nikhil for jhoom video
+    x1 = 70
+    y1 = 320
+    x3 = 366
+    y3 = 550
     return x1, y1, x3, y3
 
 
 def is_box_big_enough_to_be_made_smaller_for_variation(
-    x1, y1, x3, y3, canvas_shape: Tuple[int, int]
+        x1, y1, x3, y3, canvas_shape: Tuple[int, int]
 ) -> bool:
-
     return (x3 - x1) * (y3 - y1) / (canvas_shape[0] * canvas_shape[1]) > 0.35
 
 
 def add_variation(
-    x1, y1, x3, y3, canvas_shape: Tuple[int, int], small_box_probability: float = 0.5
+        x1, y1, x3, y3, canvas_shape: Tuple[int, int], small_box_probability: float = 0.5
 ) -> Tuple[int, int, int, int]:
-
     if (
-        is_box_big_enough_to_be_made_smaller_for_variation(x1, y1, x3, y3, canvas_shape)
-        and random.choices(
-            [True, False], weights=[small_box_probability, 1 - small_box_probability]
-        )[0]
+            is_box_big_enough_to_be_made_smaller_for_variation(x1, y1, x3, y3, canvas_shape)
+            and random.choices(
+        [True, False], weights=[small_box_probability, 1 - small_box_probability]
+    )[0]
     ):
         x1_ = x1 + 0.1 * (x3 - x1)
         x3_ = x3 - 0.1 * (x3 - x1)
@@ -154,9 +154,8 @@ def add_variation(
 
 
 def restore_scale_to_original_resolution(
-    row, conf: Config, for_opti: bool = False
+        row, conf: Config, for_opti: bool = False
 ) -> Tuple[int, int, int, int]:
-
     if for_opti:
         x1 = "x1_opti"
         y1 = "y1_opti"
@@ -185,7 +184,6 @@ def restore_scale_to_original_resolution(
 
 
 def draw_text_inside_box(row, conf: Config, font_path: Path) -> None:
-
     lyrics_box = Box(
         first_diagonal_coords=Point(coords=(row["x1_opti"], row["y1_opti"])),
         second_diagonal_coords=Point(coords=(row["x3_opti"], row["y3_opti"])),

@@ -1,6 +1,6 @@
 {
   "fetch_data": {
-    "filename": "perfect.mov"
+    "filename": "fight_club.mov"
     "input_data_path": "./", // this would ideally be a remote location where the FE uploads the data to
     "output_data_path": "./data/input"
   },
@@ -27,7 +27,7 @@
     "video_input_path": "./data/input",
     "output_data_path": "./data/optimizer_output",
     "small_box_probability": 0.7,
-    "font_name": "Frenchpress.otf"
+    "font_name": "times_new_roman.ttf"
   },
   "overlay": {
     "img_size": 416,

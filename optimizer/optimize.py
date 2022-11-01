@@ -32,7 +32,7 @@ FONT_LIB_PATH = Path(__file__).parent.joinpath("../post_processor/font_lib")
 
 
 def get_loss(
-    x, canvas_shape: Tuple[int, int], forbidden_zones: Tuple[Box, ...]
+        x, canvas_shape: Tuple[int, int], forbidden_zones: Tuple[Box, ...]
 ) -> float:
     lyrics_box = Box(
         first_diagonal_coords=Point(coords=(x[0], x[1])),
@@ -84,19 +84,18 @@ def get_loss(
     norm_lyrics_box_area = lyrics_box.area / canvas_area
 
     return (
-        LossFunctionParameters.UNIFORM_DISTANCE_WEIGHTAGE
-        * sqrt(variance(all_norm_distances))
-        + LossFunctionParameters.BOX_AREA_WEIGHTAGE * (1 / sqrt(norm_lyrics_box_area))
-        + LossFunctionParameters.OVERLAP_WEIGHTAGE * sqrt(total_overlapping_area)
-        + LossFunctionParameters.MIN_DISTANCE_WEIGHTAGE
-        / max(1e-6, min(all_norm_distances))
+            LossFunctionParameters.UNIFORM_DISTANCE_WEIGHTAGE
+            * sqrt(variance(all_norm_distances))
+            + LossFunctionParameters.BOX_AREA_WEIGHTAGE * (1 / sqrt(norm_lyrics_box_area))
+            + LossFunctionParameters.OVERLAP_WEIGHTAGE * sqrt(total_overlapping_area)
+            + LossFunctionParameters.MIN_DISTANCE_WEIGHTAGE
+            / max(1e-6, min(all_norm_distances))
     )
 
 
 def get_constraints(
-    canvas_height: int, canvas_width: int
+        canvas_height: int, canvas_width: int
 ) -> Tuple[NonlinearConstraint, ...]:
-
     # these constraints emulate the behaviour of `is_lyrics_box_big_enough_to_be_readable` function
     min_box_width_constraint = lambda x: (x[2] - x[0])
     min_box_height_constraint = lambda x: (x[3] - x[1])
@@ -117,7 +116,6 @@ def get_constraints(
 
 
 def get_optimal_boxes(row, conf: Config) -> Dict[str, Union[int, float]]:
-
     # if forbidden zone is an invalid zone...return centre of image
     if row["x1"] == row["y1"] == row["x3"] == row["y3"] == -1:
         x1 = int(0.20 * conf.img_width)
@@ -133,8 +131,8 @@ def get_optimal_boxes(row, conf: Config) -> Dict[str, Union[int, float]]:
         )
         # if area if forbidden zone is > 70% of image area den return a box a bottom and center
         if (
-            sum([person.area for person in persons])
-            > 0.70 * conf.img_width * conf.img_height
+                sum([person.area for person in persons])
+                > 0.70 * conf.img_width * conf.img_height
         ):
             x1, y1, x3, y3 = get_bottom_box(conf)
         else:
@@ -162,7 +160,7 @@ def get_optimal_boxes(row, conf: Config) -> Dict[str, Union[int, float]]:
                 constraints=get_constraints(conf.img_height, conf.img_width),
             )
             if (
-                res.success
+                    res.success
             ) and res.fun < LossFunctionParameters.MAXIMUM_LOSS_THRESHOLD:
                 x1 = int(round(res.x[0]))
                 y1 = int(round(res.x[1]))
@@ -178,6 +176,13 @@ def get_optimal_boxes(row, conf: Config) -> Dict[str, Union[int, float]]:
                 )
             else:
                 x1, y1, x3, y3 = get_bottom_box(conf)
+    # to hard code boxes first print the image size to know what is the dimension of video that software if working with
+    # print(conf.img_width)
+    # print(conf.img_height)
+    # x1 = 10
+    # y1 = 300
+    # x3 = 406
+    # y3 = 340
 
     return {
         "x1_opti": x1,
@@ -210,7 +215,6 @@ def get_image_height_and_width(conf: Config) -> Config:
 
 
 def optimize(conf: Config) -> bool:
-
     conf = get_image_height_and_width(conf)
 
     conf.org_canvas_shape = get_size_of_original_video(conf)
@@ -262,7 +266,6 @@ def optimize(conf: Config) -> bool:
 
 
 if __name__ == "__main__":
-
     config = Config(
         output_data_path="../data/optimizer_output",
         input_data_path="../data/splitter_output",
